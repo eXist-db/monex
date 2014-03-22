@@ -94,5 +94,47 @@
             <!-- Right side column. Contains the navbar and content of the page -->
             <aside class="right-side" id="content"/><!-- /.right-side -->
         </div><!-- ./wrapper -->
+        <script type="text/javascript">
+            $(function() {
+                //Enable sidebar toggle
+                $("[data-toggle='offcanvas']").click(function(e) {
+                    e.preventDefault();
+            
+                    // if window is small enough, enable sidebar push menu
+                    if ($(window).width() &lt;= 992) {
+                        $('.row-offcanvas').toggleClass('active');
+                        $('.left-side').removeClass("collapse-left");
+                        $(".right-side").removeClass("strech");
+                        $('.row-offcanvas').toggleClass("relative");
+                    } else {
+                        // else, enable content streching
+                        $('.left-side').toggleClass("collapse-left");
+                        $(".right-side").toggleClass("strech");
+                    }
+                });
+                
+                // Make sure sidebar is full height
+                function _fix() {
+                    // get window height and the wrapper height
+                    var height = $(window).height() - $("body &gt; .header").height();
+                    $(".wrapper").css("min-height", height + "px");
+                    var content = $(".wrapper").height();
+                    // if the wrapper height is greater than the window
+                    if (content &gt; height)
+                        // then set sidebar height to the wrapper
+                        $(".left-side, html, body").css("min-height", content + "px");
+                    else {
+                        // otherwise, set the sidebar to the height of the window
+                        $(".left-side, html, body").css("min-height", height + "px");
+                    }
+                }
+                // Fire upon load
+                _fix();
+                // Fire when wrapper is resized
+                $(".wrapper").resize(function() {
+                    _fix();
+                });
+            });
+        </script>
     </body>
 </html>
