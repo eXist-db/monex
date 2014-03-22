@@ -1,0 +1,9 @@
+/* Application styles could go here */
+.profiling .nav {
+    margin-top: 10px;
+}
+
+body > .header .logo {
+    /* background-color: #FFFFFF; */
+    text-align: left;
+}
