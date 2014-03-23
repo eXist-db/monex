@@ -76,8 +76,56 @@ $(function() {
                     $("#jmx-uptime").text(status);
                 });
                 $(xml).find("RunningQueries").each(function() {
-                    var running = $(this).find("row").length;
-                    $("#jmx-queries").text(running);
+                    var running = $(this).find("row");
+                    $("#jmx-queries").text(running.length);
+                    
+                    var tableBody = $("#jmx-running-queries");
+                    tableBody.empty();
+                    
+                    if (running.length == 0) {
+                        tableBody.append("<tr><td colspan='5'>No running queries</td></tr>");
+                    } else {
+                        running.each(function() {
+                            var id = $(this).find("id").text();
+                            var source = $(this).find("sourceKey").text();
+                            var type = $(this).find("sourceType").text();
+                            var status = $(this).find("terminating").text();
+                            status = (status == "true" ? "terminating" : "running");
+                            
+                            var tr = document.createElement("tr");
+                            var td = document.createElement("td");
+                            td.appendChild(document.createTextNode(id));
+                            tr.appendChild(td);
+                            td = document.createElement("td");
+                            td.appendChild(document.createTextNode(source));
+                            tr.appendChild(td);
+                            td = document.createElement("td");
+                            td.appendChild(document.createTextNode(type));
+                            tr.appendChild(td);
+                            td = document.createElement("td");
+                            td.appendChild(document.createTextNode(status));
+                            tr.appendChild(td);
+                            
+                            var button = document.createElement("a");
+                            button.href = "#";
+                            button.title = "Terminate";
+                            var icon = document.createElement("span");
+                            icon.className = "glyphicon glyphicon-remove";
+                            button.appendChild(icon);
+                            td = document.createElement("td");
+                            td.appendChild(button);
+                            tr.appendChild(td);
+                            
+                            $(button).click(function(ev) {
+                                $.ajax({
+                                    url: "modules/admin.xql",
+                                    data: { action: "kill", id: id },
+                                    type: "POST"
+                                });
+                            });
+                            tableBody.append(tr);
+                        });
+                    }
                 });
                 var threads = $(xml).find("WaitingThreads");
                 var waiting = 0;
