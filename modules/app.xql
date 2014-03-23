@@ -128,12 +128,12 @@ function app:index-stats($node as node(), $model as map(*), $sort as xs:string) 
                 <td class="trace-calls">
                 {
                     switch ($optimization)
-                        case "No Index" return
-                            <span class="label label-important">{$optimization}</span>
+                        case "No index" return
+                            <span class="label label-danger">{$optimization}</span>
                         case "Full" return
                             <span class="label label-success">{$optimization}</span>
                         default return
-                            <span class="label label-warning">{$optimization}</span>
+                            <span class="label label-info">{$optimization}</span>
                 }
                 </td>
                 <td class="trace-calls">{$index/@calls/string()}</td>
