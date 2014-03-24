@@ -7,3 +7,19 @@ body > .header .logo {
     /* background-color: #FFFFFF; */
     text-align: left;
 }
+
+#console tr>td:nth-child(1) {
+    width: 15%;
+}
+
+#console tr>td:nth-child(2) {
+    width: 10%;
+}
+
+#console tr>td:nth-child(3) {
+    width: 10%;
+}
+
+#console tr>td:nth-child(4) {
+    width: 65%;
+}

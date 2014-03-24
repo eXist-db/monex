@@ -121,9 +121,17 @@ $(function() {
                             var td = document.createElement("td");
                             td.appendChild(document.createTextNode(id));
                             tr.appendChild(td);
+                            
                             td = document.createElement("td");
-                            td.appendChild(document.createTextNode(source));
+                            var resource = source.replace(/^.*\/([^\/]+)$/, "$1");
+                            var span = document.createElement("span");
+                            span.setAttribute("data-toggle", "tooltip");
+                            span.title = source;
+                            span.appendChild(document.createTextNode(resource));
+                            td.appendChild(span);
                             tr.appendChild(td);
+                            $(span).tooltip();
+            
                             td = document.createElement("td");
                             td.appendChild(document.createTextNode(type));
                             tr.appendChild(td);

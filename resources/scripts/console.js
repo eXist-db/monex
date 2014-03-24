@@ -36,7 +36,13 @@ $(document).ready(function() {
         
         td = document.createElement("td");
         if (data.source) {
-            td.appendChild(document.createTextNode(data.source));
+            var source = data.source.replace(/^.*\/([^\/]+)$/, "$1");
+            var span = document.createElement("span");
+            span.setAttribute("data-toggle", "tooltip");
+            span.title = data.source;
+            span.appendChild(document.createTextNode(source));
+            td.appendChild(span);
+            $(span).tooltip();
         } else {
             td.appendChild(document.createTextNode("unknown"));
         }
