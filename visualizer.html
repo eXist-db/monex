@@ -3,7 +3,7 @@
     <!-- Content Header (Page header) -->
     <section class="content-header">
         <h1>
-            Index Visualizer <small>Display Index Map</small>
+            Data Visualizer <small>Display Index Map</small>
         </h1>
         <ol class="breadcrumb">
             <li>
@@ -11,7 +11,7 @@
                     <i class="fa fa-dashboard"/> Home</a>
             </li>
             <li class="active">
-                <i class="fa fa-desktop"/> Index Visualizer</li>
+                <i class="fa fa-desktop"/> Data Visualizer</li>
         </ol>
     </section>
     
@@ -50,12 +50,13 @@
                   .data(treemap.nodes)
                 .enter().append("div")
                   .attr("class", "node")
-                  .attr("title", function(d) {return d.children ? null : "count: " + d.size})
+                  .attr("title", function(d) {return d.children ? null : ("Node: '" + d.name + "' count: '" + d.size + "'")})
                   .call(position)
-                  .style("background", function(d) { return d.children ? color(d.name) : null; })
+                  .style("background", function(d) { return d.children ? color(d.size) : null; })
                   .text(function(d) { return d.children ? null : d.name; });
             });
         };
+        
         
         function position() {
           this.style("left", function(d) { return d.x + "px"; })
