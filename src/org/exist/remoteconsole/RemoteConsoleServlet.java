@@ -31,7 +31,6 @@ public class RemoteConsoleServlet extends WebSocketServlet {
         started = true;
         super.init();
         System.out.println("Initializing RemoteConsole...");
-        new Throwable().printStackTrace();
         ConsoleModule.setAdapter(new RemoteConsoleAdapter(this));
         ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
         service.scheduleAtFixedRate(new Runnable() {
