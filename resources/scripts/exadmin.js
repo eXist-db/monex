@@ -1,6 +1,7 @@
 $(function() {
     "use strict";
     
+    var JMX_NS = "http://exist-db.org/jmx";
     var memUsed = [];
     var memCommitted = [];
     var dataset = [
@@ -52,17 +53,40 @@ $(function() {
     };
     
     function loadJMX() {
+        function getText(elem, name) {
+            var node = elem.getElementsByTagNameNS(JMX_NS, name);
+            if (node.length > 0) {
+                var content = "";
+                var child = node[0].firstChild;
+                while (child) {
+                    if (child.nodeType == 3) {
+                        content += child.nodeValue;
+                    }
+                    child = child.nextSibling;
+                }
+                return content;
+            }
+            return "";
+        }
+        
+        function find(root, name, func) {
+            var nodes = root.getElementsByTagNameNS(JMX_NS, name);
+            if (nodes.length > 0) {
+                func.apply(nodes[0]);
+            }
+        }
+        
+        var url = location.pathname.replace(/^(.*)\/apps\/.*$/, "$1");
         $.ajax({
-            url: "/exist/status?c=instances&c=processes&c=locking&c=memory",
+            url: url + "/status?c=instances&c=processes&c=locking&c=memory",
             type: "GET",
             success: function(xml) {
-                $(xml).find("Database").each(function() {
-                    var db = $(this);
-                    var status = db.find("ActiveBrokers").text() + " of " +
-                        db.find("TotalBrokers").text();
+                find(xml, "Database", function() {
+                    var status = getText(this, "ActiveBrokers") + " of " +
+                        getText(this, "TotalBrokers");
                     $("#jmx-brokers").text(status);
                     
-                    var uptime = parseInt(db.find("Uptime").text());
+                    var uptime = parseInt(getText(this, "Uptime"));
                     var cd = 24 * 60 * 60 * 1000,
                         ch = 60 * 60 * 1000,
                         d = Math.floor(uptime / cd),
@@ -75,8 +99,9 @@ $(function() {
                     }
                     $("#jmx-uptime").text(status);
                 });
-                $(xml).find("RunningQueries").each(function() {
-                    var running = $(this).find("row");
+                
+                find(xml, "RunningQueries", function() {
+                    var running = this.getElementsByTagNameNS(JMX_NS, "row");
                     $("#jmx-queries").text(running.length);
                     
                     var tableBody = $("#jmx-running-queries");
@@ -85,11 +110,11 @@ $(function() {
                     if (running.length == 0) {
                         tableBody.append("<tr><td colspan='5'>No running queries</td></tr>");
                     } else {
-                        running.each(function() {
-                            var id = $(this).find("id").text();
-                            var source = $(this).find("sourceKey").text();
-                            var type = $(this).find("sourceType").text();
-                            var status = $(this).find("terminating").text();
+                        $(running).each(function() {
+                            var id = getText(this, "id");
+                            var source = getText(this, "sourceKey");
+                            var type = getText(this, "sourceType");
+                            var status = getText(this, "terminating");
                             status = (status == "true" ? "terminating" : "running");
                             
                             var tr = document.createElement("tr");
@@ -127,21 +152,19 @@ $(function() {
                         });
                     }
                 });
-                var threads = $(xml).find("WaitingThreads");
                 var waiting = 0;
-                if (threads && threads.length > 0) {
-                    var running = threads.find("row");
-                    if (running) {
-                        waiting = running.length;
-                    }
-                }
+                find(xml, "WaitingThreads", function() {
+                    find(this, "row", function() {
+                        waiting = this.length;
+                    });
+                });
+
                 $("#jmx-waiting").text(waiting);
                 
-                $(xml).find("HeapMemoryUsage").each(function() {
-                    var mem = $(this);
-                    var used = Math.floor(parseInt(mem.find("used").text()) / 1024 / 1024);
-                    var committed = Math.floor(parseInt(mem.find("committed").text()) / 1024 / 1024);
-                    var max = Math.floor(parseInt(mem.find("max").text()) / 1024 / 1024);
+                find(xml, "HeapMemoryUsage", function() {
+                    var used = Math.floor(parseInt(getText(this, "used")) / 1024 / 1024);
+                    var committed = Math.floor(parseInt(getText(this, "committed")) / 1024 / 1024);
+                    var max = Math.floor(parseInt(getText(this, "max")) / 1024 / 1024);
                     $("#jmx-memory-used").text(used + "/" + max + " M");
                     $("#jmx-memory-committed").text(committed + "/" + max + " M");
                     
@@ -161,25 +184,25 @@ $(function() {
                     $.plot("#memory-graph", dataset, options);
                 });
                 
-                $(xml).find("Database").each(function() {
-                    var db = $(this);
-                    var tableBody = $("#jmx-active-threads");
-                    tableBody.empty();
+                // $(xml).find("Database").each(function() {
+                //     var db = $(this);
+                //     var tableBody = $("#jmx-active-threads");
+                //     tableBody.empty();
                     
-                    db.find("ActiveBrokersMap").find("row").each(function() {
-                        var owner = $(this).find("owner").text();
-                        var dump = $(this).find("stack").text();
-                        var tr = document.createElement("tr");
-                        var td = document.createElement("td");
-                        td.appendChild(document.createTextNode(owner));
-                        tr.appendChild(td);
-                        td = document.createElement("td");
-                        td.appendChild(document.createTextNode(dump));
-                        tr.appendChild(td);
+                //     db.find("ActiveBrokersMap").find("row").each(function() {
+                //         var owner = $(this).find("owner").text();
+                //         var dump = $(this).find("stack").text();
+                //         var tr = document.createElement("tr");
+                //         var td = document.createElement("td");
+                //         td.appendChild(document.createTextNode(owner));
+                //         tr.appendChild(td);
+                //         td = document.createElement("td");
+                //         td.appendChild(document.createTextNode(dump));
+                //         tr.appendChild(td);
                         
-                        tableBody.append(tr);
-                    });
-                });
+                //         tableBody.append(tr);
+                //     });
+                // });
                 setTimeout(loadJMX, 1000);
             }
         });
