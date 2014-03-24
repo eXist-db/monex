@@ -24,18 +24,12 @@ body > .header .logo {
     width: 65%;
 }
 
-#graph {
-      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-      margin: auto;
-      position: relative;
-      width: 1024px;
-}
-            
 #visualizer .node {
-    border: solid 1px white;
-    font: 10px sans-serif;
+    border: solid 1px Ghostwhite;
+    font: 10px;
     line-height: 16px;
     overflow: hidden;
     position: absolute;
     text-indent: 2px;
+    color:Ghostwhite;
     }
