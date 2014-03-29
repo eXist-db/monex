@@ -17,12 +17,13 @@ import module namespace templates="http://exist-db.org/xquery/templates" ;
     Global variables - derived from URL parameters
 :)
 declare variable $indexes:start-value := request:get-parameter('start-value', '');
-declare variable $indexes:callback := util:function(xs:QName("indexes:term-callback"), 2);
+declare variable $indexes:callback := indexes:term-callback#2;
 declare variable $indexes:max-number-returned := xs:integer(request:get-parameter('max', 100));
 declare variable $indexes:index := request:get-parameter('index', '');
 declare variable $indexes:sortby := request:get-parameter('sortby', 'term');
 declare variable $indexes:sortorder := request:get-parameter('sortorder', 'ascending');
 declare variable $indexes:node-name := request:get-parameter('node-name', '');
+declare variable $indexes:field := request:get-parameter("field", "");
 declare variable $indexes:match := request:get-parameter('match', '');
 declare variable $indexes:collection := request:get-parameter('collection', '');
 declare variable $indexes:node-set := 
@@ -56,6 +57,10 @@ declare variable $indexes:index-names :=
             <item>
                 <label>Range</label>
                 <value>range-index</value>
+            </item>
+            <item>
+                <label>New Range</label>
+                <value>new-range-index</value>
             </item>
             <item>
                 <label>Legacy Fulltext</label>
@@ -125,7 +130,9 @@ declare function indexes:xconf-to-table($node as node(), $model as map(*)) as it
                 for $entry in ( indexes:analyze-legacy-fulltext-indexes($xconf),
                     indexes:analyze-lucene-indexes($xconf),
                     indexes:analyze-range-indexes($xconf),
-                    indexes:analyze-ngram-indexes($xconf) )
+                    indexes:analyze-ngram-indexes($xconf),
+                    indexes:analyze-new-range-indexes($xconf),
+                    indexes:analyze-new-range-index-fields($xconf))
                 let $item := $entry/td[1]
                 let $index := $entry/td[2]
                 (: order by $index, $item :)
@@ -169,10 +176,16 @@ declare function indexes:show-index-keys($node as node(), $model as map(*)) {
                 return util:index-keys($indexes:node-set, $start-value, $indexes:callback, $indexes:max-number-returned)
         (: all other indexes need to specify the index in the 5th parameter of util:index-keys() :)
         else
-            if ($indexes:show-keys-by eq 'node') then
-                util:index-keys($indexes:node-set, $indexes:start-value, $indexes:callback, $indexes:max-number-returned, $indexes:index)
-            else 
-                util:index-keys-by-qname($indexes:qname, $indexes:start-value, $indexes:callback, $indexes:max-number-returned, $indexes:index)
+            let $index := if ($indexes:index = "new-range-index") then "range-index" else $indexes:index
+            return
+                switch ($indexes:show-keys-by)
+                    case "field" return (
+                        collection($indexes:collection)/range:index-keys-for-field($indexes:field, $indexes:callback, $indexes:max-number-returned)
+                    )
+                    case "node" return
+                        util:index-keys($indexes:node-set, $indexes:start-value, $indexes:callback, $indexes:max-number-returned, $index)
+                    default return
+                        util:index-keys-by-qname($indexes:qname, $indexes:start-value, $indexes:callback, $indexes:max-number-returned, $index)
     
     let $log := util:log("DEBUG", concat("INDEXES index type:    ", $indexes:index))
     let $log := util:log("DEBUG", concat("INDEXES qname     :    ", $indexes:qname))
@@ -213,9 +226,9 @@ declare function indexes:show-index-keys($node as node(), $model as map(*)) {
     return
     
         <div>
-            <h1>{indexes:index-name-to-label($indexes:index)} Index on {($indexes:node-name, $indexes:match)[1]}</h1>
+            <h1>{indexes:index-name-to-label($indexes:index)} Index on {($indexes:field, $indexes:node-name, $indexes:match)[1]}</h1>
             <p>{count($keys)} keys returned in {$query-duration}s</p>
-            <p>Keys for the {indexes:index-name-to-label($indexes:index)} index defined on "{string-join(($indexes:node-name, $indexes:match), '')}" in the <a href="{concat('collection.html?collection=', $indexes:collection)}">{$indexes:collection}</a> collection, by {$indexes:show-keys-by}.</p>
+            <p>Keys for the {indexes:index-name-to-label($indexes:index)} index defined on "{string-join(($indexes:field, $indexes:node-name, $indexes:match), '')}" in the <a href="{concat('collection.html?collection=', $indexes:collection)}">{$indexes:collection}</a> collection, by {$indexes:show-keys-by}.</p>
             <form method="get" class="form-horizontal" action="{indexes:remove-parameter-names('start-value')}" role="form">
                 <div class="form-group">
                     <label for="max" class="col-sm-2 control-label">Max number returned:</label>
@@ -456,6 +469,73 @@ declare function indexes:analyze-range-indexes($xconf) {
 };
 
 (:
+    Analyzes the new range indexes in an index definition
+:)
+declare function indexes:analyze-new-range-indexes($xconf) {
+    let $index-label := indexes:index-name-to-label('new-range-index')
+    let $ranges := $xconf/cc:index/cc:range/cc:create[not(cc:field)]
+    return if (not($ranges)) then () else 
+        for $range in $ranges
+        let $qname := $range/@qname/string()
+        let $type := $range/@type/string()
+        let $collection := substring-after(util:collection-name($range), '/db/system/config')
+        let $nodeset := indexes:get-nodeset-from-qname($collection, $qname)
+        return
+            <tr>
+                <td>{$qname}</td>
+                <td>{$index-label} QName ({$type})</td>
+                <td>{count($nodeset)}</td>
+                <td>{
+                    if (empty($nodeset)) then ()
+                    else
+                        <a href="index-keys.html{indexes:replace-parameters((
+                            concat('node-name=', $qname)
+                            , 
+                            concat('collection=', $collection)
+                            ,
+                            'index=new-range-index'
+                            ,
+                            'show-keys-by=node'
+                        ))}">Node</a>
+                }</td>
+            </tr>
+};
+
+(:
+    Analyzes the new range indexes in an index definition
+:)
+declare function indexes:analyze-new-range-index-fields($xconf) {
+    let $index-label := indexes:index-name-to-label('new-range-index')
+    let $ranges := $xconf/cc:index/cc:range/cc:create/cc:field
+    return if (not($ranges)) then () else 
+        for $range in $ranges
+        let $name := $range/@name/string()
+        let $match := $range/@match/string()
+        let $type := $range/@type/string()
+        let $collection := substring-after(util:collection-name($range), '/db/system/config')
+        let $nodeset := indexes:get-nodeset-from-field($collection, $range/parent::cc:create/@qname, $match)
+        return
+            <tr>
+                <td>{$name} (Field)</td>
+                <td>{$index-label} Field ({$type})</td>
+                <td>{count($nodeset)}</td>
+                <td>{
+                    if (empty($nodeset)) then ()
+                    else
+                        <a href="index-keys.html{indexes:replace-parameters((
+                            concat('field=', $name)
+                            , 
+                            concat('collection=', $collection)
+                            ,
+                            'index=new-range-index'
+                            ,
+                            'show-keys-by=field'
+                        ))}">Node</a>
+                }</td>
+            </tr>
+};
+
+(:
     Analyzes the NGram indexes in an index definition
 :)
 declare function indexes:analyze-ngram-indexes($xconf) {
@@ -534,6 +614,20 @@ declare function indexes:get-nodeset-from-match($collection as xs:string, $match
         )
     return
         util:eval($nodeset-expression) 
+};
+
+(:
+    Helper function: Returns a nodeset of instances of a node-name in a collection
+:)
+declare function indexes:get-nodeset-from-field($collection as xs:string, $parentQName as xs:string, $match as xs:string?) as node()* {
+    let $nodeset-expression := 
+        indexes:get-namespace-declaration-from-node-name($parentQName, $collection) ||
+        'collection("' || $collection || '")//' || $parentQName
+    let $nodeset-expression :=
+            if ($match) then $nodeset-expression || "/" || $match else $nodeset-expression
+    let $log := util:log("DEBUG", concat("INDEXES get-nodeset:          ", $nodeset-expression))
+    return
+        util:eval($nodeset-expression)
 };
 
 (:
