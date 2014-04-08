@@ -10,8 +10,9 @@ xquery version "3.0";
 module namespace indexes="http://exist-db.org/xquery/admin-interface/indexes";
 
 declare namespace cc="http://exist-db.org/collection-config/1.0";
+declare namespace range="http://exist-db.org/xquery/range";
 
-import module namespace templates="http://exist-db.org/xquery/templates" ;
+import module namespace templates="http://exist-db.org/xquery/templates";
 
 (: 
     Global variables - derived from URL parameters
@@ -68,6 +69,9 @@ declare variable $indexes:index-names :=
             </item>
         </items>
     </code-table>;
+
+declare variable $indexes:range-lookup := function-lookup(xs:QName("range:index-keys-for-field"), 3);
+
 
 (:
     Main function: outputs the page.
@@ -179,9 +183,8 @@ declare function indexes:show-index-keys($node as node(), $model as map(*)) {
             let $index := if ($indexes:index = "new-range-index") then "range-index" else $indexes:index
             return
                 switch ($indexes:show-keys-by)
-                    case "field" return (
-                        collection($indexes:collection)/range:index-keys-for-field($indexes:field, $indexes:callback, $indexes:max-number-returned)
-                    )
+                    case "field" return
+                        $indexes:range-lookup($indexes:field, $indexes:callback, $indexes:max-number-returned)
                     case "node" return
                         util:index-keys($indexes:node-set, $indexes:start-value, $indexes:callback, $indexes:max-number-returned, $index)
                     default return
@@ -440,32 +443,35 @@ declare function indexes:analyze-legacy-fulltext-indexes($xconf) {
 declare function indexes:analyze-range-indexes($xconf) {
     let $index-label := indexes:index-name-to-label('range-index')
     let $ranges := $xconf/cc:index/cc:create 
-    return if (not($ranges)) then () else 
-        for $range in $ranges
-        let $qname := $range/@qname/string()
-        let $match := $range/@path/string()
-        let $type := $range/@type/string()
-        let $collection := substring-after(util:collection-name($range), '/db/system/config')
-        let $nodeset := if ($qname) then indexes:get-nodeset-from-qname($collection, $qname) else indexes:get-nodeset-from-match($collection, $match)
-        return
-            <tr>
-                <td>{if ($qname) then $qname else $match}</td>
-                <td>{$index-label} {if ($qname) then ' QName' else ' Path'} ({$type})</td>
-                <td>{count($nodeset)}</td>
-                <td>{
-                    if (empty($nodeset)) then ()
-                    else
-                        <a href="index-keys.html{indexes:replace-parameters((
-                            if ($qname) then concat('node-name=', $qname) else concat('match=', $match)
-                            , 
-                            concat('collection=', $collection)
-                            ,
-                            'index=range-index'
-                            ,
-                            'show-keys-by=node'
-                        ))}">Node</a>
-                }</td>
-            </tr>
+    return 
+        if (not($ranges) or empty($indexes:range-lookup)) then 
+            () 
+        else 
+            for $range in $ranges
+            let $qname := $range/@qname/string()
+            let $match := $range/@path/string()
+            let $type := $range/@type/string()
+            let $collection := substring-after(util:collection-name($range), '/db/system/config')
+            let $nodeset := if ($qname) then indexes:get-nodeset-from-qname($collection, $qname) else indexes:get-nodeset-from-match($collection, $match)
+            return
+                <tr>
+                    <td>{if ($qname) then $qname else $match}</td>
+                    <td>{$index-label} {if ($qname) then ' QName' else ' Path'} ({$type})</td>
+                    <td>{count($nodeset)}</td>
+                    <td>{
+                        if (empty($nodeset)) then ()
+                        else
+                            <a href="index-keys.html{indexes:replace-parameters((
+                                if ($qname) then concat('node-name=', $qname) else concat('match=', $match)
+                                , 
+                                concat('collection=', $collection)
+                                ,
+                                'index=range-index'
+                                ,
+                                'show-keys-by=node'
+                            ))}">Node</a>
+                    }</td>
+                </tr>
 };
 
 (:
@@ -516,8 +522,8 @@ declare function indexes:analyze-new-range-index-fields($xconf) {
         let $nodeset := indexes:get-nodeset-from-field($collection, $range/parent::cc:create/@qname, $match)
         return
             <tr>
-                <td>{$name} (Field)</td>
-                <td>{$index-label} Field ({$type})</td>
+                <td>{$name}</td>
+                <td>{$index-label} QName ({$type})</td>
                 <td>{count($nodeset)}</td>
                 <td>{
                     if (empty($nodeset)) then ()
