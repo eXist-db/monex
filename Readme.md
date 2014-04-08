@@ -1,6 +1,6 @@
 # Monex (Monitoring for eXist)
 
-![Image](../blob/master/resources/img/screenshot.png?raw=true)
+![Image](resources/img/screenshot.png?raw=true)
 
 An application for monitoring, profiling and inspecting a running eXist-db instance. The app includes:
 
