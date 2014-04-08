@@ -51,6 +51,7 @@ $(function() {
             labelBoxBorderColor: "#fff"
         }
     };
+    var infoProperties = ["ExistVersion", "ExistBuild", "OperatingSystem", "DefaultEncoding", "InstanceId"];
     
     function loadJMX() {
         function getText(elem, name) {
@@ -69,18 +70,45 @@ $(function() {
             return "";
         }
         
-        function find(root, name, func) {
-            var nodes = root.getElementsByTagNameNS(JMX_NS, name);
+        function find(root, element, func) {
+            var nodes = root.getElementsByTagNameNS(JMX_NS, element);
             if (nodes.length > 0) {
                 func.apply(nodes[0]);
             }
         }
         
+        function findByName(root, element, name, func) {
+            var nodes = root.getElementsByTagNameNS(JMX_NS, element);
+            for (var i = 0; i < nodes.length; i++) {
+                if (nodes[i].getAttribute("name") === name) { 
+                    func.apply(nodes[i]);
+                }
+            }
+        }
+        
         var url = location.pathname.replace(/^(.*)\/apps\/.*$/, "$1");
         $.ajax({
-            url: url + "/status?c=instances&c=processes&c=locking&c=memory",
+            url: url + "/status?c=instances&c=processes&c=locking&c=memory&c=caches&c=system",
             type: "GET",
             success: function(xml) {
+                $("#jmx-system-info").each(function() {
+                    var tbody = $(this).empty();
+                    $(infoProperties).each(function() {
+                        var tr = document.createElement("tr");
+                        var td = document.createElement("td");
+                        td.appendChild(document.createTextNode(this));
+                        tr.appendChild(td);
+                        
+                        td = document.createElement("td");
+                        find(xml, this, function() {
+                            td.appendChild(document.createTextNode($(this).text()));
+                        });
+                        tr.appendChild(td);
+                        
+                        tbody.append(tr);
+                    });
+                });
+                
                 find(xml, "Database", function() {
                     var status = getText(this, "ActiveBrokers") + " of " +
                         getText(this, "TotalBrokers");
@@ -100,6 +128,75 @@ $(function() {
                     $("#jmx-uptime").text(status);
                 });
                 
+                $(".jmx-cache").each(function() {
+                    var div = $(this);
+                    var key = div.attr("data-key");
+                    findByName(xml, "Cache", key, function() {
+                        var hits = getText(this, "Hits");
+                        var fails = getText(this, "Fails");
+                        var size = getText(this, "Size");
+                        var used = getText(this, "Used");
+                        var percent = Math.round(used / (size / 100));
+                        
+                        div.find(".cache-stats").text("Size: " + size + " / " + "Used: " + used + " / Fails: " + fails + " / Hits: " + hits);
+                        
+                        div.find(".progress-cache").css("width", percent + "%").text(percent + "%");
+                    });
+                });
+                
+                $(".jmx-cache-manager").each(function() {
+                    var div = $(this);
+                    var key = div.attr("data-key");
+                    findByName(xml, "CacheManager", key, function() {
+                        var max = getText(this, "MaxTotal");
+                        var current = getText(this, "CurrentSize");
+                        var percent = Math.round(current / (max / 100));
+                        
+                        div.find(".cache-stats").text("Max: " + max + " / Current: " + current);
+                        div.find(".progress-cache").css("width", percent + "%");
+                    });
+                });
+                
+                $("#jmx-lock-manager").each(function() {
+                    var table = $(this);
+                    find(xml, "LockManager", function() {
+                        var rows = this.getElementsByTagNameNS(JMX_NS, "row");
+                        if (rows.length == 0) {
+                            table.empty().append("<tr><td colspan='5'>No waiting threads</td></tr>");
+                        } else {
+                            $(rows).each(function() {
+                                var owner = getText(this, "owner");
+                                var resource = getText(this, "id");
+                                var lockMode = getText(this, "lockMode");
+                                var lockType = getText(this, "lockType");
+                                var waitingThread = getText(this, "waitingThread");
+                                
+                                var tr = document.createElement("tr");
+                                var td = document.createElement("td");
+                                td.appendChild(document.createTextNode(waitingThread));
+                                tr.appendChild(td);
+                                
+                                td = document.createElement("td");
+                                td.appendChild(document.createTextNode(owner));
+                                tr.appendChild(td);
+                                
+                                td = document.createElement("td");
+                                td.appendChild(document.createTextNode(resource));
+                                tr.appendChild(td);
+                                
+                                td = document.createElement("td");
+                                td.appendChild(document.createTextNode(lockMode));
+                                tr.appendChild(td);
+                                
+                                td = document.createElement("td");
+                                td.appendChild(document.createTextNode(lockType));
+                                tr.appendChild(td);
+                                
+                                table.html(tr);
+                            });
+                        }
+                    });
+                });
                 find(xml, "RunningQueries", function() {
                     var running = this.getElementsByTagNameNS(JMX_NS, "row");
                     $("#jmx-queries").text(running.length);
@@ -136,7 +233,11 @@ $(function() {
                             td.appendChild(document.createTextNode(type));
                             tr.appendChild(td);
                             td = document.createElement("td");
-                            td.appendChild(document.createTextNode(status));
+                            span = document.createElement("span");
+                            span.className = "label label-" + (status == "running" ? "success" : "warning");
+                            
+                            span.appendChild(document.createTextNode(status));
+                            td.appendChild(span);
                             tr.appendChild(td);
                             
                             var button = document.createElement("a");
@@ -150,12 +251,51 @@ $(function() {
                             tr.appendChild(td);
                             
                             $(button).click(function(ev) {
+                                ev.preventDefault();
                                 $.ajax({
                                     url: "modules/admin.xql",
                                     data: { action: "kill", id: id },
                                     type: "POST"
                                 });
                             });
+                            tableBody.append(tr);
+                        });
+                    }
+                });
+                find(xml, "RecentQueryHistory", function() {
+                    var running = this.getElementsByTagNameNS(JMX_NS, "row");
+                    
+                    var tableBody = $("#jmx-recent-queries");
+                    tableBody.empty();
+                    
+                    if (running.length == 0) {
+                        tableBody.append("<tr><td colspan='5'>No recent queries</td></tr>");
+                    } else {
+                        $(running).each(function() {
+                            var time = getText(this, "mostRecentExecutionTime");
+                            var date = new Date(parseInt(time));
+                            var source = getText(this, "sourceKey");
+                            var duration = getText(this, "mostRecentExecutionDuration");
+                            
+                            var tr = document.createElement("tr");
+                            var td = document.createElement("td");
+                            td.appendChild(document.createTextNode(date));
+                            tr.appendChild(td);
+                            
+                            td = document.createElement("td");
+                            var resource = source.replace(/^.*\/([^\/]+)$/, "$1");
+                            var span = document.createElement("span");
+                            span.setAttribute("data-toggle", "tooltip");
+                            span.title = source;
+                            span.appendChild(document.createTextNode(resource));
+                            td.appendChild(span);
+                            tr.appendChild(td);
+                            $(span).tooltip();
+            
+                            td = document.createElement("td");
+                            td.appendChild(document.createTextNode(duration));
+                            tr.appendChild(td);
+                            
                             tableBody.append(tr);
                         });
                     }

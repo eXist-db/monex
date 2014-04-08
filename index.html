@@ -84,7 +84,7 @@
             <!-- Left col -->
             <section class="col-lg-12"> 
                 <!-- Box (Memory Usage) -->
-                <div class="box box-success" id="loading-example">
+                <div class="box box-warning" id="loading-example">
                     <div class="box-header">
                         <i class="fa fa-bar-chart-o"/>
                         <h3 class="box-title">Java Memory</h3>
@@ -125,9 +125,9 @@
             <!-- Left col -->
             <section class="col-lg-6"> 
                 <!-- Box (Running XQueries) -->
-                <div class="box box-info">
+                <div class="box box-success">
                     <div class="box-header">
-                        <i class="fa fa-bar-chart-o"/>
+                        <i class="fa fa-cogs"/>
                         <h3 class="box-title">Running Queries</h3>
                     </div><!-- /.box-header -->
                     <div class="box-body no-padding">
@@ -145,9 +145,140 @@
                         </table>
                     </div>
                 </div>
+                <!-- Box (Waiting Threads) -->
+                <div class="box box-danger">
+                    <div class="box-header">
+                        <i class="fa fa-lock"/>
+                        <h3 class="box-title">Waiting Threads</h3>
+                    </div><!-- /.box-header -->
+                    <div class="box-body no-padding">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Thread</th>
+                                    <th>Waiting for</th>
+                                    <th>Resource</th>
+                                    <th>Lock mode</th>
+                                    <th>Lock type</th>
+                                </tr>
+                            </thead>
+                            <tbody id="jmx-lock-manager"/>
+                        </table>
+                    </div>
+                </div>
+                <div class="box box-info">
+                    <div class="box-header">
+                        <i class="fa fa-info"/>
+                        <h3 class="box-title">System Information</h3>
+                    </div><!-- /.box-header -->
+                    <div class="box-body no-padding">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Key</th>
+                                    <th>Value</th>
+                                </tr>
+                            </thead>
+                            <tbody id="jmx-system-info"/>
+                        </table>
+                    </div>
+                </div>
             </section>
+            <section class="col-lg-6"> 
+                <!-- Box (Cache Usage) -->
+                <div class="box box-info">
+                    <div class="box-header">
+                        <i class="fa fa-download"/>
+                        <h3 class="box-title">Cache Usage</h3>
+                    </div><!-- /.box-header -->
+                    <div class="box-body jmx-cache-manager" data-key="org.exist.management.exist:type=CacheManager">
+                        <div class="clearfix">
+                            <span class="pull-left">Cache Manager</span>
+                            <small class="pull-right">
+                                <span class="cache-stats">0/0</span> pages</small>
+                        </div>
+                        <div class="progress xs">
+                            <div class="progress-bar progress-bar-success progress-cache" style="width: 0%;"/>
+                        </div>
+                    </div>
+                    <div class="box-body jmx-cache-manager" data-key="org.exist.management.exist:type=CollectionCacheManager">
+                        <div class="clearfix">
+                            <span class="pull-left">Collection Cache Manager</span>
+                            <small class="pull-right">
+                                <span class="cache-stats">0/0</span> bytes</small>
+                        </div>
+                        <div class="progress xs">
+                            <div class="progress-bar progress-bar-success progress-cache" style="width: 0%;"/>
+                        </div>
+                    </div>
+                    <div class="box-body jmx-cache" data-key="org.exist.management.exist:type=CacheManager.Cache,name=dom.dbx,cache-type=BTREE">
+                        <div class="clearfix">
+                            <span class="pull-left">dom.dbx (BTree)</span>
+                            <small class="pull-right">
+                                <span class="cache-stats">0/0</span>
+                            </small>
+                        </div>
+                        <div class="progress xs">
+                            <div class="progress-bar progress-bar-info progress-cache" style="width: 0%;"/>
+                        </div>
+                    </div>
+                    <div class="box-body jmx-cache" data-key="org.exist.management.exist:type=CacheManager.Cache,name=structure.dbx,cache-type=BTREE">
+                        <div class="clearfix">
+                            <span class="pull-left">structure.dbx (BTree)</span>
+                            <small class="pull-right">
+                                <span class="cache-stats">0/0</span>
+                            </small>
+                        </div>
+                        <div class="progress xs">
+                            <div class="progress-bar progress-bar-info progress-cache" style="width: 0%;"/>
+                        </div>
+                    </div>
+                    <div class="box-body jmx-cache" data-key="org.exist.management.exist:type=CacheManager.Cache,name=collections.dbx,cache-type=BTREE">
+                        <div class="clearfix">
+                            <span class="pull-left">collections.dbx (BTree)</span>
+                            <small class="pull-right">
+                                <span class="cache-stats">0/0</span>
+                            </small>
+                        </div>
+                        <div class="progress xs">
+                            <div class="progress-bar progress-bar-info progress-cache" style="width: 0%;"/>
+                        </div>
+                    </div>
+                    <div class="box-body jmx-cache" data-key="org.exist.management.exist:type=CacheManager.Cache,name=values.dbx,cache-type=BTREE">
+                        <div class="clearfix">
+                            <span class="pull-left">values.dbx (BTree)</span>
+                            <small class="pull-right">
+                                <span class="cache-stats">0/0</span>
+                            </small>
+                        </div>
+                        <div class="progress xs">
+                            <div class="progress-bar progress-bar-info progress-cache" style="width: 0%;"/>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!--section class="col-lg-6"> 
+                <div class="box box-info">
+                    <div class="box-header">
+                        <i class="fa fa-bar-chart-o"/>
+                        <h3 class="box-title">Recent Queries</h3>
+                    </div>
+                    <div class="box-body no-padding">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Source</th>
+                                    <th>Elapsed Time</th>
+                                </tr>
+                            </thead>
+                            <tbody id="jmx-recent-queries"/>
+                        </table>
+                    </div>
+                </div>
+            </section-->
         </div>
-        
         <!--div class="row">
             <section class="col-lg-12"> 
                 <div class="box box-primary" id="loading-example">
