@@ -140,7 +140,7 @@ $(function() {
                         
                         div.find(".cache-stats").text("Size: " + size + " / " + "Used: " + used + " / Fails: " + fails + " / Hits: " + hits);
                         
-                        div.find(".progress-cache").css("width", percent + "%").text(percent + "%");
+                        div.find(".progress-cache").css("width", percent + "%");
                     });
                 });
                 
