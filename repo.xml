@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <meta xmlns="http://exist-db.org/xquery/repo">
-    <description>Monitoring Application for eXist-db</description>
+    <description>An application for monitoring, profiling and inspecting a running eXist-db instance.</description>
     <author>Wolfgang Meier</author>
     <author>Joe Wicentowski</author>
+    <author>Lars Windauer</author>
     <website/>
     <status>alpha</status>
     <license>GNU-LGPL</license>
@@ -12,5 +13,4 @@
     <prepare>pre-install.xql</prepare>
     <finish/>
     <permissions user="monex" password="monex" group="monex" mode="rw-rw-r--"/>
-    <deployed>2014-03-22T20:50:02.643+01:00</deployed>
 </meta>
