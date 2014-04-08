@@ -17,11 +17,14 @@
     
     <!-- Main content -->
     <section id="visualizer" class="content">
+        <div class="callout callout-info">
+            <p>This feature only works on the current development version of eXist.</p>
+        </div>
         <form>
             <label for="collection">Collection</label>
             <select id="collection" name="collection"/>
         </form>
-        <div id="graph"/>
+        <div id="graph" class="col-lg-12 col-xs-12"/>
     </section>
     <script>
         var init = true;
@@ -37,7 +40,7 @@
                 .sticky(true)
                 .value(function(d) { return d.size; });
             
-            var div = d3.select("#visualizer").append("div")
+            var div = d3.select("#graph")
                 .style("position", "relative")
                 .style("width", (width + margin.left + margin.right) + "px")
                 .style("height", (height + margin.top + margin.bottom) + "px")
