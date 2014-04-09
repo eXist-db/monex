@@ -57,7 +57,7 @@
                 <exclude name="build.*"/>
                 <exclude name="src/**"/>
             </fileset>
-            <zipfileset dir="${build.dir}" includes="*.jar" prefix="content"/>
+            <zipfileset dir="${build.dir}" includes="exist-monex-${project.version}.jar" prefix="content"/>
         </zip>
     </target>
 

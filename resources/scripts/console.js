@@ -1,6 +1,6 @@
 $(document).ready(function() {
 
-    var url = "ws://" + location.host + "/rconsole";
+    var url = "ws://" + location.host + "/exist/rconsole";
     var connection = new WebSocket(url);
 
     // Log errors
