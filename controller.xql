@@ -20,8 +20,8 @@ else if ($exist:path eq "/") then
     </dispatch>
     
 else if (ends-with($exist:resource, ".html")) then (
-    login:set-user("org.exist.demo.login", (), false()),
-    let $user := request:get-attribute("org.exist.demo.login.user")
+    login:set-user("org.exist.login", (), false()),
+    let $user := request:get-attribute("org.exist.login.user")
     return
         if ($user and sm:is-dba($user)) then
             (: the html page is run through view.xql to expand templates :)
@@ -50,7 +50,7 @@ else if (ends-with($exist:resource, ".html")) then (
         		</error-handler>
             </dispatch>
 ) else if (ends-with($exist:resource, ".xql")) then (
-    login:set-user("org.exist.demo.login", (), false()),
+    login:set-user("org.exist.login", (), false()),
     <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
         <cache-control cache="no"/>
     </dispatch>

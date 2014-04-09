@@ -150,7 +150,7 @@ function app:current-user($node as node(), $model as map(*)) {
 };
 
 declare function app:user-info($node as node(), $model as map(*)) {
-    let $user := request:get-attribute("org.exist.demo.login.user")
+    let $user := request:get-attribute("org.exist.login.user")
     let $name := sm:get-account-metadata($user, xs:anyURI("http://axschema.org/namePerson"))
     let $description := sm:get-account-metadata($user, xs:anyURI("http://exist-db.org/security/description"))
     return
