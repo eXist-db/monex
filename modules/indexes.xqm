@@ -77,7 +77,7 @@ declare variable $indexes:range-lookup := function-lookup(xs:QName("range:index-
     Main function: outputs the page.
 :)
 declare function indexes:summary($node as node(), $model as map(*)) {
-    let $xconfs := collection('/db/system/config/')/cc:collection[cc:index]
+    let $xconfs := collection('/db/system/config/')/cc:collection[cc:index and ends-with(util:document-name(.), '.xconf')]
     return
         if (empty($xconfs)) then
             <p>No Index Configurations were found in the /db/system/config collection.</p>
