@@ -262,6 +262,37 @@ $(function() {
                         });
                     }
                 });
+                find(xml, "RunningJobs", function() {
+                    var running = this.getElementsByTagNameNS(JMX_NS, "row");
+                    
+                    var tableBody = $("#jmx-running-jobs");
+                    tableBody.empty();
+                    
+                    if (running.length == 0) {
+                        tableBody.append("<tr><td colspan='5'>No running jobs</td></tr>");
+                    } else {
+                        $(running).each(function() {
+                            var id = getText(this, "id");
+                            var action = getText(this, "action");
+                            var info = getText(this, "info");
+                            
+                            var tr = document.createElement("tr");
+                            var td = document.createElement("td");
+                            td.appendChild(document.createTextNode(id));
+                            tr.appendChild(td);
+                            
+                            td = document.createElement("td");
+                            td.appendChild(document.createTextNode(action));
+                            tr.appendChild(td);
+                            
+                            td = document.createElement("td");
+                            td.appendChild(document.createTextNode(info));
+                            tr.appendChild(td);
+                            
+                            tableBody.append(tr);
+                        });
+                    }
+                });
                 find(xml, "RecentQueryHistory", function() {
                     var running = this.getElementsByTagNameNS(JMX_NS, "row");
                     
