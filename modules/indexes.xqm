@@ -138,8 +138,12 @@ declare function indexes:xconf-to-table($node as node(), $model as map(*)) as it
                     indexes:analyze-lucene-indexes($xconf),
                     indexes:analyze-range-indexes($xconf),
                     indexes:analyze-ngram-indexes($xconf),
-                    indexes:analyze-new-range-indexes($xconf),
-                    indexes:analyze-new-range-index-fields($xconf))
+                    if (exists($indexes:range-lookup)) then (
+                        indexes:analyze-new-range-indexes($xconf),
+                        indexes:analyze-new-range-index-fields($xconf)
+                    ) else
+                        ()
+                )
                 let $item := $entry/td[1]
                 let $index := $entry/td[2]
                 (: order by $index, $item :)
