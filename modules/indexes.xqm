@@ -70,14 +70,17 @@ declare variable $indexes:index-names :=
         </items>
     </code-table>;
 
-declare variable $indexes:range-lookup := function-lookup(xs:QName("range:index-keys-for-field"), 3);
-
+declare variable $indexes:range-lookup := 
+    (
+        function-lookup(xs:QName("range:index-keys-for-field"), 4),
+        function-lookup(xs:QName("range:index-keys-for-field"), 3)
+    )[1];
 
 (:
     Main function: outputs the page.
 :)
 declare function indexes:summary($node as node(), $model as map(*)) {
-    let $xconfs := collection('/db/system/config/')/cc:collection[cc:index and ends-with(util:document-name(.), '.xconf')]
+    let $xconfs := collection('/db/system/config/')/cc:collection[cc:index][ends-with(util:document-name(.), '.xconf')]
     return
         if (empty($xconfs)) then
             <p>No Index Configurations were found in the /db/system/config collection.</p>
@@ -151,7 +154,6 @@ declare function indexes:xconf-to-table($node as node(), $model as map(*)) as it
 :)
 declare function indexes:show-index-keys($node as node(), $model as map(*)) {
     let $query-start-time := util:system-time()
-        
     let $keys := 
         (: legacy fulltext index use the text:index-terms() function :)
         if ($indexes:index eq 'legacy-fulltext-index') then
@@ -184,12 +186,15 @@ declare function indexes:show-index-keys($node as node(), $model as map(*)) {
             return
                 switch ($indexes:show-keys-by)
                     case "field" return
-                        $indexes:range-lookup($indexes:field, $indexes:callback, $indexes:max-number-returned)
+                        if (function-arity($indexes:range-lookup) = 4) then
+                            collection($indexes:collection)/$indexes:range-lookup($indexes:field, $indexes:start-value, $indexes:callback, 
+                                $indexes:max-number-returned)
+                        else
+                            collection($indexes:collection)/$indexes:range-lookup($indexes:field, $indexes:callback, $indexes:max-number-returned)
                     case "node" return
                         util:index-keys($indexes:node-set, $indexes:start-value, $indexes:callback, $indexes:max-number-returned, $index)
                     default return
                         util:index-keys-by-qname($indexes:qname, $indexes:start-value, $indexes:callback, $indexes:max-number-returned, $index)
-    
     let $log := util:log("DEBUG", concat("INDEXES index type:    ", $indexes:index))
     let $log := util:log("DEBUG", concat("INDEXES qname     :    ", $indexes:qname))
     
