@@ -1,5 +1,12 @@
 $(document).ready(function() {
 
+    $("#clear").click(function(ev) {
+        ev.preventDefault();
+        
+         $("#console .message").remove();
+         $("#console .note").show();
+    });
+    
     var url = "ws://" + location.host + "/exist/rconsole";
     var connection = new WebSocket(url);
 
@@ -28,10 +35,12 @@ $(document).ready(function() {
         
         var data = JSON.parse(e.data);
 
+        var time = data.timestamp.replace(/^.*T([^\+]+).*$/, "$1");
         var tr = document.createElement("tr");
         tr.style.display = "none";
+        tr.className = "message";
         var td = document.createElement("td");
-        td.appendChild(document.createTextNode(data.timestamp));
+        td.appendChild(document.createTextNode(time));
         tr.appendChild(td);
         
         td = document.createElement("td");

@@ -18,7 +18,11 @@
     
     <!-- Main content -->
     <section class="content">
-        <div id="status" class="callout callout-info"/>
+        <div>
+            <span id="status" class="label label-info"/>
+            <a href="#" id="clear" class="btn btn-default pull-right">
+                <i class="fa fa-eraser"/> Clear</a>
+        </div>
         <table class="table table-striped">
             <thead>
                 <th>Timestamp</th>
@@ -27,7 +31,9 @@
                 <th>Message</th>
             </thead>
             <tbody id="console">
-                <td colspan="4" class="note">No messages</td>
+                <tr>
+                    <td colspan="4" class="note">No messages</td>
+                </tr>
             </tbody>
         </table>
         <div class="box box-info note">
@@ -35,7 +41,7 @@
                 <h3 class="box-title">Note</h3>
             </div><!-- /.box-header -->
             <div class="box-body">
-		<p>To use this feature you need a version of eXist build after April 10th, 2014. Older versions may work in part.</p>
+                <p>To use this feature you need a version of eXist build after April 10th, 2014. Older versions may work in part.</p>
                 <p>You have to restart eXist once after installing this app to enable the servlet on the web server.
                 Afterwards use the console:log functions in your XQuery to send messages to the remote console. For example:</p>
                 <pre>import module namespace console="http://exist-db.org/xquery/console";
