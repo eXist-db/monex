@@ -1,6 +1,5 @@
 package org.exist.console.xquery;
 
-import org.apache.log4j.Logger;
 import org.exist.dom.QName;
 import org.exist.storage.serializers.Serializer;
 import org.exist.xquery.*;
@@ -45,8 +44,6 @@ public class Log extends BasicFunction {
         SERIALIZATION_PROPERTIES.setProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
     }
 
-    private static final Logger LOG = Logger.getLogger(Log.class);
-
     private Expression parent = null;
 
     public Log(XQueryContext context, FunctionSignature signature) {
@@ -81,7 +78,6 @@ public class Log extends BasicFunction {
             }
         }
         final String msg = out.toString();
-        LOG.info("Sending: " + msg + " to channel " + channel);
         if (parent == null) {
             ConsoleModule.log(channel, msg);
         } else {

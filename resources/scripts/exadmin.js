@@ -88,7 +88,7 @@ $(function() {
         
         var url = location.pathname.replace(/^(.*)\/apps\/.*$/, "$1");
         $.ajax({
-            url: url + "/status?c=instances&c=processes&c=locking&c=memory&c=caches&c=system",
+            url: url + "/status?c=instances&c=processes&c=locking&c=memory&c=caches&c=system&token=" + JMX_TOKEN,
             type: "GET",
             success: function(xml) {
                 $("#jmx-system-info").each(function() {

@@ -7,6 +7,7 @@ declare namespace prof="http://exist-db.org/xquery/profiling";
 
 import module namespace templates="http://exist-db.org/xquery/templates" ;
 import module namespace config="http://exist-db.org/apps/admin/config" at "config.xqm";
+import module namespace console="http://exist-db.org/xquery/console";
 
 declare variable $app:OPTIMIZATIONS :=
     <optimizations>
@@ -14,7 +15,13 @@ declare variable $app:OPTIMIZATIONS :=
         <opt n="1">Basic</opt>
         <opt n="2">Full</opt>
     </optimizations>;
-    
+
+declare
+    %templates:wrap
+function app:jmx-token($node as node(), $model as map(*)) {
+    "var JMX_TOKEN = '" || console:jmx-token() || "';"
+};
+
 declare function app:btn-profiling($node as node(), $model as map(*)) {
     if (system:tracing-enabled()) then
         <a href="?action=disable" class="btn btn-default">

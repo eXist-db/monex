@@ -18,7 +18,8 @@ public class ConsoleModule extends AbstractInternalModule {
 
     public final static FunctionDef[] functions = {
         new FunctionDef(Log.signatures[0], Log.class),
-        new FunctionDef(Log.signatures[1], Log.class)
+        new FunctionDef(Log.signatures[1], Log.class),
+        new FunctionDef(JMXToken.signature, JMXToken.class)
     };
 
     private static ConsoleAdapter adapter = null;
