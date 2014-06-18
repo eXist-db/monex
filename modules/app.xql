@@ -18,8 +18,78 @@ declare variable $app:OPTIMIZATIONS :=
 
 declare
     %templates:wrap
-function app:jmx-token($node as node(), $model as map(*)) {
-    "var JMX_TOKEN = '" || console:jmx-token() || "';"
+    %templates:default("instance", "localhost")
+function app:get-instance($node as node(), $model as map(*), $instance as xs:string) {
+    $instance
+};
+
+declare
+    %templates:default("instance", "localhost")
+function app:instances($node as node(), $model as map(*), $instance as xs:string) {
+    for $current in collection($config:app-root)//instance
+    return
+        <li class="{if ($instance = $current/@name) then 'active' else ''}">
+            <a href="index.html?instance={$current/@name}">
+                <i class="fa fa-angle-double-right"/>
+                {$current/@name/string()}
+            </a>
+        </li>
+};
+
+declare
+    %templates:wrap
+    %templates:default("instance", "localhost")
+function app:instances-data($node as node(), $model as map(*), $instance as xs:string) {
+    let $instances := (
+        <instance name="localhost" url="local" key="{console:jmx-token()}"/>,
+        collection($config:app-root)//instance
+    )
+    return
+        "var JMX_INSTANCES = {&#10;" ||
+        string-join(
+            for $instance in $instances
+            return
+                '"' || $instance/@name || '": { name: "' || $instance/@name || 
+                '", url: "' || $instance/@url || '", token: "' || $instance/@key || '"}',
+            ", "
+        ),
+        "&#10;};&#10;" ||
+        "var JMX_INSTANCE = JMX_INSTANCES['" || $instance || "'];&#10;"
+};
+
+declare
+    %templates:wrap
+function app:instances-table($node as node(), $model as map(*)) {
+    let $instances := collection($config:app-root)//instance
+    return
+        if ($instances) then
+            for $instance in $instances
+            return
+                <tr data-server="{$instance/@name}">
+                    <td><span class="label label-default">Waiting</span></td>
+                    <td>{$instance/@name/string()}</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+        else
+            $node
+};
+
+declare
+    %templates:wrap
+function app:instances-status($node as node(), $model as map(*)) {
+    let $instances := collection($config:app-root)//instance
+    return
+        if ($instances) then
+            for $instance in $instances
+            return
+                <li data-server="{$instance/@name}">
+                    <a href="remotes.html">
+                        <i class="fa fa-check-circle-o success"></i> {$instance/@name/string()}
+                    </a>
+                </li>
+        else
+            $node
 };
 
 declare function app:btn-profiling($node as node(), $model as map(*)) {
@@ -33,19 +103,32 @@ declare function app:btn-profiling($node as node(), $model as map(*)) {
         </a>
 };
 
-declare
-    %templates:wrap
-    %templates:default("panel", "index.html")
-function app:active-panel($node as node(), $model as map(*)) {
-    let $panel := request:get-attribute("$exist:resource")
-    for $li in $node/html:li
+declare 
+    %templates:default("instance", "localhost")
+function app:active-panel($node as node(), $model as map(*), $instance as xs:string) {
+    let $items := templates:process($node/node(), $model)
     return
-        if ($li/html:a[@href = $panel] or ($panel = "collection.html" and $li/html:a/@href = "indexes.html")) then
-            <html:li class="active">
-            { $li/node() }
-            </html:li>
-        else
-            $li
+        element { node-name($node) } {
+            $node/@*,
+            let $panel := request:get-attribute("$exist:resource")
+            for $li in $items
+            let $active :=
+                switch ($panel)
+                    case "index.html" return
+                        ($instance = "localhost" and $li/html:a/@href = "index.html") or
+                        ($instance != "localhost" and $li/html:a/@href = "remotes.html")
+                    case "collection.html" return 
+                        $li/html:a/@href = "indexes.html"
+                    default return
+                        $li/html:a/@href = $panel
+            return
+                if ($active) then
+                    <html:li class="active">
+                    { $li/node() }
+                    </html:li>
+                else
+                    $li
+        }
 };
 
 declare

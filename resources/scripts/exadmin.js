@@ -51,44 +51,108 @@ $(function() {
             labelBoxBorderColor: "#fff"
         }
     };
+    
     var infoProperties = ["ExistVersion", "ExistBuild", "OperatingSystem", "DefaultEncoding", "InstanceId"];
     
-    function loadJMX() {
-        function getText(elem, name) {
-            var node = elem.getElementsByTagNameNS(JMX_NS, name);
-            if (node.length > 0) {
-                var content = "";
-                var child = node[0].firstChild;
-                while (child) {
-                    if (child.nodeType == 3) {
-                        content += child.nodeValue;
-                    }
-                    child = child.nextSibling;
+    function getText(elem, name) {
+        var node = elem.getElementsByTagNameNS(JMX_NS, name);
+        if (node.length > 0) {
+            var content = "";
+            var child = node[0].firstChild;
+            while (child) {
+                if (child.nodeType == 3) {
+                    content += child.nodeValue;
                 }
-                return content;
+                child = child.nextSibling;
             }
-            return "";
+            return content;
+        }
+        return "";
+    }
+    
+    function find(root, element, func) {
+        var nodes = root.getElementsByTagNameNS(JMX_NS, element);
+        if (nodes !== null && nodes.length > 0) {
+            func.apply(nodes[0]);
+        }
+    }
+    
+    function findByName(root, element, name, func) {
+        var nodes = root.getElementsByTagNameNS(JMX_NS, element);
+        for (var i = 0; i < nodes.length; i++) {
+            if (nodes[i].getAttribute("name") === name) { 
+                func.apply(nodes[i]);
+            }
+        }
+    }
+        
+    function ping(instance) {
+        
+        function updateStatus(type, status, time, responseTime) {
+            var tabrow = $("#servers tr[data-server='" + instance.name + "']");
+            var statusElem = "<span class='label label-" + type + "'>" + status + "</span>";
+            tabrow.find("td:nth-child(1)").html(statusElem);
+            tabrow.find("td:nth-child(3)").text(time);
+            tabrow.find("td:nth-child(4)").text(responseTime);
+            
+            var cls;
+            if (type == "success") {
+                cls = "fa fa-check-circle-o success";
+            } else if (type == "primary") {
+                cls = "fa fa-refresh primary";
+            } else {
+                cls = "fa fa-warning danger";
+            }
+            var notifications = $("#notifications");
+            notifications.find(".menu li[data-server='" + instance.name + "'] i").attr("class", cls);
+            var warnings = notifications.find(".danger").length;
+            notifications.find(".label-warning").text(warnings === 0 ? "" : warnings);
         }
         
-        function find(root, element, func) {
-            var nodes = root.getElementsByTagNameNS(JMX_NS, element);
-            if (nodes.length > 0) {
-                func.apply(nodes[0]);
-            }
+        var url;
+        var name = instance.name;
+        if (name == "localhost") {
+            url = location.pathname.replace(/^(.*)\/apps\/.*$/, "$1") +
+                "/status?operation=ping&token=" + instance.token;
+        } else {
+            url = "modules/remote.xql?operation=ping&name=" + name; 
         }
-        
-        function findByName(root, element, name, func) {
-            var nodes = root.getElementsByTagNameNS(JMX_NS, element);
-            for (var i = 0; i < nodes.length; i++) {
-                if (nodes[i].getAttribute("name") === name) { 
-                    func.apply(nodes[i]);
-                }
-            }
-        }
-        
-        var url = location.pathname.replace(/^(.*)\/apps\/.*$/, "$1");
+        updateStatus("primary", "Checking", "", "");
+        var start = new Date().getTime();
         $.ajax({
-            url: url + "/status?c=instances&c=processes&c=locking&c=memory&c=caches&c=system&token=" + JMX_TOKEN,
+            url: url,
+            type: "GET",
+            timeout: 30000,
+            success: function(xml) {
+                find(xml, "SanityReport", function() {
+                    var status = getText(this, "Status");
+                    var time = getText(this, "PingTime");
+                    if (status == "PING_OK") {
+                        updateStatus("success", status, time, (new Date().getTime() - start));
+                    } else {
+                        updateStatus("danger", status, time, (new Date().getTime() - start));
+                    }
+                });
+                setTimeout(function() { ping(instance); }, 60000);
+            },
+            error: function(xhr, status, errorThrown) {
+                updateStatus("danger", status, "", "");
+                setTimeout(function() { ping(instance); }, 60000);
+            }
+        });
+    }
+    
+    function loadJMX() {
+        var url;
+        var name = JMX_INSTANCE.name;
+        if (name == "localhost") {
+            url = location.pathname.replace(/^(.*)\/apps\/.*$/, "$1") +
+                "/status?c=instances&c=processes&c=locking&c=memory&c=caches&c=system&token=" + JMX_INSTANCE.token;
+        } else {
+            url = "modules/remote.xql?name=" + name; 
+        }
+        $.ajax({
+            url: url,
             type: "GET",
             success: function(xml) {
                 $("#jmx-system-info").each(function() {
@@ -387,5 +451,11 @@ $(function() {
         });
     }
     
-    loadJMX();
+    $("#dashboard").each(function() {
+        loadJMX();
+    });
+    
+    for (var server in JMX_INSTANCES) {
+        ping(JMX_INSTANCES[server]);
+    }
 });

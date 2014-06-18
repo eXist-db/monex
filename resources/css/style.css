@@ -32,4 +32,16 @@ body > .header .logo {
     position: absolute;
     text-indent: 2px;
     color:Ghostwhite;
-    }
+}
+
+.sidebar .sidebar-menu .treeview-menu {
+    display: block;
+}
+
+.sidebar .sidebar-menu .treeview-menu li {
+    margin-left: 10px;
+}
+
+.skin-black .sidebar > .sidebar-menu > li > .treeview-menu {
+    background: inherit;
+}

@@ -4,7 +4,7 @@
     <section class="content-header">
         <h1>
             Monitoring
-            <small>Control panel</small>
+            <small data-template="app:get-instance">Control panel</small>
         </h1>
         <ol class="breadcrumb">
             <li>
@@ -16,7 +16,7 @@
     </section>
     
     <!-- Main content -->
-    <section class="content">
+    <section id="dashboard" class="content">
         <!-- Small boxes (Stat box) -->
         <div class="row">
             <div class="col-lg-3 col-xs-6">
@@ -127,7 +127,7 @@
                 <!-- Box (Running XQueries) -->
                 <div class="box box-success">
                     <div class="box-header">
-                        <i class="fa fa-cogs"/>
+                        <i class="ion ion-ios7-search"/>
                         <h3 class="box-title">Running Queries</h3>
                     </div><!-- /.box-header -->
                     <div class="box-body no-padding">
@@ -147,7 +147,7 @@
                 </div>
                 <div class="box box-danger">
                     <div class="box-header">
-                        <i class="fa fa-lock"/>
+                        <i class="fa fa-cogs"/>
                         <h3 class="box-title">Running Jobs</h3>
                     </div><!-- /.box-header -->
                     <div class="box-body no-padding">

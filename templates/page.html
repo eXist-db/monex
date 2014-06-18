@@ -10,6 +10,7 @@
         <link href="resources/css/ionicons.min.css" rel="stylesheet" type="text/css"/>
         <link href="resources/css/AdminLTE.css" rel="stylesheet" type="text/css"/>
         <link rel="stylesheet" type="text/css" href="resources/css/style.css"/>
+        <script type="text/javascript" data-template="app:instances-data"/>
         <script type="text/javascript" src="resources/scripts/jquery-1.9.1.min.js"/>
         <script type="text/javascript" src="resources/scripts/d3.v3.min.js"/>
         <script type="text/javascript" src="$shared/resources/scripts/bootstrap-3.0.3.min.js"/>
@@ -32,6 +33,17 @@
                 </a>
                 <div class="navbar-right">
                     <ul class="nav navbar-nav">
+                        <li id="notifications" class="dropdown notifications-menu">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                                <i class="fa fa-warning"/>
+                                <span class="label label-warning"/>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <ul class="menu" data-template="app:instances-status"/>
+                                </li>
+                            </ul>
+                        </li>
                         <!-- User Account: style can be found in dropdown.less -->
                         <li class="dropdown user user-menu">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">
@@ -67,7 +79,7 @@
             <aside class="left-side sidebar-offcanvas">
                 <!-- sidebar: style can be found in sidebar.less -->
                 <section class="sidebar">
-                    <!-- sidebar menu: : style can be found in sidebar.less -->
+                    <!-- sidebar menu: style can be found in sidebar.less -->
                     <ul class="sidebar-menu" data-template="app:active-panel">
                         <li>
                             <a href="index.html">
@@ -98,6 +110,15 @@
                                 <i class="fa fa-desktop"/>
                                 <span>Data Visualizer</span>
                             </a>
+                        </li>
+                        <li class="treeview">
+                            <a href="remotes.html">
+                                <i class="fa fa-cloud"/>
+                                <span>Remote Monitoring</span>
+                            </a>
+                            <ul class="treeview-menu">
+                                <li data-template="app:instances"/>
+                            </ul>
                         </li>
                     </ul>
                 </section>

@@ -1,7 +1,6 @@
 package org.exist.console.xquery;
 
 import org.exist.dom.QName;
-import org.exist.management.client.JMXServlet;
 import org.exist.storage.BrokerPool;
 import org.exist.util.Configuration;
 import org.exist.xquery.*;
