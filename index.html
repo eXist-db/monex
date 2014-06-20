@@ -23,7 +23,10 @@
                 <!-- small box -->
                 <div class="small-box bg-aqua">
                     <div class="inner">
-                        <h3 id="jmx-brokers">X of X</h3>
+                        <h3 id="jmx-brokers">
+                            <span data-bind="text: jmx.Database.ActiveBrokers">?</span> of 
+                            <span data-bind="text: jmx.Database.TotalBrokers">?</span>
+                        </h3>
                         <p>
                             Active DB Processes
                         </p>
@@ -38,7 +41,7 @@
                 <!-- small box -->
                 <div class="small-box bg-green">
                     <div class="inner">
-                        <h3 id="jmx-uptime"/>
+                        <h3 id="jmx-uptime" data-bind="text: uptime($data.jmx.Database.Uptime())">?</h3>
                         <p>
                             Uptime
                         </p>
@@ -53,7 +56,7 @@
                 <!-- small box -->
                 <div class="small-box bg-yellow">
                     <div class="inner">
-                        <h3 id="jmx-queries"/>
+                        <h3 id="jmx-queries" data-bind="text: $data.jmx.ProcessReport.RunningQueries.length || 0">?</h3>
                         <p>
                             Running Queries
                         </p>
@@ -68,7 +71,7 @@
                 <!-- small box -->
                 <div class="small-box bg-red">
                     <div class="inner">
-                        <h3 id="jmx-waiting"/>
+                        <h3 data-bind="text: $data.jmx.LockManager.WaitingThreads.length || 0">?</h3>
                         <p>
                             Waiting Threads
                         </p>
@@ -90,7 +93,7 @@
                         <h3 class="box-title">Java Memory</h3>
                     </div><!-- /.box-header -->
                     <div class="box-body no-padding">
-                        <div class="row">
+                        <div class="row" data-bind="with: jmx.MemoryImpl.HeapMemoryUsage">
                             <div class="col-sm-7">
                                 <div class="chart" id="memory-graph" style="height: 250px;"/>
                             </div>
@@ -99,20 +102,26 @@
                                     <!-- Progress bars -->
                                     <div class="clearfix">
                                         <span class="pull-left">Memory Used</span>
-                                        <small class="pull-right" id="jmx-memory-used">10/200 GB</small>
+                                        <small class="pull-right">
+                                            <span data-bind="text: Math.floor(parseInt($data.used()) / 1024 / 1024)">10</span> /
+                                            <span data-bind="text: Math.floor(parseInt($data.max()) / 1024 / 1024)">10</span> M
+                                        </small>
                                     </div>
                                     <div class="progress xs">
-                                        <div class="progress-bar progress-bar-green" id="progress-memory-used" style="width: 70%;"/>
+                                        <div class="progress-bar progress-bar-green" data-bind="style: {width: Math.round($data.used() / ($data.max() / 100)) + '%'}"/>
                                     </div>
                                 </div><!-- /.pad -->
                                 <div class="pad">
                                     <!-- Progress bars -->
                                     <div class="clearfix">
                                         <span class="pull-left">Memory Committed</span>
-                                        <small class="pull-right" id="jmx-memory-committed">10/200 GB</small>
+                                        <small class="pull-right">
+                                            <span data-bind="text: Math.floor(parseInt($data.committed()) / 1024 / 1024)">10</span> /
+                                            <span data-bind="text: Math.floor(parseInt($data.max()) / 1024 / 1024)">10</span> M
+                                        </small>
                                     </div>
                                     <div class="progress xs">
-                                        <div class="progress-bar progress-bar-green" id="progress-memory-committed" style="width: 70%;"/>
+                                        <div class="progress-bar progress-bar-green" data-bind="style: {width: Math.round($data.committed() / ($data.max() / 100)) + '%'}"/>
                                     </div>
                                 </div><!-- /.pad -->
                             </div><!-- /.col -->
@@ -141,7 +150,28 @@
                                     <th/>
                                 </tr>
                             </thead>
-                            <tbody id="jmx-running-queries"/>
+                            <tbody data-bind="visible: $data.jmx.ProcessReport.RunningQueries().length == 0">
+                                <tr>
+                                    <td colspan="5">No running queries</td>
+                                </tr>
+                            </tbody>
+                            <tbody data-bind="foreach: { data: jmx.ProcessReport.RunningQueries, afterRender: addKillBtn }">
+                                <tr>
+                                    <td data-bind="text: id"/>
+                                    <td>
+                                        <span class="source-key" data-bind="text: $data.sourceKey().replace(/^.*\/([^\/]+)$/, '$1'), attr: { title: sourceKey }" data-toggle="tooltip"/>
+                                    </td>
+                                    <td data-bind="text: sourceType"/>
+                                    <td>
+                                        <span class="label" data-bind="text: $data.terminating() == 'false' ? 'running' : 'terminating', css: { 'label-success': $data.terminating() == 'false', 'label-warning': $data.terminating() == 'true' }"/>
+                                    </td>
+                                    <td>
+                                        <a href="#" class="kill-query" title="Kill Query">
+                                            <span class="glyphicon glyphicon-remove"/>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -149,7 +179,7 @@
                     <div class="box-header">
                         <i class="fa fa-cogs"/>
                         <h3 class="box-title">Running Jobs</h3>
-                    </div><!-- /.box-header -->
+                    </div>
                     <div class="box-body no-padding">
                         <table class="table table-striped">
                             <thead>
@@ -159,7 +189,16 @@
                                     <th>Info</th>
                                 </tr>
                             </thead>
-                            <tbody id="jmx-running-jobs"/>
+                            <tbody data-bind="visible: $data.jmx.ProcessReport.RunningJobs().length == 0">
+                                <tr>
+                                    <td colspan="5">No running jobs</td>
+                                </tr>
+                            </tbody>
+                            <tbody data-bind="foreach: jmx.ProcessReport.RunningJobs">
+                                <td data-bind="text: action"/>
+                                <td data-bind="text: id"/>
+                                <td data-bind="text: info"/>
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -179,7 +218,20 @@
                                     <th>Lock type</th>
                                 </tr>
                             </thead>
-                            <tbody id="jmx-lock-manager"/>
+                            <tbody data-bind="visible: $data.jmx.LockManager.WaitingThreads().length == 0">
+                                <tr>
+                                    <td colspan="5">No waiting threads</td>
+                                </tr>
+                            </tbody>
+                            <tbody data-bind="foreach: jmx.LockManager.WaitingThreads">
+                                <tr>
+                                    <td data-bind="text: waitingThread"/>
+                                    <td data-bind="text: owner"/>
+                                    <td data-bind="text: id"/>
+                                    <td data-bind="text: lockMode"/>
+                                    <td data-bind="text: lockType"/>
+                                </tr>
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -196,7 +248,28 @@
                                     <th>Value</th>
                                 </tr>
                             </thead>
-                            <tbody id="jmx-system-info"/>
+                            <tbody>
+                                <tr>
+                                    <td>eXist Version:</td>
+                                    <td data-bind="text: jmx.SystemInfo.ExistVersion"/>
+                                </tr>
+                                <tr>
+                                    <td>eXist Build:</td>
+                                    <td data-bind="text: jmx.SystemInfo.ExistBuild"/>
+                                </tr>
+                                <tr>
+                                    <td>Operating System:</td>
+                                    <td data-bind="text: jmx.SystemInfo.OperatingSystem"/>
+                                </tr>
+                                <tr>
+                                    <td>Default Encoding:</td>
+                                    <td data-bind="text: jmx.SystemInfo.DefaultEncoding"/>
+                                </tr>
+                                <tr>
+                                    <td>Instance ID:</td>
+                                    <td data-bind="text: jmx.Database.InstanceId"/>
+                                </tr>
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -208,74 +281,93 @@
                         <i class="fa fa-download"/>
                         <h3 class="box-title">Cache Usage</h3>
                     </div><!-- /.box-header -->
-                    <div class="box-body jmx-cache-manager" data-key="org.exist.management.exist:type=CacheManager">
+                    <div class="box-body jmx-cache-manager" data-bind="with: findByName($data.jmx.CacheManager(), 'org.exist.management.exist:type=CacheManager')">
                         <div class="clearfix">
                             <span class="pull-left">Cache Manager</span>
                             <small class="pull-right">
-                                <span class="cache-stats">0/0</span> pages</small>
+                                <span data-bind="text: MaxTotal">0</span>/<span data-bind="text: CurrentSize">0</span> pages</small>
                         </div>
                         <div class="progress xs">
-                            <div class="progress-bar progress-bar-success progress-cache" style="width: 0%;"/>
+                            <div class="progress-bar progress-bar-success progress-cache" data-bind="style: {width: Math.round($data.CurrentSize() / ($data.MaxTotal() / 100)) + '%'}"/>
                         </div>
                     </div>
-                    <div class="box-body jmx-cache-manager" data-key="org.exist.management.exist:type=CollectionCacheManager">
+                    <div class="box-body jmx-cache-manager" data-bind="with: findByName($data.jmx.CacheManager(), 'org.exist.management.exist:type=CollectionCacheManager')">
                         <div class="clearfix">
                             <span class="pull-left">Collection Cache Manager</span>
                             <small class="pull-right">
-                                <span class="cache-stats">0/0</span> bytes</small>
+                                <span data-bind="text: MaxTotal">0</span>/<span data-bind="text: CurrentSize">0</span> bytes</small>
                         </div>
                         <div class="progress xs">
-                            <div class="progress-bar progress-bar-success progress-cache" style="width: 0%;"/>
+                            <div class="progress-bar progress-bar-success progress-cache" data-bind="style: {width: Math.round($data.CurrentSize() / ($data.MaxTotal() / 100)) + '%'}"/>
                         </div>
                     </div>
-                    <div class="box-body jmx-cache" data-key="org.exist.management.exist:type=CacheManager.Cache,name=dom.dbx,cache-type=BTREE">
+                    <div class="box-body jmx-cache" data-bind="with: findByName($data.jmx.Cache(), 'org.exist.management.exist:type=CacheManager.Cache,name=dom.dbx,cache-type=BTREE')">
                         <div class="clearfix">
                             <span class="pull-left">dom.dbx (BTree)</span>
                             <small class="pull-right">
-                                <span class="cache-stats">0/0</span>
+                                <span class="cache-stats">
+                                    Size: <span data-bind="text: Size">0</span> /
+                                    Used: <span data-bind="text: Used">0</span> /
+                                    Fails: <span data-bind="text: Fails">0</span> /
+                                    Hits: <span data-bind="text: Hits">0</span>
+                                </span>
                             </small>
                         </div>
                         <div class="progress xs">
-                            <div class="progress-bar progress-bar-info progress-cache" style="width: 0%;"/>
+                            <div class="progress-bar progress-bar-info progress-cache" data-bind="style: {width: Math.round($data.Used() / ($data.Size() / 100)) + '%'}"/>
                         </div>
                     </div>
-                    <div class="box-body jmx-cache" data-key="org.exist.management.exist:type=CacheManager.Cache,name=structure.dbx,cache-type=BTREE">
+                    <div class="box-body jmx-cache" data-bind="with: findByName($data.jmx.Cache(), 'org.exist.management.exist:type=CacheManager.Cache,name=structure.dbx,cache-type=BTREE')">
                         <div class="clearfix">
                             <span class="pull-left">structure.dbx (BTree)</span>
                             <small class="pull-right">
-                                <span class="cache-stats">0/0</span>
+                                <span class="cache-stats">
+                                    Size: <span data-bind="text: Size">0</span> /
+                                    Used: <span data-bind="text: Used">0</span> /
+                                    Fails: <span data-bind="text: Fails">0</span> /
+                                    Hits: <span data-bind="text: Hits">0</span>
+                                </span>
                             </small>
                         </div>
                         <div class="progress xs">
-                            <div class="progress-bar progress-bar-info progress-cache" style="width: 0%;"/>
+                            <div class="progress-bar progress-bar-info progress-cache" data-bind="style: {width: Math.round($data.Used() / ($data.Size() / 100)) + '%'}"/>
                         </div>
                     </div>
-                    <div class="box-body jmx-cache" data-key="org.exist.management.exist:type=CacheManager.Cache,name=collections.dbx,cache-type=BTREE">
+                    <div class="box-body jmx-cache" data-bind="with: findByName($data.jmx.Cache(), 'org.exist.management.exist:type=CacheManager.Cache,name=collections.dbx,cache-type=BTREE')">
                         <div class="clearfix">
                             <span class="pull-left">collections.dbx (BTree)</span>
                             <small class="pull-right">
-                                <span class="cache-stats">0/0</span>
+                                <span class="cache-stats">
+                                    Size: <span data-bind="text: Size">0</span> /
+                                    Used: <span data-bind="text: Used">0</span> /
+                                    Fails: <span data-bind="text: Fails">0</span> /
+                                    Hits: <span data-bind="text: Hits">0</span>
+                                </span>
                             </small>
                         </div>
                         <div class="progress xs">
-                            <div class="progress-bar progress-bar-info progress-cache" style="width: 0%;"/>
+                            <div class="progress-bar progress-bar-info progress-cache" data-bind="style: {width: Math.round($data.Used() / ($data.Size() / 100)) + '%'}"/>
                         </div>
                     </div>
-                    <div class="box-body jmx-cache" data-key="org.exist.management.exist:type=CacheManager.Cache,name=values.dbx,cache-type=BTREE">
+                    <div class="box-body jmx-cache" data-bind="with: findByName($data.jmx.Cache(), 'org.exist.management.exist:type=CacheManager.Cache,name=values.dbx,cache-type=BTREE')">
                         <div class="clearfix">
                             <span class="pull-left">values.dbx (BTree)</span>
                             <small class="pull-right">
-                                <span class="cache-stats">0/0</span>
+                                <span class="cache-stats">
+                                    Size: <span data-bind="text: Size">0</span> /
+                                    Used: <span data-bind="text: Used">0</span> /
+                                    Fails: <span data-bind="text: Fails">0</span> /
+                                    Hits: <span data-bind="text: Hits">0</span>
+                                </span>
                             </small>
                         </div>
                         <div class="progress xs">
-                            <div class="progress-bar progress-bar-info progress-cache" style="width: 0%;"/>
+                            <div class="progress-bar progress-bar-info progress-cache" data-bind="style: {width: Math.round($data.Used() / ($data.Size() / 100)) + '%'}"/>
                         </div>
                     </div>
                 </div>
             </section>
-            
-            <!--section class="col-lg-6"> 
+            <section class="col-lg-6">
                 <div class="box box-info">
                     <div class="box-header">
                         <i class="fa fa-bar-chart-o"/>
@@ -290,11 +382,19 @@
                                     <th>Elapsed Time</th>
                                 </tr>
                             </thead>
-                            <tbody id="jmx-recent-queries"/>
+                            <tbody id="jmx-recent-queries" data-bind="foreach: {data: jmx.ProcessReport.RecentQueryHistory, afterRender: function(node) { $('.source-key', node).tooltip(); }}">
+                                <tr>
+                                    <td data-bind="text: new Date(parseInt($data.mostRecentExecutionTime()))"/>
+                                    <td>
+                                        <span class="source-key" data-bind="text: $data.sourceKey().replace(/^.*\/([^\/]+)$/, '$1'), attr: { title: sourceKey }" data-toggle="tooltip"/>
+                                    </td>
+                                    <td data-bind="text: mostRecentExecutionDuration"/>
+                                </tr>
+                            </tbody>
                         </table>
                     </div>
                 </div>
-            </section-->
+            </section>
         </div>
         <!--div class="row">
             <section class="col-lg-12"> 
@@ -320,6 +420,8 @@
             </section>
         </div-->
     </section>
+    <script type="text/javascript" src="resources/scripts/knockout-3.1.0.js"/>
+    <script type="text/javascript" src="resources/scripts/knockout.mapping-2.4.1.js"/>
     <script type="text/javascript" src="resources/scripts/jquery.flot.min.js"/>
     <script type="text/javascript" src="resources/scripts/jquery.flot.time.min.js"/>
     <script type="text/javascript" src="resources/scripts/exadmin.js"/>

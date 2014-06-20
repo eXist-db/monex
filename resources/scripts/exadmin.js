@@ -1,3 +1,41 @@
+
+function findByName(nodes, name) {
+    if (nodes instanceof Array) {
+        for (var i = 0; i < nodes.length; i++) {
+            if (nodes[i].name() == name) {
+                return nodes[i];
+            }
+        }
+    }
+    return null;
+}
+
+function addKillBtn(node, data) {
+    $(node).find(".kill-query").click(function(ev) {
+        ev.preventDefault();
+        $.ajax({
+            url: "modules/admin.xql",
+            data: { action: "kill", id: data.id() },
+            type: "POST"
+        });
+    });
+}
+
+function uptime(data) {
+    var uptime = parseInt(data);
+    var cd = 24 * 60 * 60 * 1000,
+        ch = 60 * 60 * 1000,
+        d = Math.floor(uptime / cd),
+        h = '0' + Math.floor( (uptime - d * cd) / ch),
+        m = '0' + Math.round( (uptime - d * cd - h * ch) / 60000);
+    if (d > 0) {
+        status = d + "d " + h.substr(-2) + "h";
+    } else {
+        status = h.substr(-2) + "h " + m.substr(-2) + "m";
+    }
+    return status;
+}
+
 $(function() {
     "use strict";
     
@@ -52,40 +90,56 @@ $(function() {
         }
     };
     
-    var infoProperties = ["ExistVersion", "ExistBuild", "OperatingSystem", "DefaultEncoding", "InstanceId"];
-    
-    function getText(elem, name) {
-        var node = elem.getElementsByTagNameNS(JMX_NS, name);
-        if (node.length > 0) {
-            var content = "";
-            var child = node[0].firstChild;
-            while (child) {
-                if (child.nodeType == 3) {
-                    content += child.nodeValue;
+    function jmx2js(node) {
+        var parent = {};
+        if (node.nodeType == Node.ELEMENT_NODE) {
+            for (var i = 0; i < node.attributes.length; i++) {
+                parent[node.attributes[i].localName] = node.attributes[i].nodeValue;
+            }
+        }
+        var child = node.firstChild;
+        while (child) {
+            if (child.nodeType == Node.ELEMENT_NODE) {
+                if (child.localName == "row") {
+                    if (!(parent instanceof Array)) {
+                        parent = [];
+                    }
+                    parent.push(jmx2js(child));
+                } else {
+                    var existing = parent[child.localName];
+                    if (existing) {
+                        if (!(existing instanceof Array)) {
+                            existing = parent[child.localName] = [ existing ];
+                        }
+                        existing.push(jmx2js(child));
+                    } else {
+                        parent[child.localName] = jmx2js(child);
+                    }
                 }
-                child = child.nextSibling;
+            } else if (node.childNodes.length == 1) {
+                return child.nodeValue;
             }
-            return content;
+            child = child.nextSibling;
         }
-        return "";
+        return parent;
     }
     
-    function find(root, element, func) {
-        var nodes = root.getElementsByTagNameNS(JMX_NS, element);
-        if (nodes !== null && nodes.length > 0) {
-            func.apply(nodes[0]);
+    function fixjs(data) {
+        var queries = data.jmx.ProcessReport.RunningQueries;
+        if (!queries.length) {
+            data.jmx.ProcessReport.RunningQueries = [];
         }
+        var jobs = data.jmx.ProcessReport.RunningJobs;
+        if (!jobs || !jobs.length) {
+            data.jmx.ProcessReport.RunningJobs = [];
+        }
+        var waiting = data.jmx.LockManager.WaitingThreads;
+        if (!waiting.length) {
+            data.jmx.LockManager.WaitingThreads = [];
+        }
+        return data;
     }
     
-    function findByName(root, element, name, func) {
-        var nodes = root.getElementsByTagNameNS(JMX_NS, element);
-        for (var i = 0; i < nodes.length; i++) {
-            if (nodes[i].getAttribute("name") === name) { 
-                func.apply(nodes[i]);
-            }
-        }
-    }
-        
     function ping(instance) {
         
         function updateStatus(type, status, time, responseTime) {
@@ -124,15 +178,14 @@ $(function() {
             type: "GET",
             timeout: 30000,
             success: function(xml) {
-                find(xml, "SanityReport", function() {
-                    var status = getText(this, "Status");
-                    var time = getText(this, "PingTime");
-                    if (status == "PING_OK") {
-                        updateStatus("success", status, time, (new Date().getTime() - start));
-                    } else {
-                        updateStatus("danger", status, time, (new Date().getTime() - start));
-                    }
-                });
+                var data = jmx2js(xml);
+                var status = data.jmx.SanityReport.Status;
+                var time = data.jmx.SanityReport.PingTime;
+                if (status == "PING_OK") {
+                    updateStatus("success", status, time, (new Date().getTime() - start));
+                } else {
+                    updateStatus("danger", status, time, (new Date().getTime() - start));
+                }
                 setTimeout(function() { ping(instance); }, 60000);
             },
             error: function(xhr, status, errorThrown) {
@@ -141,6 +194,8 @@ $(function() {
             }
         });
     }
+
+    var viewModel = null;
     
     function loadJMX() {
         var url;
@@ -151,301 +206,35 @@ $(function() {
         } else {
             url = "modules/remote.xql?name=" + name; 
         }
+
         $.ajax({
             url: url,
             type: "GET",
             success: function(xml) {
-                $("#jmx-system-info").each(function() {
-                    var tbody = $(this).empty();
-                    $(infoProperties).each(function() {
-                        var tr = document.createElement("tr");
-                        var td = document.createElement("td");
-                        td.appendChild(document.createTextNode(this));
-                        tr.appendChild(td);
-                        
-                        td = document.createElement("td");
-                        find(xml, this, function() {
-                            td.appendChild(document.createTextNode($(this).text()));
-                        });
-                        tr.appendChild(td);
-                        
-                        tbody.append(tr);
-                    });
-                });
+                var data = fixjs(jmx2js(xml));
+                //console.dir(data);
+                if (!viewModel) {
+                    viewModel = ko.mapping.fromJS(data);
+                    ko.applyBindings(viewModel);
+                } else {
+                    ko.mapping.fromJS(data, viewModel);
+                }
                 
-                find(xml, "Database", function() {
-                    var status = getText(this, "ActiveBrokers") + " of " +
-                        getText(this, "TotalBrokers");
-                    $("#jmx-brokers").text(status);
-                    
-                    var uptime = parseInt(getText(this, "Uptime"));
-                    var cd = 24 * 60 * 60 * 1000,
-                        ch = 60 * 60 * 1000,
-                        d = Math.floor(uptime / cd),
-                        h = '0' + Math.floor( (uptime - d * cd) / ch),
-                        m = '0' + Math.round( (uptime - d * cd - h * ch) / 60000);
-                    if (d > 0) {
-                        status = d + "d " + h.substr(-2) + "h";
-                    } else {
-                        status = h.substr(-2) + "h " + m.substr(-2) + "m";
-                    }
-                    $("#jmx-uptime").text(status);
-                });
+                var max = parseInt(data.jmx.MemoryImpl.HeapMemoryUsage.max);
+                var used = parseInt(data.jmx.MemoryImpl.HeapMemoryUsage.used);
+                var committed = parseInt(data.jmx.MemoryImpl.HeapMemoryUsage.committed);
+                options.yaxis.max = max;
                 
-                $(".jmx-cache").each(function() {
-                    var div = $(this);
-                    var key = div.attr("data-key");
-                    findByName(xml, "Cache", key, function() {
-                        var hits = getText(this, "Hits");
-                        var fails = getText(this, "Fails");
-                        var size = getText(this, "Size");
-                        var used = getText(this, "Used");
-                        var percent = Math.round(used / (size / 100));
-                        
-                        div.find(".cache-stats").text("Size: " + size + " / " + "Used: " + used + " / Fails: " + fails + " / Hits: " + hits);
-                        
-                        div.find(".progress-cache").css("width", percent + "%");
-                    });
-                });
+                if (memUsed.length > 100) {
+                    memUsed.shift();
+                    memCommitted.shift();
+                }
+                var now = new Date().getTime();
+                memUsed.push([now, used]);
+                memCommitted.push([now, committed]);
                 
-                $(".jmx-cache-manager").each(function() {
-                    var div = $(this);
-                    var key = div.attr("data-key");
-                    findByName(xml, "CacheManager", key, function() {
-                        var max = getText(this, "MaxTotal");
-                        var current = getText(this, "CurrentSize");
-                        var percent = Math.round(current / (max / 100));
-                        
-                        div.find(".cache-stats").text("Max: " + max + " / Current: " + current);
-                        div.find(".progress-cache").css("width", percent + "%");
-                    });
-                });
+                $.plot("#memory-graph", dataset, options);
                 
-                $("#jmx-lock-manager").each(function() {
-                    var table = $(this);
-                    find(xml, "LockManager", function() {
-                        var rows = this.getElementsByTagNameNS(JMX_NS, "row");
-                        if (rows.length == 0) {
-                            table.empty().append("<tr><td colspan='5'>No waiting threads</td></tr>");
-                        } else {
-                            $(rows).each(function() {
-                                var owner = getText(this, "owner");
-                                var resource = getText(this, "id");
-                                var lockMode = getText(this, "lockMode");
-                                var lockType = getText(this, "lockType");
-                                var waitingThread = getText(this, "waitingThread");
-                                
-                                var tr = document.createElement("tr");
-                                var td = document.createElement("td");
-                                td.appendChild(document.createTextNode(waitingThread));
-                                tr.appendChild(td);
-                                
-                                td = document.createElement("td");
-                                td.appendChild(document.createTextNode(owner));
-                                tr.appendChild(td);
-                                
-                                td = document.createElement("td");
-                                td.appendChild(document.createTextNode(resource));
-                                tr.appendChild(td);
-                                
-                                td = document.createElement("td");
-                                td.appendChild(document.createTextNode(lockMode));
-                                tr.appendChild(td);
-                                
-                                td = document.createElement("td");
-                                td.appendChild(document.createTextNode(lockType));
-                                tr.appendChild(td);
-                                
-                                table.html(tr);
-                            });
-                        }
-                    });
-                });
-                find(xml, "RunningQueries", function() {
-                    var running = this.getElementsByTagNameNS(JMX_NS, "row");
-                    $("#jmx-queries").text(running.length);
-                    
-                    var tableBody = $("#jmx-running-queries");
-                    tableBody.empty();
-                    
-                    if (running.length == 0) {
-                        tableBody.append("<tr><td colspan='5'>No running queries</td></tr>");
-                    } else {
-                        $(running).each(function() {
-                            var id = getText(this, "id");
-                            var source = getText(this, "sourceKey");
-                            var type = getText(this, "sourceType");
-                            var status = getText(this, "terminating");
-                            status = (status == "true" ? "terminating" : "running");
-                            
-                            var tr = document.createElement("tr");
-                            var td = document.createElement("td");
-                            td.appendChild(document.createTextNode(id));
-                            tr.appendChild(td);
-                            
-                            td = document.createElement("td");
-                            var resource = source.replace(/^.*\/([^\/]+)$/, "$1");
-                            var span = document.createElement("span");
-                            span.setAttribute("data-toggle", "tooltip");
-                            span.title = source;
-                            span.appendChild(document.createTextNode(resource));
-                            td.appendChild(span);
-                            tr.appendChild(td);
-                            $(span).tooltip();
-            
-                            td = document.createElement("td");
-                            td.appendChild(document.createTextNode(type));
-                            tr.appendChild(td);
-                            td = document.createElement("td");
-                            span = document.createElement("span");
-                            span.className = "label label-" + (status == "running" ? "success" : "warning");
-                            
-                            span.appendChild(document.createTextNode(status));
-                            td.appendChild(span);
-                            tr.appendChild(td);
-                            
-                            var button = document.createElement("a");
-                            button.href = "#";
-                            button.title = "Terminate";
-                            var icon = document.createElement("span");
-                            icon.className = "glyphicon glyphicon-remove";
-                            button.appendChild(icon);
-                            td = document.createElement("td");
-                            td.appendChild(button);
-                            tr.appendChild(td);
-                            
-                            $(button).click(function(ev) {
-                                ev.preventDefault();
-                                $.ajax({
-                                    url: "modules/admin.xql",
-                                    data: { action: "kill", id: id },
-                                    type: "POST"
-                                });
-                            });
-                            tableBody.append(tr);
-                        });
-                    }
-                });
-                find(xml, "RunningJobs", function() {
-                    var running = this.getElementsByTagNameNS(JMX_NS, "row");
-                    
-                    var tableBody = $("#jmx-running-jobs");
-                    tableBody.empty();
-                    
-                    if (running.length == 0) {
-                        tableBody.append("<tr><td colspan='5'>No running jobs</td></tr>");
-                    } else {
-                        $(running).each(function() {
-                            var id = getText(this, "id");
-                            var action = getText(this, "action");
-                            var info = getText(this, "info");
-                            
-                            var tr = document.createElement("tr");
-                            var td = document.createElement("td");
-                            td.appendChild(document.createTextNode(id));
-                            tr.appendChild(td);
-                            
-                            td = document.createElement("td");
-                            td.appendChild(document.createTextNode(action));
-                            tr.appendChild(td);
-                            
-                            td = document.createElement("td");
-                            td.appendChild(document.createTextNode(info));
-                            tr.appendChild(td);
-                            
-                            tableBody.append(tr);
-                        });
-                    }
-                });
-                find(xml, "RecentQueryHistory", function() {
-                    var running = this.getElementsByTagNameNS(JMX_NS, "row");
-                    
-                    var tableBody = $("#jmx-recent-queries");
-                    tableBody.empty();
-                    
-                    if (running.length == 0) {
-                        tableBody.append("<tr><td colspan='5'>No recent queries</td></tr>");
-                    } else {
-                        $(running).each(function() {
-                            var time = getText(this, "mostRecentExecutionTime");
-                            var date = new Date(parseInt(time));
-                            var source = getText(this, "sourceKey");
-                            var duration = getText(this, "mostRecentExecutionDuration");
-                            
-                            var tr = document.createElement("tr");
-                            var td = document.createElement("td");
-                            td.appendChild(document.createTextNode(date));
-                            tr.appendChild(td);
-                            
-                            td = document.createElement("td");
-                            var resource = source.replace(/^.*\/([^\/]+)$/, "$1");
-                            var span = document.createElement("span");
-                            span.setAttribute("data-toggle", "tooltip");
-                            span.title = source;
-                            span.appendChild(document.createTextNode(resource));
-                            td.appendChild(span);
-                            tr.appendChild(td);
-                            $(span).tooltip();
-            
-                            td = document.createElement("td");
-                            td.appendChild(document.createTextNode(duration));
-                            tr.appendChild(td);
-                            
-                            tableBody.append(tr);
-                        });
-                    }
-                });
-                var waiting = 0;
-                find(xml, "WaitingThreads", function() {
-                    find(this, "row", function() {
-                        waiting = this.length;
-                    });
-                });
-
-                $("#jmx-waiting").text(waiting);
-                
-                find(xml, "HeapMemoryUsage", function() {
-                    var used = Math.floor(parseInt(getText(this, "used")) / 1024 / 1024);
-                    var committed = Math.floor(parseInt(getText(this, "committed")) / 1024 / 1024);
-                    var max = Math.floor(parseInt(getText(this, "max")) / 1024 / 1024);
-                    $("#jmx-memory-used").text(used + "/" + max + " M");
-                    $("#jmx-memory-committed").text(committed + "/" + max + " M");
-                    
-                    $("#progress-memory-used").width(Math.round(used / (max / 100)) + "%");
-                    $("#progress-memory-committed").width(Math.round(committed / (max / 100)) + "%");
-                    
-                    options.yaxis.max = max;
-                    
-                    if (memUsed.length > 100) {
-                        memUsed.shift();
-                        memCommitted.shift();
-                    }
-                    var now = new Date().getTime();
-                    memUsed.push([now, used]);
-                    memCommitted.push([now, committed]);
-                    
-                    $.plot("#memory-graph", dataset, options);
-                });
-                
-                // $(xml).find("Database").each(function() {
-                //     var db = $(this);
-                //     var tableBody = $("#jmx-active-threads");
-                //     tableBody.empty();
-                    
-                //     db.find("ActiveBrokersMap").find("row").each(function() {
-                //         var owner = $(this).find("owner").text();
-                //         var dump = $(this).find("stack").text();
-                //         var tr = document.createElement("tr");
-                //         var td = document.createElement("td");
-                //         td.appendChild(document.createTextNode(owner));
-                //         tr.appendChild(td);
-                //         td = document.createElement("td");
-                //         td.appendChild(document.createTextNode(dump));
-                //         tr.appendChild(td);
-                        
-                //         tableBody.append(tr);
-                //     });
-                // });
                 setTimeout(loadJMX, 1000);
             }
         });
