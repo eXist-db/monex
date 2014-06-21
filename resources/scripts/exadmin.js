@@ -91,6 +91,9 @@ $(function() {
     };
     
     function jmx2js(node) {
+        if (!node) {
+            return null;
+        }
         var parent = {};
         if (node.nodeType == Node.ELEMENT_NODE) {
             for (var i = 0; i < node.attributes.length; i++) {
@@ -125,6 +128,9 @@ $(function() {
     }
     
     function fixjs(data) {
+        if (!data) {
+            return null;
+        }
         if (data.jmx.ProcessReport) {
             var queries = data.jmx.ProcessReport.RunningQueries;
             if (!queries.length) {
@@ -183,12 +189,16 @@ $(function() {
             timeout: 30000,
             success: function(xml) {
                 var data = jmx2js(xml);
-                var status = data.jmx.SanityReport.Status;
-                var time = data.jmx.SanityReport.PingTime;
-                if (status == "PING_OK") {
-                    updateStatus("success", status, time, (new Date().getTime() - start));
+                if (!data) {
+                    updateStatus("danger", "No data", "", "");
                 } else {
-                    updateStatus("danger", status, time, (new Date().getTime() - start));
+                    var status = data.jmx.SanityReport.Status;
+                    var time = data.jmx.SanityReport.PingTime;
+                    if (status == "PING_OK") {
+                        updateStatus("success", status, time, (new Date().getTime() - start));
+                    } else {
+                        updateStatus("danger", status, time, (new Date().getTime() - start));
+                    }
                 }
                 setTimeout(function() { ping(instance); }, 60000);
             },
@@ -208,7 +218,7 @@ $(function() {
             url = location.pathname.replace(/^(.*)\/apps\/.*$/, "$1") +
                 "/status?c=instances&c=processes&c=locking&c=memory&c=caches&c=system&token=" + JMX_INSTANCE.token;
         } else {
-            url = "modules/remote.xql?name=" + name; 
+            url = "modules/remote.xql?name=" + name;
         }
 
         $.ajax({
@@ -218,33 +228,37 @@ $(function() {
             success: function(xml) {
                 $("#connection-alert").hide(400);
                 var data = fixjs(jmx2js(xml));
-                //console.dir(data);
-                if (!viewModel) {
-                    viewModel = ko.mapping.fromJS(data);
-                    ko.applyBindings(viewModel, $("#dashboard")[0]);
+                if (data) {
+                    //console.dir(data);
+                    if (!viewModel) {
+                        viewModel = ko.mapping.fromJS(data);
+                        ko.applyBindings(viewModel, $("#dashboard")[0]);
+                    } else {
+                        ko.mapping.fromJS(data, viewModel);
+                    }
+                    
+                    var max = parseInt(data.jmx.MemoryImpl.HeapMemoryUsage.max);
+                    var used = parseInt(data.jmx.MemoryImpl.HeapMemoryUsage.used);
+                    var committed = parseInt(data.jmx.MemoryImpl.HeapMemoryUsage.committed);
+                    options.yaxis.max = max;
+                    
+                    if (memUsed.length > 100) {
+                        memUsed.shift();
+                        memCommitted.shift();
+                    }
+                    var now = new Date().getTime();
+                    memUsed.push([now, used]);
+                    memCommitted.push([now, committed]);
+                    
+                    $.plot("#memory-graph", dataset, options);
+                    
+                    setTimeout(loadJMX, 1000);
                 } else {
-                    ko.mapping.fromJS(data, viewModel);
+                    $("#connection-alert").show(400);
+                    setTimeout(loadJMX, 5000);
                 }
-                
-                var max = parseInt(data.jmx.MemoryImpl.HeapMemoryUsage.max);
-                var used = parseInt(data.jmx.MemoryImpl.HeapMemoryUsage.used);
-                var committed = parseInt(data.jmx.MemoryImpl.HeapMemoryUsage.committed);
-                options.yaxis.max = max;
-                
-                if (memUsed.length > 100) {
-                    memUsed.shift();
-                    memCommitted.shift();
-                }
-                var now = new Date().getTime();
-                memUsed.push([now, used]);
-                memCommitted.push([now, committed]);
-                
-                $.plot("#memory-graph", dataset, options);
-                
-                setTimeout(loadJMX, 1000);
             },
             error: function(xhr, status, error) {
-                console.log("error: %s", status);
                 $("#connection-alert").show(400);
                 setTimeout(loadJMX, 5000);
             }
