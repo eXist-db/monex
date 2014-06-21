@@ -125,17 +125,21 @@ $(function() {
     }
     
     function fixjs(data) {
-        var queries = data.jmx.ProcessReport.RunningQueries;
-        if (!queries.length) {
-            data.jmx.ProcessReport.RunningQueries = [];
+        if (data.jmx.ProcessReport) {
+            var queries = data.jmx.ProcessReport.RunningQueries;
+            if (!queries.length) {
+                data.jmx.ProcessReport.RunningQueries = [];
+            }
+            var jobs = data.jmx.ProcessReport.RunningJobs;
+            if (!jobs || !jobs.length) {
+                data.jmx.ProcessReport.RunningJobs = [];
+            }
         }
-        var jobs = data.jmx.ProcessReport.RunningJobs;
-        if (!jobs || !jobs.length) {
-            data.jmx.ProcessReport.RunningJobs = [];
-        }
-        var waiting = data.jmx.LockManager.WaitingThreads;
-        if (!waiting.length) {
-            data.jmx.LockManager.WaitingThreads = [];
+        if (data.jmx.LockManager) {
+            var waiting = data.jmx.LockManager.WaitingThreads;
+            if (!waiting.length) {
+                data.jmx.LockManager.WaitingThreads = [];
+            }
         }
         return data;
     }
@@ -210,12 +214,14 @@ $(function() {
         $.ajax({
             url: url,
             type: "GET",
+            timeout: 10000,
             success: function(xml) {
+                $("#connection-alert").hide(400);
                 var data = fixjs(jmx2js(xml));
                 //console.dir(data);
                 if (!viewModel) {
                     viewModel = ko.mapping.fromJS(data);
-                    ko.applyBindings(viewModel);
+                    ko.applyBindings(viewModel, $("#dashboard")[0]);
                 } else {
                     ko.mapping.fromJS(data, viewModel);
                 }
@@ -236,6 +242,11 @@ $(function() {
                 $.plot("#memory-graph", dataset, options);
                 
                 setTimeout(loadJMX, 1000);
+            },
+            error: function(xhr, status, error) {
+                console.log("error: %s", status);
+                $("#connection-alert").show(400);
+                setTimeout(loadJMX, 5000);
             }
         });
     }
