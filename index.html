@@ -286,11 +286,11 @@
                 <!-- Box (Cache Usage) -->
                 <div class="box box-info">
                     <div class="box-header">
-                        <i class="fa fa-download"/>
+                        <i class="fa fa-bar-chart-o"/>
                         <h3 class="box-title">Database Brokers</h3>
                     </div><!-- /.box-header -->
                     <div class="box-body">
-                        <div class="chart" id="brokers-graph" style="height: 200px;" data-labels="Active Brokers" data-properties="jmx.Database.ActiveBrokers" data-max-y="jmx.Database.TotalBrokers"/>
+                        <div class="chart" id="brokers-graph" style="height: 200px;" data-labels="Active Brokers,Total Brokers" data-properties="jmx.Database.ActiveBrokers,jmx.Database.TotalBrokers" data-max-y="jmx.Database.MaxBrokers"/>
                     </div>
                 </div>
                 <!-- Box (Cache Usage) -->
@@ -430,7 +430,12 @@
                                     <th>Value</th>
                                 </tr>
                             </thead>
-                            <tbody id="jmx-active-threads">
+                            <tbody data-bind="foreach: jmx.Database.ActiveBrokersMap">
+                                <tr>
+                                    <td data-bind="text: owner"></td>
+                                    <td data-bind="text: referenceCount"></td>
+                                    <td data-bind="text: stack"></td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
