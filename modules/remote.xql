@@ -1,6 +1,7 @@
 xquery version "3.0";
 
 import module namespace config="http://exist-db.org/apps/admin/config" at "config.xqm";
+import module namespace http="http://expath.org/ns/http-client";
 
 let $instances := collection($config:app-root)//instance
 let $name := request:get-parameter("name", ())
@@ -26,5 +27,13 @@ let $url :=
         $baseURL || "&amp;" || $extraParams
     else
         $baseURL
+let $request :=
+    <http:request method="GET" href="{$url}" timeout="30"/>
+let $response := http:send-request($request)
 return
-    httpclient:get(xs:anyURI($url), false(), ())//httpclient:body/*
+    if ($response[1]/@status = "200") then
+        $response[2]
+    else (
+        response:set-status-code(500),
+        $response[1]/@message/string()
+    )
