@@ -19,7 +19,8 @@
     <section id="dashboard" class="content">
         <div id="connection-alert" class="alert alert-danger" style="display: none;">
             <i class="fa fa-ban"/>
-            <b>Alert!</b> Connection to server failed. Retrying ...
+            <b>Alert! </b>
+            <span class="message"/>
         </div>
         <!-- Small boxes (Stat box) -->
         <div class="row">
@@ -91,7 +92,7 @@
             <!-- Left col -->
             <section class="col-lg-12"> 
                 <!-- Box (Memory Usage) -->
-                <div class="box box-warning" id="loading-example">
+                <div class="box box-warning">
                     <div class="box-header">
                         <i class="fa fa-bar-chart-o"/>
                         <h3 class="box-title">Java Memory</h3>
@@ -99,7 +100,7 @@
                     <div class="box-body no-padding">
                         <div class="row" data-bind="with: jmx.MemoryImpl.HeapMemoryUsage">
                             <div class="col-sm-7">
-                                <div class="chart" id="memory-graph" style="height: 250px;"/>
+                                <div class="chart" id="memory-graph" style="height: 250px;" data-labels="Used memory,Committed memory" data-properties="jmx.MemoryImpl.HeapMemoryUsage.used,jmx.MemoryImpl.HeapMemoryUsage.committed" data-max-y="jmx.MemoryImpl.HeapMemoryUsage.max"/>
                             </div>
                             <div class="col-sm-5">
                                 <div class="pad">
@@ -131,6 +132,9 @@
                             </div><!-- /.col -->
                         </div><!-- /.row - inside box -->
                     </div><!-- /.box-body -->
+                    <div class="box-footer">
+                        <button class="btn btn-warning" data-bind="visible: parseInt($data.jmx.version()) &gt; 0, click: gc">Garbage Collect</button>
+                    </div>
                 </div><!-- /.box -->
             </section>
         </div><!-- /.row -->
@@ -170,7 +174,7 @@
                                         <span class="label" data-bind="text: $data.terminating() == 'false' ? 'running' : 'terminating', css: { 'label-success': $data.terminating() == 'false', 'label-warning': $data.terminating() == 'true' }"/>
                                     </td>
                                     <td>
-                                        <a href="#" class="kill-query" title="Kill Query">
+                                        <a href="#" class="kill-query" title="Kill Query" data-bind="if: JMX_INSTANCE.name == 'localhost' || JMX_INSTANCE.version != 0">
                                             <span class="glyphicon glyphicon-remove"/>
                                         </a>
                                     </td>
@@ -279,6 +283,16 @@
                 </div>
             </section>
             <section class="col-lg-6"> 
+                <!-- Box (Cache Usage) -->
+                <div class="box box-info">
+                    <div class="box-header">
+                        <i class="fa fa-download"/>
+                        <h3 class="box-title">Database Brokers</h3>
+                    </div><!-- /.box-header -->
+                    <div class="box-body">
+                        <div class="chart" id="brokers-graph" style="height: 200px;" data-labels="Active Brokers" data-properties="jmx.Database.ActiveBrokers" data-max-y="jmx.Database.TotalBrokers"/>
+                    </div>
+                </div>
                 <!-- Box (Cache Usage) -->
                 <div class="box box-info">
                     <div class="box-header">

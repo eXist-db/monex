@@ -13,11 +13,15 @@ function findByName(nodes, name) {
 function addKillBtn(node, data) {
     $(node).find(".kill-query").click(function(ev) {
         ev.preventDefault();
-        $.ajax({
-            url: "modules/admin.xql",
-            data: { action: "kill", id: data.id() },
-            type: "POST"
-        });
+        if (JMX_INSTANCE.version === 0) {
+            $.ajax({
+                url: "modules/admin.xql",
+                data: { action: "kill", id: data.id() },
+                type: "POST"
+            });
+        } else {
+            JMX.connection.invoke("killQuery", "org.exist.management.exist:type=ProcessReport", [data.id()]);
+        }
     });
 }
 
@@ -36,16 +40,75 @@ function uptime(data) {
     return status;
 }
 
-$(function() {
-    "use strict";
+var JMX = {};
+
+JMX.util = (function() {
     
-    var JMX_NS = "http://exist-db.org/jmx";
-    var memUsed = [];
-    var memCommitted = [];
-    var dataset = [
-        { label: "Used Memory", data: memUsed },
-        { label: "Commited Memory", data: memCommitted }
-    ];
+    return {
+        jmx2js: function (node) {
+            if (!node) {
+                return null;
+            }
+            var parent = {};
+            if (node.nodeType == Node.ELEMENT_NODE) {
+                for (var i = 0; i < node.attributes.length; i++) {
+                    parent[node.attributes[i].localName] = node.attributes[i].nodeValue;
+                }
+            }
+            var child = node.firstChild;
+            while (child) {
+                if (child.nodeType == Node.ELEMENT_NODE) {
+                    if (child.localName == "row") {
+                        if (!(parent instanceof Array)) {
+                            parent = [];
+                        }
+                        parent.push(JMX.util.jmx2js(child));
+                    } else {
+                        var existing = parent[child.localName];
+                        if (existing) {
+                            if (!(existing instanceof Array)) {
+                                parent[child.localName] = [ existing ];
+                                existing = parent[child.localName];
+                            }
+                            existing.push(JMX.util.jmx2js(child));
+                        } else {
+                            parent[child.localName] = JMX.util.jmx2js(child);
+                        }
+                    }
+                } else if (node.childNodes.length == 1) {
+                    return child.nodeValue;
+                }
+                child = child.nextSibling;
+            }
+            return parent;
+        },
+        
+        fixjs: function(data) {
+            if (!data) {
+                return null;
+            }
+            if (data.jmx.ProcessReport) {
+                var queries = data.jmx.ProcessReport.RunningQueries;
+                if (!queries.length) {
+                    data.jmx.ProcessReport.RunningQueries = [];
+                }
+                var jobs = data.jmx.ProcessReport.RunningJobs;
+                if (!jobs || !jobs.length) {
+                    data.jmx.ProcessReport.RunningJobs = [];
+                }
+            }
+            if (data.jmx.LockManager) {
+                var waiting = data.jmx.LockManager.WaitingThreads;
+                if (!waiting.length) {
+                    data.jmx.LockManager.WaitingThreads = [];
+                }
+            }
+            return data;
+        }
+    }
+}());
+
+JMX.TimeSeries = (function() {
     var options = {
         series: {
             lines: {
@@ -90,186 +153,221 @@ $(function() {
         }
     };
     
-    function jmx2js(node) {
-        if (!node) {
-            return null;
-        }
-        var parent = {};
-        if (node.nodeType == Node.ELEMENT_NODE) {
-            for (var i = 0; i < node.attributes.length; i++) {
-                parent[node.attributes[i].localName] = node.attributes[i].nodeValue;
-            }
-        }
-        var child = node.firstChild;
-        while (child) {
-            if (child.nodeType == Node.ELEMENT_NODE) {
-                if (child.localName == "row") {
-                    if (!(parent instanceof Array)) {
-                        parent = [];
-                    }
-                    parent.push(jmx2js(child));
-                } else {
-                    var existing = parent[child.localName];
-                    if (existing) {
-                        if (!(existing instanceof Array)) {
-                            existing = parent[child.localName] = [ existing ];
-                        }
-                        existing.push(jmx2js(child));
-                    } else {
-                        parent[child.localName] = jmx2js(child);
-                    }
-                }
-            } else if (node.childNodes.length == 1) {
-                return child.nodeValue;
-            }
-            child = child.nextSibling;
-        }
-        return parent;
-    }
-    
-    function fixjs(data) {
+    function getProperty(data, property) {
         if (!data) {
-            return null;
+            return 0;
         }
-        if (data.jmx.ProcessReport) {
-            var queries = data.jmx.ProcessReport.RunningQueries;
-            if (!queries.length) {
-                data.jmx.ProcessReport.RunningQueries = [];
-            }
-            var jobs = data.jmx.ProcessReport.RunningJobs;
-            if (!jobs || !jobs.length) {
-                data.jmx.ProcessReport.RunningJobs = [];
-            }
-        }
-        if (data.jmx.LockManager) {
-            var waiting = data.jmx.LockManager.WaitingThreads;
-            if (!waiting.length) {
-                data.jmx.LockManager.WaitingThreads = [];
-            }
-        }
-        return data;
-    }
-    
-    function ping(instance) {
-        
-        function updateStatus(type, status, time, responseTime) {
-            var tabrow = $("#servers tr[data-server='" + instance.name + "']");
-            var statusElem = "<span class='label label-" + type + "'>" + status + "</span>";
-            tabrow.find("td:nth-child(1)").html(statusElem);
-            tabrow.find("td:nth-child(3)").text(time);
-            tabrow.find("td:nth-child(4)").text(responseTime);
-            
-            var cls;
-            if (type == "success") {
-                cls = "fa fa-check-circle-o success";
-            } else if (type == "primary") {
-                cls = "fa fa-refresh primary";
+        var components = property.split(".");
+        var prop = data;
+        for (var i = 0; i < components.length; i++) {
+            if (prop.hasOwnProperty(components[i])) {
+                prop = prop[components[i]];
             } else {
-                cls = "fa fa-warning danger";
+                break;
             }
-            var notifications = $("#notifications");
-            notifications.find(".menu li[data-server='" + instance.name + "'] i").attr("class", cls);
-            var warnings = notifications.find(".danger").length;
-            notifications.find(".label-warning").text(warnings === 0 ? "" : warnings);
+        }
+        return prop || 0;
+    };
+    
+    Constr = function(container, labels, properties, propertyMaxY) {
+        this.container = $(container);
+        this.properties = properties;
+        this.propertyMaxY = propertyMaxY;
+        this.dataset = [];
+        for (var i = 0; i < labels.length; i++) {
+            this.dataset.push({
+                label: labels[i],
+                data: []
+            });
+        }
+    };
+    
+    Constr.prototype.update = function(data) {
+        var max = parseInt(getProperty(data, this.propertyMaxY));
+        options.yaxis.max = max;
+        if (this.dataset[0].data.length > 100) {
+            for (var i = 0; i < this.dataset[0].data.length; i++) {
+                this.dataset[i].data.shift();
+            }
+        }
+        var now = new Date().getTime();
+        for (var i = 0; i < this.properties.length; i++) {
+            var val = getProperty(data, this.properties[i]);
+            this.dataset[i].data.push([now, parseInt(val)]);
         }
         
-        var url;
-        var name = instance.name;
-        if (name == "localhost") {
-            url = location.pathname.replace(/^(.*)\/apps\/.*$/, "$1") +
-                "/status?operation=ping&token=" + instance.token;
-        } else {
-            url = "modules/remote.xql?operation=ping&name=" + name; 
-        }
-        updateStatus("primary", "Checking", "", "");
-        var start = new Date().getTime();
-        $.ajax({
-            url: url,
-            type: "GET",
-            timeout: 30000,
-            success: function(xml) {
-                var data = jmx2js(xml);
-                if (!data) {
-                    updateStatus("danger", "No data", "", "");
-                } else {
-                    var status = data.jmx.SanityReport.Status;
-                    var time = data.jmx.SanityReport.PingTime;
-                    if (status == "PING_OK") {
-                        updateStatus("success", status, time, (new Date().getTime() - start));
-                    } else {
-                        updateStatus("danger", status, time, (new Date().getTime() - start));
-                    }
-                }
-                setTimeout(function() { ping(instance); }, 60000);
-            },
-            error: function(xhr, status, errorThrown) {
-                updateStatus("danger", status, "", "");
-                setTimeout(function() { ping(instance); }, 60000);
-            }
-        });
-    }
+        $.plot(this.container, this.dataset, options);
+    };
+    
+    return Constr;
+}());
 
+JMX.connection = (function() {
+    "use strict";
+    
+    var JMX_NS = "http://exist-db.org/jmx";
+    
+    var version = 0;
+    
     var viewModel = null;
     
-    function loadJMX() {
-        var url;
-        var name = JMX_INSTANCE.name;
-        if (name == "localhost") {
-            url = location.pathname.replace(/^(.*)\/apps\/.*$/, "$1") +
-                "/status?c=instances&c=processes&c=locking&c=memory&c=caches&c=system&token=" + JMX_INSTANCE.token;
-        } else {
-            url = "modules/remote.xql?name=" + name;
-        }
-
-        $.ajax({
-            url: url,
-            type: "GET",
-            timeout: 10000,
-            success: function(xml) {
-                $("#connection-alert").hide(400);
-                var data = fixjs(jmx2js(xml));
-                if (data) {
-                    //console.dir(data);
-                    if (!viewModel) {
-                        viewModel = ko.mapping.fromJS(data);
-                        ko.applyBindings(viewModel, $("#dashboard")[0]);
-                    } else {
-                        ko.mapping.fromJS(data, viewModel);
-                    }
-                    
-                    var max = parseInt(data.jmx.MemoryImpl.HeapMemoryUsage.max);
-                    var used = parseInt(data.jmx.MemoryImpl.HeapMemoryUsage.used);
-                    var committed = parseInt(data.jmx.MemoryImpl.HeapMemoryUsage.committed);
-                    options.yaxis.max = max;
-                    
-                    if (memUsed.length > 100) {
-                        memUsed.shift();
-                        memCommitted.shift();
-                    }
-                    var now = new Date().getTime();
-                    memUsed.push([now, used]);
-                    memCommitted.push([now, committed]);
-                    
-                    $.plot("#memory-graph", dataset, options);
-                    
-                    setTimeout(loadJMX, 1000);
+    return {
+        ping: function(instance) {
+            
+            function updateStatus(type, status, time, responseTime) {
+                var tabrow = $("#servers tr[data-server='" + instance.name + "']");
+                var statusElem = "<span class='label label-" + type + "'>" + status + "</span>";
+                tabrow.find("td:nth-child(1)").html(statusElem);
+                tabrow.find("td:nth-child(3)").text(time);
+                tabrow.find("td:nth-child(4)").text(responseTime);
+                
+                var cls;
+                if (type == "success") {
+                    cls = "fa fa-check-circle-o success";
+                } else if (type == "primary") {
+                    cls = "fa fa-refresh primary";
                 } else {
-                    $("#connection-alert").show(400);
-                    setTimeout(loadJMX, 5000);
+                    cls = "fa fa-warning danger";
                 }
-            },
-            error: function(xhr, status, error) {
-                $("#connection-alert").show(400);
-                setTimeout(loadJMX, 5000);
+                var notifications = $("#notifications");
+                notifications.find(".menu li[data-server='" + instance.name + "'] i").attr("class", cls);
+                var warnings = notifications.find(".danger").length;
+                notifications.find(".label-warning").text(warnings === 0 ? "" : warnings);
             }
-        });
-    }
+            
+            var url;
+            var name = instance.name;
+            if (name == "localhost") {
+                url = location.pathname.replace(/^(.*)\/apps\/.*$/, "$1") +
+                    "/status?operation=ping&token=" + instance.token;
+            } else {
+                url = "modules/remote.xql?operation=ping&name=" + name; 
+            }
+            updateStatus("primary", "Checking", "", "");
+            var start = new Date().getTime();
+            $.ajax({
+                url: url,
+                type: "GET",
+                timeout: 30000,
+                success: function(xml) {
+                    var data = JMX.util.jmx2js(xml);
+                    if (!data) {
+                        updateStatus("danger", "No data", "", "");
+                    } else {
+                        var status = data.jmx.SanityReport.Status;
+                        var time = data.jmx.SanityReport.PingTime;
+                        if (status == "PING_OK") {
+                            updateStatus("success", status, time, (new Date().getTime() - start));
+                        } else {
+                            updateStatus("danger", status, time, (new Date().getTime() - start));
+                        }
+                    }
+                    setTimeout(function() { JMX.connection.ping(instance); }, 60000);
+                },
+                error: function(xhr, status, errorThrown) {
+                    updateStatus("danger", status, "", "");
+                    setTimeout(function() { JMX.connection.ping(instance); }, 60000);
+                }
+            });
+        },
+        
+        invoke: function(operation, mbean, args) {
+            var url;
+            if (JMX_INSTANCE.name == "localhost") {
+                url = location.pathname.replace(/^(.*)\/apps\/.*$/, "$1") +
+                    "/status?operation=" + operation + "&mbean=" + mbean + "&token=" + JMX_INSTANCE.token;
+            } else {
+                url = "modules/remote.xql?operation=" + operation + "&mbean=" + mbean + "&name=" + name;
+            }
+            if (args) {
+                for (var i = 0; i < args.length; i++) {
+                    url += "&args=" + args[i];
+                }
+            }
+            $.ajax({
+                url: url,
+                type: "GET",
+                timeout: 10000,
+                error: function(xhr, status, error) {
+                    $("#connection-alert").show(400).find(".message")
+                        .text("Operation '" + operation + "' failed or is not supported on this server instance.");
+                    setTimeout(function() { $("#connection-alert").hide(200); }, 3000);
+                }
+            });
+        },
+        
+        poll: function(onUpdate) {
+            var url;
+            var name = JMX_INSTANCE.name;
+            if (name == "localhost") {
+                url = location.pathname.replace(/^(.*)\/apps\/.*$/, "$1") +
+                    "/status?c=instances&c=processes&c=locking&c=memory&c=caches&c=system&token=" + JMX_INSTANCE.token;
+            } else {
+                url = "modules/remote.xql?name=" + name;
+            }
+    
+            $.ajax({
+                url: url,
+                type: "GET",
+                timeout: 10000,
+                success: function(xml) {
+                    $("#connection-alert").hide(400);
+                    var data = JMX.util.fixjs(JMX.util.jmx2js(xml));
+                    if (data) {
+                        if (!data.jmx.version) {
+                            data.jmx.version = 0;
+                        }
+                        JMX_INSTANCE.version = data.jmx.version;
+                        // console.dir(data);
+                        if (!viewModel) {
+                            viewModel = ko.mapping.fromJS(data);
+                            viewModel.gc = function() {
+                                JMX.connection.invoke("gc", "java.lang:type=Memory");
+                            };
+                            ko.applyBindings(viewModel, $("#dashboard")[0]);
+                        } else {
+                            ko.mapping.fromJS(data, viewModel);
+                        }
+                        if (onUpdate) {
+                            onUpdate(data);
+                        }
+                        setTimeout(function() { JMX.connection.poll(onUpdate); }, 1000);
+                    } else {
+                        $("#connection-alert").show(400).find(".message").text("No response from server. Retrying ...")
+                        setTimeout(function() { JMX.connection.poll(onUpdate); }, 5000);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    $("#connection-alert").show(400).find(".message")
+                        .text("Connection to server failed. Retrying ...");
+                    setTimeout(JMX.connection.poll, 5000);
+                }
+            });
+        }
+    };
+}());
+
+$(function() {
+    
     
     $("#dashboard").each(function() {
-        loadJMX();
+        var charts = [];
+        $(".chart").each(function() {
+            var node = $(this);
+            var labels = node.attr("data-labels");
+            var properties = node.attr("data-properties");
+            var max = node.attr("data-max-y");
+            
+            charts.push(new JMX.TimeSeries(node, labels.split(","), properties.split(","), max));
+        });
+        JMX.connection.poll(function(data) {
+            for (var i = 0; i < charts.length; i++) {
+                charts[i].update(data);
+            }
+        });
     });
     
     for (var server in JMX_INSTANCES) {
-        ping(JMX_INSTANCES[server]);
+        JMX.connection.ping(JMX_INSTANCES[server]);
     }
 });
