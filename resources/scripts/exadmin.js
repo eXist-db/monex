@@ -186,7 +186,7 @@ JMX.TimeSeries = (function() {
         var max = parseInt(getProperty(data, this.propertyMaxY));
         options.yaxis.max = max;
         if (this.dataset[0].data.length > 100) {
-            for (var i = 0; i < this.dataset[0].data.length; i++) {
+            for (var i = 0; i < this.dataset.length; i++) {
                 this.dataset[i].data.shift();
             }
         }
