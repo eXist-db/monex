@@ -211,71 +211,101 @@ JMX.connection = (function() {
     
     var viewModel = null;
     
-    return {
-        ping: function(instance) {
-            
-            function updateStatus(type, status, time, responseTime) {
-                var tabrow = $("#servers tr[data-server='" + instance.name + "']");
-                var statusElem = "<span class='label label-" + type + "'>" + status + "</span>";
-                tabrow.find("td:nth-child(1)").html(statusElem);
-                tabrow.find("td:nth-child(3)").text(time);
-                tabrow.find("td:nth-child(4)").text(responseTime);
-                
-                var cls;
-                if (type == "success") {
-                    cls = "fa fa-check-circle-o success";
-                } else if (type == "primary") {
-                    cls = "fa fa-refresh primary";
-                } else {
-                    cls = "fa fa-warning danger";
+    var instanceMap = {};
+
+    var currentInstance;
+    
+    function Instance(config, schedulerActive) {
+        this.name = ko.observable(config.name);
+        this.url = ko.observable(config.url);
+        this.token = config.token;
+        this.status = ko.observable(schedulerActive ? "Checking" : "Stopped");
+        this.message = ko.observable("");
+        this.elapsed = ko.observable("00:00.000");
+        this.time = ko.observable("0");
+        
+        this.icon = ko.computed(function() {
+            switch (this.status()) {
+                case "Checking":
+                    return "fa fa-refresh primary";
+                case "PING_ERROR":
+                    return "fa fa-warning danger";
+                default:
+                    return "fa fa-check-circle-o success";
+            }
+        }, this);
+    }
+    
+    function Instances(instances, schedulerActive) {
+        this.instances = ko.observableArray(instances);
+        this.status = ko.observable(schedulerActive ? "Checking" : "Stopped");
+        
+        this.warnings = ko.computed(function() {
+            var fails = 0;
+            for (var i = 0; i < this.instances().length; i++) {
+                var status = this.instances()[i].status();
+                if (status == "PING_ERROR" ||
+                    status == "Connection Error") {
+                    fails++;
                 }
-                var notifications = $("#notifications");
-                notifications.find(".menu li[data-server='" + instance.name + "'] i").attr("class", cls);
-                var warnings = notifications.find(".danger").length;
-                notifications.find(".label-warning").text(warnings === 0 ? "" : warnings);
             }
-            
-            var url;
-            var name = instance.name;
-            if (name == "localhost") {
-                url = location.pathname.replace(/^(.*)\/apps\/.*$/, "$1") +
-                    "/status?operation=ping&token=" + instance.token;
-            } else {
-                url = "modules/remote.xql?operation=ping&name=" + name; 
-            }
-            updateStatus("primary", "Checking", "", "");
-            var start = new Date().getTime();
+            return fails === 0 ? "" : fails;
+        }, this);
+        
+        this.schedule = function() {
+            var self = this;
+            var newStatus = self.status() == "Stopped" ? "Checking" : "Stopped";
+            self.status(newStatus);
             $.ajax({
-                url: url,
-                type: "GET",
-                timeout: 30000,
-                success: function(xml) {
-                    var data = JMX.util.jmx2js(xml);
-                    if (!data) {
-                        updateStatus("danger", "No data", "", "");
-                    } else {
-                        var status = data.jmx.SanityReport.Status;
-                        var time = data.jmx.SanityReport.PingTime;
-                        if (status == "PING_OK") {
-                            updateStatus("success", status, time, (new Date().getTime() - start));
-                        } else {
-                            updateStatus("danger", status, time, (new Date().getTime() - start));
-                        }
+                url: "modules/" + (newStatus == "Stopped" ? "unschedule.xql" : "schedule.xql"),
+                method: "GET",
+                success: function() {
+                    for (var i = 0; i < self.instances().length; i++) {
+                        self.instances()[i].status(newStatus);
                     }
-                    setTimeout(function() { JMX.connection.ping(instance); }, 60000);
-                },
-                error: function(xhr, status, errorThrown) {
-                    updateStatus("danger", status, "", "");
-                    setTimeout(function() { JMX.connection.ping(instance); }, 60000);
                 }
             });
-        },
+        };
+    }
+    
+    function connect(channel, callback) {
+        var url = "ws://" + location.host + "/exist/rconsole";
+        var connection = new WebSocket(url);
+    
+        // Log errors
+        connection.onerror = function (error) {
+            $("#status").text("Connection error ...");
+            console.log('WebSocket Error: %o', error);
+        };
+    
+        connection.onclose = function() {
+            $("#status").text("Disconnected.");
+        };
         
+        connection.onopen = function() {
+            $("#status").text("Connected.");    
+            connection.send('{ "channel": "' + channel + '" }');
+        };
+        
+        // Log messages from the server
+        connection.onmessage = function (e) {
+            if (e.data == "ping") {
+                return;
+            }
+            
+            var data = JSON.parse(e.data);
+            console.log("ping received for %s: %s", data.instance, data.status);
+            
+            callback(data);
+        };
+    }
+    
+    return {
         invoke: function(operation, mbean, args) {
             var url;
-            if (JMX_INSTANCE.name == "localhost") {
+            if (currentInstance.name() == "localhost") {
                 url = location.pathname.replace(/^(.*)\/apps\/.*$/, "$1") +
-                    "/status?operation=" + operation + "&mbean=" + mbean + "&token=" + JMX_INSTANCE.token;
+                    "/status?operation=" + operation + "&mbean=" + mbean + "&token=" + currentInstance.token;
             } else {
                 url = "modules/remote.xql?operation=" + operation + "&mbean=" + mbean + "&name=" + name;
             }
@@ -298,10 +328,10 @@ JMX.connection = (function() {
         
         poll: function(onUpdate) {
             var url;
-            var name = JMX_INSTANCE.name;
+            var name = currentInstance.name();
             if (name == "localhost") {
                 url = location.pathname.replace(/^(.*)\/apps\/.*$/, "$1") +
-                    "/status?c=instances&c=processes&c=locking&c=memory&c=caches&c=system&token=" + JMX_INSTANCE.token;
+                    "/status?c=instances&c=processes&c=locking&c=memory&c=caches&c=system&token=" + currentInstance.token;
             } else {
                 url = "modules/remote.xql?name=" + name;
             }
@@ -317,23 +347,26 @@ JMX.connection = (function() {
                         if (!data.jmx.version) {
                             data.jmx.version = 0;
                         }
-                        JMX_INSTANCE.version = data.jmx.version;
+                        currentInstance.version = data.jmx.version;
                         // console.dir(data);
-                        if (!viewModel) {
-                            viewModel = ko.mapping.fromJS(data);
-                            viewModel.gc = function() {
-                                JMX.connection.invoke("gc", "java.lang:type=Memory");
-                            };
-                            ko.applyBindings(viewModel, $("#dashboard")[0]);
-                        } else {
-                            ko.mapping.fromJS(data, viewModel);
+                        var rootDom = document.getElementById("dashboard");
+                        if (rootDom) {
+                            if (!viewModel) {
+                                viewModel = ko.mapping.fromJS(data);
+                                viewModel.gc = function() {
+                                    JMX.connection.invoke("gc", "java.lang:type=Memory");
+                                };
+                                ko.applyBindings(viewModel, rootDom);
+                            } else {
+                                ko.mapping.fromJS(data, viewModel);
+                            }
                         }
                         if (onUpdate) {
                             onUpdate(data);
                         }
                         setTimeout(function() { JMX.connection.poll(onUpdate); }, 1000);
                     } else {
-                        $("#connection-alert").show(400).find(".message").text("No response from server. Retrying ...")
+                        $("#connection-alert").show(400).find(".message").text("No response from server. Retrying ...");
                         setTimeout(function() { JMX.connection.poll(onUpdate); }, 5000);
                     }
                 },
@@ -343,12 +376,60 @@ JMX.connection = (function() {
                     setTimeout(JMX.connection.poll, 5000);
                 }
             });
+        },
+        
+        init: function(config, schedulerActive) {
+            instanceMap = {};
+            var instances = [];
+            for (var i = 0; i < config.length; i++) {
+                var instance = new Instance(config[i], schedulerActive);
+                instanceMap[config[i].name] = instance;
+                if (config[i].name == JMX_INSTANCE) {
+                    currentInstance = instance;
+                }
+                if (config[i].url != "local") {
+                    instances.push(instance);
+                }
+            }
+            var viewModel = new Instances(instances, schedulerActive);
+            var domRoot = document.getElementById("remotes");
+            if (domRoot) {
+                ko.applyBindings(viewModel, domRoot);
+            }
+            ko.applyBindings(viewModel, $("#notifications")[0]);
+            
+            connect("jmx.ping", JMX.connection.ping);
+        },
+        
+        ping: function(data) {
+            var instance = instanceMap[data.instance];
+            if (!instance) {
+                console.log("instance not found: %s", data.instance);
+                return;
+            }
+            instance.elapsed(data.elapsed);
+            switch (data.status) {
+                case "ok":
+                    instance.status(data.SanityReport.Status);
+                    instance.time(data.SanityReport.PingTime);
+                    instance.message("");
+                    break;
+                case "pending":
+                    instance.status("Checking");
+                    instance.time("?");
+                    instance.message("");
+                    break;
+                default:
+                    instance.status("PING_ERROR");
+                    instance.message(data.status);
+                    instance.time("?");
+            }
         }
     };
 }());
 
 $(function() {
-    
+    JMX.connection.init(JMX_INSTANCES, JMX_ACTIVE);
     
     $("#dashboard").each(function() {
         var charts = [];
@@ -367,7 +448,7 @@ $(function() {
         });
     });
     
-    for (var server in JMX_INSTANCES) {
-        JMX.connection.ping(JMX_INSTANCES[server]);
-    }
+    // for (var server in JMX_INSTANCES) {
+    //     JMX.connection.ping(JMX_INSTANCES[server]);
+    // }
 });

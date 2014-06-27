@@ -35,4 +35,9 @@ public class RemoteConsoleAdapter implements ConsoleAdapter {
 
         servlet.send(channel, data);
     }
+
+    @Override
+    public void send(String channel, String jsonString) {
+        servlet.send(channel, jsonString);
+    }
 }

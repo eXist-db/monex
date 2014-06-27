@@ -35,6 +35,17 @@ public class Log extends BasicFunction {
                     "Values to be printed. Will be concatenated into a single string.")
             },
             new FunctionReturnSequenceType(Type.EMPTY, Cardinality.EMPTY, "Empty")
+        ),
+        new FunctionSignature(
+            new QName("send", ConsoleModule.NAMESPACE_URI, ConsoleModule.PREFIX),
+            "Send a json message to the console",
+            new SequenceType[] {
+                    new FunctionParameterSequenceType("channel", Type.STRING, Cardinality.EXACTLY_ONE,
+                            "The channel to print to."),
+                    new FunctionParameterSequenceType("items", Type.ITEM, Cardinality.ZERO_OR_ONE,
+                            "Value to be sent. Will be transformed into JSON.")
+            },
+            new FunctionReturnSequenceType(Type.EMPTY, Cardinality.EMPTY, "Empty")
         )
     };
 
@@ -61,6 +72,11 @@ public class Log extends BasicFunction {
         final String channel = getArgumentCount() == 1 ? "default" : args[0].getStringValue();
         final Sequence params = getArgumentCount() == 1 ? args[0] : args[1];
         final StringBuilder out = new StringBuilder();
+        final Properties outputProperties = new Properties(SERIALIZATION_PROPERTIES);
+        final boolean jsonFormat = isCalledAs("send");
+        if (jsonFormat) {
+            outputProperties.setProperty(OutputKeys.METHOD, "json");
+        }
         int j = 0;
         for (SequenceIterator i = params.iterate(); i.hasNext(); j++) {
             final Item item = i.nextItem();
@@ -68,22 +84,27 @@ public class Log extends BasicFunction {
                 Serializer serializer = context.getBroker().getSerializer();
                 serializer.reset();
                 try {
-                    serializer.setProperties(SERIALIZATION_PROPERTIES);
+                    serializer.setProperties(outputProperties);
                     out.append(serializer.serialize((NodeValue)item));
                 } catch (SAXException e) {
                     out.append(e.getMessage());
                 }
+            } else if (jsonFormat) {
+                out.append('"').append(item.getStringValue()).append('"');
             } else {
                 out.append(item.getStringValue());
             }
         }
         final String msg = out.toString();
-        if (parent == null) {
-            ConsoleModule.log(channel, msg);
+        if (isCalledAs("send")) {
+            ConsoleModule.send(channel, msg);
         } else {
-            ConsoleModule.log(channel, parent.getSource().getKey(), parent.getLine(), parent.getColumn(), msg);
+            if (parent == null) {
+                ConsoleModule.log(channel, msg);
+            } else {
+                ConsoleModule.log(channel, parent.getSource().getKey(), parent.getLine(), parent.getColumn(), msg);
+            }
         }
-
         return Sequence.EMPTY_SEQUENCE;
     }
 }

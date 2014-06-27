@@ -45,51 +45,17 @@ function app:instances-data($node as node(), $model as map(*), $instance as xs:s
         collection($config:app-root)//instance
     )
     return
-        "var JMX_INSTANCES = {&#10;" ||
+        "var JMX_INSTANCES = [&#10;" ||
         string-join(
             for $instance in $instances
             return
-                '"' || $instance/@name || '": { name: "' || $instance/@name || 
+                '{ name: "' || $instance/@name || 
                 '", url: "' || $instance/@url || '", token: "' || $instance/@key || '"}',
             ", "
         ),
-        "&#10;};&#10;" ||
-        "var JMX_INSTANCE = JMX_INSTANCES['" || $instance || "'];&#10;"
-};
-
-declare
-    %templates:wrap
-function app:instances-table($node as node(), $model as map(*)) {
-    let $instances := collection($config:app-root)//instance
-    return
-        if ($instances) then
-            for $instance in $instances
-            return
-                <tr data-server="{$instance/@name}">
-                    <td><span class="label label-default">Waiting</span></td>
-                    <td>{$instance/@name/string()}</td>
-                    <td></td>
-                    <td></td>
-                </tr>
-        else
-            $node
-};
-
-declare
-    %templates:wrap
-function app:instances-status($node as node(), $model as map(*)) {
-    let $instances := collection($config:app-root)//instance
-    return
-        if ($instances) then
-            for $instance in $instances
-            return
-                <li data-server="{$instance/@name}">
-                    <a href="remotes.html">
-                        <i class="fa fa-check-circle-o success"></i> {$instance/@name/string()}
-                    </a>
-                </li>
-        else
-            $node
+        "&#10;];&#10;" ||
+        "var JMX_INSTANCE = '" || $instance || "';&#10;" ||
+        "var JMX_ACTIVE = " || exists(scheduler:get-scheduled-jobs()//scheduler:job[starts-with(@name, "jmx:")]) || ";&#10;"
 };
 
 declare function app:btn-profiling($node as node(), $model as map(*)) {

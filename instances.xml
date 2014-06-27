@@ -12,5 +12,5 @@
     authentication key, so just leave the attribute empty.
 -->
 <instances>
-    <!--instance name="my.server.org" url="http://my.server.org:8080/exist" key=""/-->
+    <!--instance name="my.server.com" url="http://my.server.com:8080/exist" key="" cron="0 * * * * ?"/-->
 </instances>

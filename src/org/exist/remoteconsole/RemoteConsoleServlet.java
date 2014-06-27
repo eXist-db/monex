@@ -58,10 +58,8 @@ public class RemoteConsoleServlet extends WebSocketServlet {
     }
 
     public void send(String channel, String jsonString) {
-        LOG.debug("sockets: " + sockets.size());
         for (RemoteConsoleSocket socket: sockets) {
             try {
-                LOG.debug("Sending " + jsonString);
                 socket.sendMessage(channel, jsonString);
             } catch (IOException e) {
                 LOG.debug("Error sending message via websocket: " + e.getMessage(), e);
@@ -75,7 +73,6 @@ public class RemoteConsoleServlet extends WebSocketServlet {
         private String channel = null;
 
         public void sendMessage(String toChannel, String data) throws IOException {
-            LOG.debug("Sending to channel " + toChannel + "; current: " + channel);
             if (toChannel == null || (channel != null && toChannel.equals(channel))) {
                 connection.sendMessage(data);
             }
@@ -86,14 +83,12 @@ public class RemoteConsoleServlet extends WebSocketServlet {
             Map data = (Map) JSON.parse(message);
             String channel = (String) data.get("channel");
             if (channel != null) {
-                LOG.debug("Switching channel to " + channel);
                 this.channel = channel;
             }
         }
 
         @Override
         public void onOpen(Connection connection) {
-            LOG.debug("Adding remote endpoint...");
             sockets.add(this);
             connection.setMaxIdleTime(10000);
             this.connection = connection;

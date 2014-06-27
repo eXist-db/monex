@@ -36,11 +36,18 @@
                         <li id="notifications" class="dropdown notifications-menu">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                                 <i class="fa fa-warning"/>
-                                <span class="label label-warning"/>
+                                <span data-bind="text: warnings" class="label label-warning"/>
                             </a>
                             <ul class="dropdown-menu">
                                 <li>
-                                    <ul class="menu" data-template="app:instances-status"/>
+                                    <ul class="menu" data-bind="foreach: instances">
+                                        <li>
+                                            <a href="remotes.html">
+                                                <i data-bind="attr: {class: $data.icon() }"/>
+                                                <span data-bind="text: name"/>
+                                            </a>
+                                        </li>
+                                    </ul>
                                 </li>
                             </ul>
                         </li>

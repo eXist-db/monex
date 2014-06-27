@@ -17,17 +17,35 @@
     </section>
     
     <!-- Main content -->
-    <section class="content">
+    <section id="remotes" class="content">
+        <div class="btn-group">
+            <button type="button" class="btn btn-app" data-bind="click: schedule, enable: instances().length &gt; 0">
+                <i class="fa" data-bind="css: { 'fa-stop': $data.status() == 'Checking', 'fa-play': $data.status() == 'Stopped'}"/>
+                <span data-bind="text: $data.status() == 'Checking' ? 'Stop All' : 'Run'">Stop all</span>
+            </button>
+        </div>
         <table class="table table-striped">
             <thead>
                 <th>Status</th>
                 <th>Server</th>
                 <th>Ping Time</th>
                 <th>Response Time</th>
+                <th>Message</th>
             </thead>
-            <tbody id="servers" data-template="app:instances-table">
+            <tbody data-bind="if: instances().length == 0">
                 <tr>
-                    <td colspan="4" class="note">No remote instances configured</td>
+                    <td colspan="5">No monitoring jobs configured.</td>
+                </tr>
+            </tbody>
+            <tbody data-bind="foreach: instances">
+                <tr>
+                    <td>
+                        <span data-bind="text: status, css: {'label-success': $data.status() == 'PING_OK', 'label-danger': $data.status() == 'PING_ERROR', 'label-primary': $data.status() == 'Checking' || $data.status() == 'Stopped'}" class="label">Waiting</span>
+                    </td>
+                    <td data-bind="text: name"/>
+                    <td data-bind="text: time"/>
+                    <td data-bind="text: elapsed"/>
+                    <td data-bind="text: message"/>
                 </tr>
             </tbody>
         </table>
