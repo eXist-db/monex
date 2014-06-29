@@ -5,6 +5,7 @@ module namespace app="http://exist-db.org/apps/admin/templates";
 declare namespace html="http://www.w3.org/1999/xhtml";
 declare namespace prof="http://exist-db.org/xquery/profiling";
 
+import module namespace scheduler="http://exist-db.org/xquery/scheduler" at "org.exist.xquery.modules.scheduler.SchedulerModule";
 import module namespace templates="http://exist-db.org/xquery/templates" ;
 import module namespace config="http://exist-db.org/apps/admin/config" at "config.xqm";
 import module namespace console="http://exist-db.org/xquery/console";
