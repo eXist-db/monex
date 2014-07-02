@@ -7,8 +7,8 @@
         <property name="mail.smtp.auth" value="true"/>
         <property name="mail.smtp.port" value="587"/>
         <property name="mail.smtp.host" value="smtp.gmail.com"/>
-        <property name="mail.smtp.user" value="info@exist-db.org"/>
-        <property name="mail.smtp.password" value="eXistance"/>
+        <property name="mail.smtp.user" value="alerts"/>
+        <property name="mail.smtp.password" value="passwd"/>
     </properties>
     <!-- One or more accounts to send alerts to -->
     <!--receiver address="alert@email.com" name="John Doe"/-->

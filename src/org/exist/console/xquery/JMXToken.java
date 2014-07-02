@@ -31,6 +31,9 @@ public class JMXToken extends BasicFunction {
 
     @Override
     public Sequence eval(Sequence[] sequences, Sequence sequence) throws XPathException {
+        if (!context.getEffectiveUser().hasDbaRole()) {
+            throw new XPathException(this, "Only a dba user is allowed to retrieve the JMX access token.");
+        }
         final Configuration configuration = context.getBroker().getConfiguration();
         final String dataDir = (String) configuration.getProperty(BrokerPool.PROPERTY_DATA_DIR);
         if (dataDir == null) {
