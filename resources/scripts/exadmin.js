@@ -269,6 +269,12 @@ JMX.connection = (function() {
     }
     
     function connect(channel, callback) {
+        if (!Modernizr.websockets) {
+            $("#browser-alert").show(400);
+            setTimeout(function() { $("#browser-alert").hide(200); }, 8000);
+            return;
+        }
+        
         var url = "ws://" + location.host + "/exist/rconsole";
         var connection = new WebSocket(url);
     

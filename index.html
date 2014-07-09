@@ -22,6 +22,11 @@
             <b>Alert! </b>
             <span class="message"/>
         </div>
+        <div id="browser-alert" class="alert alert-danger" style="display: none;">
+            <i class="fa fa-ban"/>
+            <b>Alert! </b> Your browser does not support websockets. Remote monitoring and console
+            will not work!
+        </div>
         <!-- Small boxes (Stat box) -->
         <div class="row">
             <div class="col-lg-3 col-xs-6">
@@ -443,6 +448,7 @@
             </section>
         </div-->
     </section>
+    <script type="text/javascript" src="resources/scripts/modernizr.custom.js"/>
     <script type="text/javascript" src="resources/scripts/knockout-3.1.0.js"/>
     <script type="text/javascript" src="resources/scripts/knockout.mapping-2.4.1.js"/>
     <script type="text/javascript" src="resources/scripts/jquery.flot.min.js"/>
