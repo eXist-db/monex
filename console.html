@@ -18,11 +18,25 @@
     
     <!-- Main content -->
     <section class="content">
-        <div>
-            <span id="status" class="label label-info"/>
-            <a href="#" id="clear" class="btn btn-default pull-right">
-                <i class="fa fa-eraser"/> Clear</a>
-        </div>
+        <form class="form-inline" role="form" action="">
+            <div class="form-group col-md-1">
+                <label id="status" class="label label-info control-label"/>
+            </div>
+            <div class="form-group col-md-1 pull-right">
+                <button id="clear" class="btn btn-default">
+                    <i class="fa fa-eraser"/> Clear</button>
+            </div>
+            <div class="form-group col-md-4 pull-right">
+                <div class="input-group">
+                    <span class="input-group-addon">Channel: </span>
+                    <input type="text" class="form-control" name="channel" value="default"/>
+                    <span class="input-group-btn">
+                        <button id="set-channel" class="btn btn-primary" type="submit">
+                            <i class="fa fa-refresh"/> Set</button>
+                    </span>
+                </div>
+            </div>
+        </form>
         <table class="table table-striped">
             <thead>
                 <th>Timestamp</th>
