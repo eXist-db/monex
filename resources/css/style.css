@@ -34,6 +34,19 @@ body > .header .logo {
     color:Ghostwhite;
 }
 
+.sidebar .powered-by img {
+    display: none;
+}
+
+.svg .sidebar .powered-by img {
+    position: fixed;
+    display: block;
+    bottom: 10px;
+    width: 120px;
+    left: 15px;
+    margin: 0 auto;
+}
+
 .sidebar .sidebar-menu .treeview-menu {
     display: block;
 }
