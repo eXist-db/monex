@@ -12,12 +12,15 @@ module namespace indexes="http://exist-db.org/xquery/admin-interface/indexes";
 declare namespace cc="http://exist-db.org/collection-config/1.0";
 declare namespace range="http://exist-db.org/xquery/range";
 
+
+import module namespace console="http://exist-db.org/xquery/console" at "java:org.exist.console.xquery.ConsoleModule";
 import module namespace templates="http://exist-db.org/xquery/templates";
 
 (: 
     Global variables - derived from URL parameters
 :)
-declare variable $indexes:start-value := request:get-parameter('start-value', '');
+declare variable $indexes:start-value := 
+    request:get-parameter('start-value', '');
 declare variable $indexes:callback := indexes:term-callback#2;
 declare variable $indexes:max-number-returned := xs:integer(request:get-parameter('max', 100));
 declare variable $indexes:index := request:get-parameter('index', '');
@@ -130,7 +133,7 @@ declare function indexes:xconf-to-table($node as node(), $model as map(*)) as it
                 <tr>
                     <th>Item Indexed</th>
                     <th>Index</th>
-                    <th>Instances</th>
+                    <!--th>Instances</th-->
                     <th>Show Index Keys By</th>
                 </tr>
                 {
@@ -187,6 +190,7 @@ declare function indexes:show-index-keys($node as node(), $model as map(*)) {
         (: all other indexes need to specify the index in the 5th parameter of util:index-keys() :)
         else
             let $index := if ($indexes:index = "new-range-index") then "range-index" else $indexes:index
+            let $log := console:log("start-value: " || $indexes:start-value)
             return
                 switch ($indexes:show-keys-by)
                     case "field" return
@@ -335,7 +339,7 @@ declare function indexes:analyze-lucene-indexes($xconf) {
             let $match := if ($text/@match) then $text/@match/string() else ()
             let $analyzer := if ($text/@analyzer) then $text/@analyzer/string() else ()
             let $collection := substring-after(util:collection-name($text), '/db/system/config')
-            let $nodeset := if ($qname) then indexes:get-nodeset-from-qname($collection, $qname) else indexes:get-nodeset-from-match($collection, $match)
+(:            let $nodeset := if ($qname) then indexes:get-nodeset-from-qname($collection, $qname) else indexes:get-nodeset-from-match($collection, $match):)
             return
                 <tr>
                     <td>
@@ -343,10 +347,10 @@ declare function indexes:analyze-lucene-indexes($xconf) {
                         {if ($text/@boost) then concat(' (boost: ', $text/@boost/string(), ')') else ()}
                         {if ($text/cc:ignore) then (<br/>, concat('(ignore: ', string-join(for $ignore in $text/cc:ignore return $ignore/@qname/string(), ', '), ')')) else ()}</td>
                     <td>{$index-label} {if ($qname) then ' QName' else ' Match'} {if ($analyzer) then concat(' (', $analyzer, ')') else ' (default analyzer)' (: TODO: complete report of default/other Lucene analyzers :)}</td>
-                    <td>{count($nodeset)}</td>
+                    <!--td>{count($nodeset)}</td-->
                     <td>{
-                        if (empty($nodeset)) then ()
-                        else
+(:                        if (empty($nodeset)) then ():)
+(:                        else:)
                             (
                             <a href="index-keys.html{indexes:replace-parameters((
                                 if ($qname) then concat('node-name=', $qname) else concat('match=', $match)
@@ -394,14 +398,14 @@ declare function indexes:analyze-legacy-fulltext-indexes($xconf) {
             <tr>
                 <td>-</td>
                 <td>{concat($index-label, ' ', $no-fulltext)}</td>
-                <td>-</td>
+                <!--td>-</td-->
                 <td>-</td>
             </tr>
         else if (not($default-none) and not($attributes-none)) then
             <tr>
                 <td>All Elements and Attributes!</td>
                 <td>{$index-label}</td>
-                <td>{count(collection($collection)//*)} elements and {count(collection($collection)//@*)} attributes</td>
+                <!--td>{count(collection($collection)//*)} elements and {count(collection($collection)//@*)} attributes</td-->
                 <td>(Too many to display)</td>
             </tr>(: is it feasible to display all qnames/nodes here? :)
         else (: if ($creates) then :)
@@ -413,7 +417,7 @@ declare function indexes:analyze-legacy-fulltext-indexes($xconf) {
                 <tr>
                     <td>{$qname}</td>
                     <td>{$index-label} {if ($mixed) then '(mixed)' else ()}</td>
-                    <td>{count(util:eval(concat('collection(', $collection, ')//', $qname)))}</td>
+                    <!--td>{count(util:eval(concat('collection(', $collection, ')//', $qname)))}</td-->
                     <td><a href="index-keys.html{indexes:replace-parameters((
                             (:if ($qname) then:) concat('node-name=', $qname) (:else concat('match=', $match):)
                             , 
@@ -432,14 +436,14 @@ declare function indexes:analyze-legacy-fulltext-indexes($xconf) {
                 <tr>
                     <td>All Attributes! {$only-elements-disabled}</td>
                     <td>{$index-label}</td>
-                    <td>{count(collection($collection)//@*)} attributes</td>
+                    <!--td>{count(collection($collection)//@*)} attributes</td-->
                     <td>(Too many to display)</td>
                 </tr>(: is it feasible to display all qnames/nodes here? :)
             else if ($only-attribs-disabled) then 
                 <tr>
                     <td>All Elements! {$only-attribs-disabled}</td>
                     <td>{$index-label}</td>
-                    <td>{count(collection($collection)//*)} elements</td>
+                    <!--td>{count(collection($collection)//*)} elements</td-->
                     <td>(Too many to display)</td>
                 </tr>(: is it feasible to display all qnames/nodes here? :)
             else ()
@@ -461,15 +465,15 @@ declare function indexes:analyze-range-indexes($xconf) {
             let $match := $range/@path/string()
             let $type := $range/@type/string()
             let $collection := substring-after(util:collection-name($range), '/db/system/config')
-            let $nodeset := if ($qname) then indexes:get-nodeset-from-qname($collection, $qname) else indexes:get-nodeset-from-match($collection, $match)
+(:            let $nodeset := if ($qname) then indexes:get-nodeset-from-qname($collection, $qname) else indexes:get-nodeset-from-match($collection, $match):)
             return
                 <tr>
                     <td>{if ($qname) then $qname else $match}</td>
                     <td>{$index-label} {if ($qname) then ' QName' else ' Path'} ({$type})</td>
-                    <td>{count($nodeset)}</td>
+                    <!--td>{count($nodeset)}</td-->
                     <td>{
-                        if (empty($nodeset)) then ()
-                        else
+(:                        if (empty($nodeset)) then ():)
+(:                        else:)
                             <a href="index-keys.html{indexes:replace-parameters((
                                 if ($qname) then concat('node-name=', $qname) else concat('match=', $match)
                                 , 
@@ -494,15 +498,15 @@ declare function indexes:analyze-new-range-indexes($xconf) {
         let $qname := $range/@qname/string()
         let $type := $range/@type/string()
         let $collection := substring-after(util:collection-name($range), '/db/system/config')
-        let $nodeset := indexes:get-nodeset-from-qname($collection, $qname)
+(:        let $nodeset := indexes:get-nodeset-from-qname($collection, $qname):)
         return
             <tr>
                 <td>{$qname}</td>
                 <td>{$index-label} QName ({$type})</td>
-                <td>{count($nodeset)}</td>
+                <!--td>{count($nodeset)}</td-->
                 <td>{
-                    if (empty($nodeset)) then ()
-                    else
+(:                    if (empty($nodeset)) then ():)
+(:                    else:)
                         <a href="index-keys.html{indexes:replace-parameters((
                             concat('node-name=', $qname)
                             , 
@@ -528,15 +532,15 @@ declare function indexes:analyze-new-range-index-fields($xconf) {
         let $match := $range/@match/string()
         let $type := $range/@type/string()
         let $collection := substring-after(util:collection-name($range), '/db/system/config')
-        let $nodeset := indexes:get-nodeset-from-field($collection, $range/parent::cc:create/@qname, $match)
+(:        let $nodeset := indexes:get-nodeset-from-field($collection, $range/parent::cc:create/@qname, $match):)
         return
             <tr>
                 <td>{$name}</td>
                 <td>{$index-label} QName ({$type})</td>
-                <td>{count($nodeset)}</td>
+                <!--td>{count($nodeset)}</td-->
                 <td>{
-                    if (empty($nodeset)) then ()
-                    else
+(:                    if (empty($nodeset)) then ():)
+(:                    else:)
                         <a href="index-keys.html{indexes:replace-parameters((
                             concat('field=', $name)
                             , 
@@ -560,14 +564,14 @@ declare function indexes:analyze-ngram-indexes($xconf) {
         for $ngram in $ngrams
         let $qname := $ngram/@qname/string()
         let $collection := substring-after(util:collection-name($ngram), '/db/system/config')
-        let $nodeset := indexes:get-nodeset-from-qname($collection, $qname)
+(:        let $nodeset := indexes:get-nodeset-from-qname($collection, $qname):)
         return
             <tr>
                 <td>{$qname}</td>
                 <td>{$index-label} QName</td>
-                <td>{count($nodeset)}</td>
+                <!--td>{count($nodeset)}</td-->
                 <td>{
-                    if (not(empty($nodeset))) then 
+(:                    if (not(empty($nodeset))) then :)
                         (
                         <a href="index-keys.html{indexes:replace-parameters((
                             concat('node-name=', $qname)
@@ -590,7 +594,7 @@ declare function indexes:analyze-ngram-indexes($xconf) {
                             'show-keys-by=node'
                         ))}">Node</a>
                         )
-                     else ()
+(:                     else ():)
                  }</td>
             </tr>    
 };
