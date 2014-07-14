@@ -38,13 +38,15 @@ body > .header .logo {
     display: none;
 }
 
-.svg .sidebar .powered-by img {
-    position: fixed;
-    display: block;
-    bottom: 10px;
-    width: 120px;
-    left: 15px;
-    margin: 0 auto;
+@media (min-width: 767px) {
+    .svg .sidebar .powered-by img {
+        position: fixed;
+        display: block;
+        bottom: 10px;
+        width: 120px;
+        left: 15px;
+        margin: 0 auto;
+    }
 }
 
 .sidebar .sidebar-menu .treeview-menu {
