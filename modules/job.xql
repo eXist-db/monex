@@ -7,7 +7,7 @@ import module namespace console="http://exist-db.org/xquery/console";
 declare namespace job="http://exist-db.org/apps/monex/job";
 declare namespace jmx="http://exist-db.org/jmx";
 
-(:declare variable $local:name := "tomcat";:)
+(:declare variable $local:name := "sarit";:)
 (:declare variable $local:operation := "ping";:)
 (:declare variable $local:app-root := "/db/apps/monex";:)
 
@@ -80,13 +80,13 @@ declare function job:status($status, $elapsed as xs:duration?) {
         ()
 };
 
-declare function job:check-response($status as xs:string, $root as node()?, $elapsed as xs:duration?) {
+declare function job:check-response($instance as element(), $status as xs:string, $root as node()?, $elapsed as xs:duration?) {
     let $notifications := doc($local:app-root || "/" || "notifications.xml")/*
     let $response := job:response($status, $root, $elapsed)
     let $error := $status != "ok" or $root/jmx:SanityReport/jmx:Status != "PING_OK"
     return (
         if ($error) then
-            for $receiver in $notifications/receiver
+            for $receiver in $notifications/receiver[watching = $instance/@name or not(watching)]
             return
                 job:get-notification-method()($receiver/@address, $status, $response, $notifications)
         else
@@ -113,9 +113,9 @@ return
         let $response := http:send-request($request)
         return
             if ($response[1]/@status = "200") then
-                console:send($job:CHANNEL, job:check-response("ok", $response[2]/*, util:system-time() - $start))
+                console:send($job:CHANNEL, job:check-response($instance, "ok", $response[2]/*, util:system-time() - $start))
             else
-                console:send($job:CHANNEL, job:check-response($response[1]/@message/string(), (), util:system-time() - $start))
+                console:send($job:CHANNEL, job:check-response($instance, $response[1]/@message/string(), (), util:system-time() - $start))
     } catch * {
-        console:send($job:CHANNEL, job:check-response($err:description, (), ()))
+        console:send($job:CHANNEL, job:check-response($instance, $err:description, (), ()))
     }

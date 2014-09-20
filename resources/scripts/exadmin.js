@@ -313,7 +313,7 @@ JMX.connection = (function() {
                 url = location.pathname.replace(/^(.*)\/apps\/.*$/, "$1") +
                     "/status?operation=" + operation + "&mbean=" + mbean + "&token=" + currentInstance.token;
             } else {
-                url = "modules/remote.xql?operation=" + operation + "&mbean=" + mbean + "&name=" + name;
+                url = "modules/remote.xql?operation=" + operation + "&mbean=" + mbean + "&name=" + currentInstance.name();
             }
             if (args) {
                 for (var i = 0; i < args.length; i++) {

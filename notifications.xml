@@ -10,6 +10,16 @@
         <property name="mail.smtp.user" value="alerts"/>
         <property name="mail.smtp.password" value="passwd"/>
     </properties>
-    <!-- One or more accounts to send alerts to -->
-    <!--receiver address="alert@email.com" name="John Doe"/-->
+    <!-- 
+        One or more accounts to send alerts to.
+
+        The instances to watch may be specified in a list of
+        <watching> elements. If no <watching> element is present,
+        the account receives all notifications.
+    -->
+    <!--
+    <receiver address="alert@email.com" name="John Doe">
+        <watching>instance</watching>
+    </receiver>
+    -->
 </notifications>
