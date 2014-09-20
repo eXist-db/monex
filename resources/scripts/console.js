@@ -43,11 +43,17 @@ var RemoteConsole = (function() {
                 var tr = document.createElement("tr");
                 tr.style.display = "none";
                 tr.className = "message";
+                tr.setAttribute("data-toggle", "tooltip");
+                tr.title = data.timestamp + ": " + data.source + " [" + data.line + " / " + data.column + "]";
+                $(tr).tooltip();
+                
                 var td = document.createElement("td");
+                td.className = "hidden-xs";
                 td.appendChild(document.createTextNode(time));
                 tr.appendChild(td);
                 
                 td = document.createElement("td");
+                td.className = "hidden-xs";
                 if (data.source) {
                     var source = data.source.replace(/^.*\/([^\/]+)$/, "$1");
                     var span = document.createElement("span");
@@ -62,6 +68,7 @@ var RemoteConsole = (function() {
                 tr.appendChild(td);
                 
                 td = document.createElement("td");
+                td.className = "hidden-xs";
                 if (data.line) {
                     td.appendChild(document.createTextNode(data.line + " / " + data.column));
                 } else {

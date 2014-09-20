@@ -54,9 +54,14 @@ body > .header .logo {
 }
 
 .sidebar .sidebar-menu .treeview-menu li {
-    margin-left: 10px;
+    padding-left: 10px;
 }
 
 .skin-black .sidebar > .sidebar-menu > li > .treeview-menu {
     background: inherit;
+}
+
+.treeview-menu .active {
+    color: #f6f6f6;
+    background: #444;
 }
