@@ -12,6 +12,5 @@
     <target>monex</target>
     <prepare>pre-install.xql</prepare>
     <finish>post-install.xql</finish>
-    <note>A restart of eXist may be required after upgrading monex (to clean up Java library dependencies)</note>
     <permissions xmlns:repo="http://exist-db.org/xquery/repo" password="monex" user="monex" group="monex" mode="rw-rw-r--"/>
 </meta>
