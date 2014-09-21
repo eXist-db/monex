@@ -5,6 +5,7 @@ module namespace app="http://exist-db.org/apps/admin/templates";
 declare namespace html="http://www.w3.org/1999/xhtml";
 declare namespace prof="http://exist-db.org/xquery/profiling";
 declare namespace scheduler="http://exist-db.org/xquery/scheduler";
+declare namespace jmx="http://exist-db.org/jmx";
 
 import module namespace templates="http://exist-db.org/xquery/templates" ;
 import module namespace config="http://exist-db.org/apps/admin/config" at "config.xqm";
@@ -51,16 +52,26 @@ declare
     %templates:default("instance", "localhost")
 function app:instances-data($node as node(), $model as map(*), $instance as xs:string) {
     let $instances := (
-        <instance name="localhost" url="local" key="{console:jmx-token()}"/>,
+        <instance name="localhost" url="local" token="{console:jmx-token()}"/>,
         collection($config:app-root)//instance
     )
     return
         "var JMX_INSTANCES = [&#10;" ||
         string-join(
             for $instance in $instances
+            let $statusRoot := collection($config:data-root)/jmx:jmx[jmx:instance = $instance/@name]
+            let $status :=
+                if ($statusRoot) then
+                    if ($statusRoot/jmx:status = "ok") then
+                        $statusRoot/jmx:SanityReport/jmx:Status/string()
+                    else
+                        $statusRoot/jmx:status/string()
+                else
+                    "Checking"
             return
                 '{ name: "' || $instance/@name || 
-                '", url: "' || $instance/@url || '", token: "' || $instance/@key || '"}',
+                '", url: "' || $instance/@url || '", token: "' || $instance/@token || 
+                '", status: "' || $status || '"}',
             ", "
         ),
         "&#10;];&#10;" ||

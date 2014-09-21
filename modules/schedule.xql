@@ -10,6 +10,7 @@ let $params :=
         <param name="name" value="{$instance/@name}"/>
         <param name="operation" value="ping"/>
         <param name="app-root" value="{$config:app-root}"/>
+        <param name="data-root" value="{$config:data-root}"/>
     </parameters>
 let $result :=
     scheduler:schedule-xquery-cron-job($config:app-root || "/modules/job.xql", 

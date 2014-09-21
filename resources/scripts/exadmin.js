@@ -219,8 +219,14 @@ JMX.connection = (function() {
         this.name = ko.observable(config.name);
         this.url = ko.observable(config.url);
         this.token = config.token;
-        this.status = ko.observable(schedulerActive ? "Checking" : "Stopped");
-        this.message = ko.observable("");
+        var status = schedulerActive ? config.status : "Stopped";
+        if (status == "Checking" || status == "PING_OK" || status == "Stopped") {
+            this.status = ko.observable(status);
+            this.message = ko.observable("");
+        } else {
+            this.message = ko.observable(status);
+            this.status = ko.observable("PING_ERROR");
+        }
         this.elapsed = ko.observable("00:00.000");
         this.time = ko.observable("0");
         
@@ -228,10 +234,10 @@ JMX.connection = (function() {
             switch (this.status()) {
                 case "Checking":
                     return "fa fa-refresh primary";
-                case "PING_ERROR":
-                    return "fa fa-warning danger";
-                default:
+                case "PING_OK":
                     return "fa fa-check-circle-o success";
+                default:
+                    return "fa fa-warning danger";
             }
         }, this);
     }

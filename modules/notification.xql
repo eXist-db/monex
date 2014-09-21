@@ -2,6 +2,8 @@ xquery version "3.0";
 
 module namespace notification="http://exist-db.org/apps/monex/notification";
 
+declare namespace jmx="http://exist-db.org/jmx";
+
 import module namespace console="http://exist-db.org/xquery/console" at "java:org.exist.console.xquery.ConsoleModule";
 import module namespace mail="http://exist-db.org/xquery/mail" at "java:org.exist.xquery.modules.mail.MailModule";
 
@@ -21,15 +23,15 @@ declare %private function notification:create-email($receiver as xs:string, $sub
                         <table>
                             <tr>
                                 <td>Server Name:</td>
-                                <td>{$data/instance/string()}</td>
+                                <td>{$data/jmx:instance/string()}</td>
                             </tr>
                             <tr>
                                 <td>Message:</td>
-                                <td>{$data/status/string()}</td>
+                                <td>{$data/jmx:status/string()}</td>
                             </tr>
                             <tr>
                                 <td>Timestamp:</td>
-                                <td>{$data/timestamp/string()}</td>
+                                <td>{$data/jmx:timestamp/string()}</td>
                             </tr>
                         </table>
                     </body>
