@@ -62,7 +62,9 @@
             <div class="box-body">
                 <p>To monitor remote eXist-db instances, edit the XML file 
                     <a href="instances.xml" class="templates:load-source">instances.xml</a> in the root
-                    collection of the monex application. Monex pings each server once every minute.</p>
+                    collection of the monex application. Monex pings each server at configurable times or
+                    intervals. You can also set up email alerts in 
+                    <a href="notifications.xml" class="templates:load-source">notifications.xml</a>.</p>
                 <p>
                     <code>Ping Time</code> is the actual time (in milliseconds) spent on the server for processing a very small query.
                     It is thus a good indicator for the responsiveness of the system.
