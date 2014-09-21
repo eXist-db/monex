@@ -13,4 +13,12 @@
     <prepare>pre-install.xql</prepare>
     <finish>post-install.xql</finish>
     <permissions xmlns:repo="http://exist-db.org/xquery/repo" password="monex" user="monex" group="monex" mode="rw-rw-r--"/>
+    <changelog>
+        <change version="0.4">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Send alerts only to receivers watching the affected instance</li>
+                <li>Store last ping status in db; send alerts only if status changed</li>
+            </ul>
+        </change>
+    </changelog>
 </meta>
