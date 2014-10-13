@@ -43,7 +43,7 @@ function uptime(data) {
 var JMX = {};
 
 JMX.util = (function() {
-    
+
     return {
         jmx2js: function (node) {
             if (!node) {
@@ -82,7 +82,7 @@ JMX.util = (function() {
             }
             return parent;
         },
-        
+
         fixjs: function(data) {
             if (!data) {
                 return null;
@@ -123,12 +123,12 @@ JMX.TimeSeries = (function() {
             tickSize: [2, "second"],
             tickFormatter: function (v, axis) {
                 var date = new Date(v);
-     
+
                 if (date.getSeconds() % 20 == 0) {
                     var hours = date.getHours() < 10 ? "0" + date.getHours() : date.getHours();
                     var minutes = date.getMinutes() < 10 ? "0" + date.getMinutes() : date.getMinutes();
                     var seconds = date.getSeconds() < 10 ? "0" + date.getSeconds() : date.getSeconds();
-     
+
                     return hours + ":" + minutes + ":" + seconds;
                 } else {
                     return "";
@@ -148,11 +148,11 @@ JMX.TimeSeries = (function() {
             axisLabelFontFamily: 'Verdana, Arial',
             axisLabelPadding: 6
         },
-        legend: {       
+        legend: {
             labelBoxBorderColor: "#fff"
         }
     };
-    
+
     function getProperty(data, property) {
         if (!data) {
             return 0;
@@ -168,7 +168,7 @@ JMX.TimeSeries = (function() {
         }
         return prop || 0;
     };
-    
+
     Constr = function(container, labels, properties, propertyMaxY) {
         this.container = $(container);
         this.properties = properties;
@@ -181,7 +181,7 @@ JMX.TimeSeries = (function() {
             });
         }
     };
-    
+
     Constr.prototype.update = function(data) {
         var max = parseInt(getProperty(data, this.propertyMaxY));
         options.yaxis.max = max;
@@ -195,26 +195,26 @@ JMX.TimeSeries = (function() {
             var val = getProperty(data, this.properties[i]);
             this.dataset[i].data.push([now, parseInt(val)]);
         }
-        
+
         $.plot(this.container, this.dataset, options);
     };
-    
+
     return Constr;
 }());
 
 JMX.connection = (function() {
     "use strict";
-    
+
     var JMX_NS = "http://exist-db.org/jmx";
-    
+
     var version = 0;
-    
+
     var viewModel = null;
-    
+
     var instanceMap = {};
 
     var currentInstance;
-    
+
     function Instance(config, schedulerActive) {
         this.name = ko.observable(config.name);
         this.url = ko.observable(config.url);
@@ -229,7 +229,7 @@ JMX.connection = (function() {
         }
         this.elapsed = ko.observable("00:00.000");
         this.time = ko.observable("0");
-        
+
         this.icon = ko.computed(function() {
             switch (this.status()) {
                 case "Checking":
@@ -241,11 +241,11 @@ JMX.connection = (function() {
             }
         }, this);
     }
-    
+
     function Instances(instances, schedulerActive) {
         this.instances = ko.observableArray(instances);
         this.status = ko.observable(schedulerActive ? "Checking" : "Stopped");
-        
+
         this.warnings = ko.computed(function() {
             var fails = 0;
             for (var i = 0; i < this.instances().length; i++) {
@@ -257,7 +257,7 @@ JMX.connection = (function() {
             }
             return fails === 0 ? "" : fails;
         }, this);
-        
+
         this.schedule = function() {
             var self = this;
             var newStatus = self.status() == "Stopped" ? "Checking" : "Stopped";
@@ -273,45 +273,46 @@ JMX.connection = (function() {
             });
         };
     }
-    
+
     function connect(channel, callback) {
         if (!Modernizr.websockets) {
             $("#browser-alert").show(400);
             setTimeout(function() { $("#browser-alert").hide(200); }, 8000);
             return;
         }
-        
-        var url = "ws://" + location.host + "/exist/rconsole";
+
+        var rootcontext = location.pathname.slice(0, location.pathname.indexOf("/apps"));
+        var url = "ws://" + location.host + rootcontext + "/rconsole";
         var connection = new WebSocket(url);
-    
+
         // Log errors
         connection.onerror = function (error) {
             $("#status").text("Connection error ...");
             console.log('WebSocket Error: %o', error);
         };
-    
+
         connection.onclose = function() {
             $("#status").text("Disconnected.");
         };
-        
+
         connection.onopen = function() {
-            $("#status").text("Connected.");    
+            $("#status").text("Connected.");
             connection.send('{ "channel": "' + channel + '" }');
         };
-        
+
         // Log messages from the server
         connection.onmessage = function (e) {
             if (e.data == "ping") {
                 return;
             }
-            
+
             var data = JSON.parse(e.data);
             console.log("ping received for %s: %s", data.instance, data.status);
-            
+
             callback(data);
         };
     }
-    
+
     return {
         invoke: function(operation, mbean, args) {
             var url;
@@ -337,7 +338,7 @@ JMX.connection = (function() {
                 }
             });
         },
-        
+
         poll: function(onUpdate) {
             var url;
             var name = currentInstance.name();
@@ -347,7 +348,7 @@ JMX.connection = (function() {
             } else {
                 url = "modules/remote.xql?name=" + name;
             }
-    
+
             $.ajax({
                 url: url,
                 type: "GET",
@@ -389,7 +390,7 @@ JMX.connection = (function() {
                 }
             });
         },
-        
+
         init: function(config, schedulerActive) {
             instanceMap = {};
             var instances = [];
@@ -409,10 +410,10 @@ JMX.connection = (function() {
                 ko.applyBindings(viewModel, domRoot);
             }
             ko.applyBindings(viewModel, $("#notifications")[0]);
-            
+
             connect("jmx.ping", JMX.connection.ping);
         },
-        
+
         ping: function(data) {
             var instance = instanceMap[data.instance];
             if (!instance) {
@@ -442,7 +443,7 @@ JMX.connection = (function() {
 
 $(function() {
     JMX.connection.init(JMX_INSTANCES, JMX_ACTIVE);
-    
+
     $("#dashboard").each(function() {
         var charts = [];
         $(".chart").each(function() {
@@ -450,7 +451,7 @@ $(function() {
             var labels = node.attr("data-labels");
             var properties = node.attr("data-properties");
             var max = node.attr("data-max-y");
-            
+
             charts.push(new JMX.TimeSeries(node, labels.split(","), properties.split(","), max));
         });
         JMX.connection.poll(function(data) {
@@ -459,7 +460,7 @@ $(function() {
             }
         });
     });
-    
+
     // for (var server in JMX_INSTANCES) {
     //     JMX.connection.ping(JMX_INSTANCES[server]);
     // }
