@@ -9,7 +9,7 @@ body > .header .logo {
 }
 
 #console tr>td:nth-child(1) {
-    width: 15%;
+    width: 10%;
 }
 
 #console tr>td:nth-child(2) {
@@ -20,8 +20,16 @@ body > .header .logo {
     width: 10%;
 }
 
-#console tr>td:nth-child(4) {
+#console tr>td:nth-child(4), #console tr>th:nth-child(4) {
     width: 65%;
+}
+
+#console tr>td:nth-child(5), #console tr>th:nth-child(5) {
+    width: 5%;
+}
+
+#console .source {
+    cursor: pointer;
 }
 
 #visualizer .node {

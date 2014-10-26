@@ -3,7 +3,7 @@ var RemoteConsole = (function() {
     var connection;
     var bufferSize = 50;
     var currentChannel = "default";
-
+    
     return {
         connect: function() {
             var rootcontext = location.pathname.slice(0, location.pathname.indexOf("/apps"));
@@ -40,14 +40,13 @@ var RemoteConsole = (function() {
                     oldLines.get(0).remove();
                 }
 
+                var smallScreen = Modernizr.mq('(max-width: 767px)');
+                
                 var time = data.timestamp.replace(/^.*T([^\+]+).*$/, "$1");
                 var tr = document.createElement("tr");
                 tr.style.display = "none";
                 tr.className = "message";
-                tr.setAttribute("data-toggle", "tooltip");
-                tr.title = data.timestamp + ": " + data.source + " [" + data.line + " / " + data.column + "]";
-                $(tr).tooltip();
-
+                
                 var td = document.createElement("td");
                 td.className = "hidden-xs";
                 td.appendChild(document.createTextNode(time));
@@ -57,12 +56,7 @@ var RemoteConsole = (function() {
                 td.className = "hidden-xs";
                 if (data.source) {
                     var source = data.source.replace(/^.*\/([^\/]+)$/, "$1");
-                    var span = document.createElement("span");
-                    span.setAttribute("data-toggle", "tooltip");
-                    span.title = data.source;
-                    span.appendChild(document.createTextNode(source));
-                    td.appendChild(span);
-                    $(span).tooltip();
+                    td.appendChild(document.createTextNode(source));
                 } else {
                     td.appendChild(document.createTextNode("unknown"));
                 }
@@ -82,6 +76,24 @@ var RemoteConsole = (function() {
                 td.appendChild(document.createTextNode(data.message));
                 tr.appendChild(td);
 
+                td = document.createElement("td");
+                td.className = "source";
+                var btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = "btn btn-default";
+                
+                var info = document.createElement("span");
+                info.className = "fa fa-info";
+                btn.appendChild(info);
+                td.appendChild(btn);
+                btn.setAttribute("data-toggle", "tooltip");
+                btn.title = data.timestamp + ": " + data.source + " [" + data.line + " / " + data.column + "]";
+                $(btn).tooltip({
+                    placement: "left",
+                    trigger: "click"
+                });
+                tr.appendChild(td);
+                
                 $("#console").append(tr);
 
                 $(tr).show(200, function() {
