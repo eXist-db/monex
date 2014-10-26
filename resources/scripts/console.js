@@ -73,7 +73,24 @@ var RemoteConsole = (function() {
 
                 td = document.createElement("td");
                 td.className = "message";
-                td.appendChild(document.createTextNode(data.message));
+                if (data.json) {
+                    var json = JSON.parse(data.message);
+                    var dl = document.createElement("dl");
+                    dl.className = "dl-horizontal";
+                    for (var key in json) {
+                        var name = document.createElement("dt");
+                        // name.className = "var";
+                        name.appendChild(document.createTextNode("$" + key));
+                        dl.appendChild(name);
+                        var value = document.createElement("dd");
+                        value.appendChild(document.createTextNode(json[key]));
+                        dl.appendChild(value);
+                        // table.appendChild(row);
+                    }
+                    td.appendChild(dl);
+                } else {
+                    td.appendChild(document.createTextNode(data.message));
+                }
                 tr.appendChild(td);
 
                 td = document.createElement("td");

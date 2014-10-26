@@ -20,6 +20,9 @@ public class ConsoleModule extends AbstractInternalModule {
         new FunctionDef(Log.signatures[0], Log.class),
         new FunctionDef(Log.signatures[1], Log.class),
         new FunctionDef(Log.signatures[2], Log.class),
+        new FunctionDef(Log.signatures[3], Log.class),
+        new FunctionDef(Log.signatures[4], Log.class),
+        new FunctionDef(Log.signatures[5], Log.class),
         new FunctionDef(JMXToken.signature, JMXToken.class)
     };
 
@@ -28,14 +31,22 @@ public class ConsoleModule extends AbstractInternalModule {
     private static final Logger LOG = Logger.getLogger(ConsoleModule.class);
 
     public static void log(String channel, String message) {
+        log(channel, false, message);
+    }
+
+    public static void log(String channel, boolean json, String message) {
         if (adapter != null) {
-            adapter.log(channel, message);
+            adapter.log(channel, json, message);
         }
     }
 
     public static void log(String channel, String source, int line, int column, String message) {
+        log(channel, source, line, column, false, message);
+    }
+
+    public static void log(String channel, String source, int line, int column, boolean json, String message) {
         if (adapter != null) {
-            adapter.log(channel, source, line, column, message);
+            adapter.log(channel, source, line, column, json, message);
         }
     }
 
