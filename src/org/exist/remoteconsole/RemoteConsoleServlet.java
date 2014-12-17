@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.*;
 
-@WebServlet(urlPatterns = { "rconsole" })
+@WebServlet(urlPatterns = { "/rconsole" })
 public class RemoteConsoleServlet extends WebSocketServlet {
 
     private static final Logger LOG = Logger.getLogger(RemoteConsoleServlet.class);
