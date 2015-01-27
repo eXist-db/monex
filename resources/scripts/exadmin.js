@@ -317,7 +317,10 @@ JMX.connection = (function() {
         invoke: function(operation, mbean, args) {
             var url;
             if (currentInstance.name() == "localhost") {
-                url = location.pathname.replace(/^(.*)\/apps\/.*$/, "$1") +
+                 // url = location.pathname.replace(/^(.*)\/apps\/.*$/, "$1") +
+                 url = ~location.pathname.indexOf("\/apps\/") 
+                    ? location.pathname.replace(/^(.*)\/apps\/.*$/, "$1")
+                    : "" +
                     "/status?operation=" + operation + "&mbean=" + mbean + "&token=" + currentInstance.token;
             } else {
                 url = "modules/remote.xql?operation=" + operation + "&mbean=" + mbean + "&name=" + currentInstance.name();
@@ -343,7 +346,10 @@ JMX.connection = (function() {
             var url;
             var name = currentInstance.name();
             if (name == "localhost") {
-                url = location.pathname.replace(/^(.*)\/apps\/.*$/, "$1") +
+                //url = location.pathname.replace(/^(.*)\/apps\/.*$/, "$1") +
+                url = ~location.pathname.indexOf("\/apps\/") 
+                    ? location.pathname.replace(/^(.*)\/apps\/.*$/, "$1")
+                    : "" +
                     "/status?c=instances&c=processes&c=locking&c=memory&c=caches&c=system&token=" + currentInstance.token;
             } else {
                 url = "modules/remote.xql?name=" + name;
