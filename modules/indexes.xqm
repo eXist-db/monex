@@ -752,7 +752,7 @@ declare function indexes:remove-parameter-names($parameter-names-to-remove) {
         indexes:remove-parameter-names(
             for $current-parameter-name in $current-parameter-names 
             return 
-                concat($current-parameter-name, '=', request:get-parameter( $current-parameter-name, () ))
+                concat($current-parameter-name, '=', request:get-parameter( $current-parameter-name, () )[1])
             ,
             $parameter-names-to-remove
             )
@@ -782,7 +782,7 @@ declare function indexes:replace-parameters($new-parameters) {
     let $current-parameter-names := request:get-parameter-names()
     let $current-parameters := 
         for $name in $current-parameter-names
-        return concat($name, '=', request:get-parameter($name, ()))
+        return concat($name, '=', request:get-parameter($name, ())[1])
     return
         indexes:replace-parameters($current-parameters, $new-parameters)
 };
