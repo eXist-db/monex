@@ -8,8 +8,8 @@ import module namespace console="http://exist-db.org/xquery/console";
 declare namespace job="http://exist-db.org/apps/monex/job";
 declare namespace jmx="http://exist-db.org/jmx";
 
-(:declare variable $local:name := "tomcat";:)
-(:declare variable $local:operation := "ping";:)
+(:declare variable $local:name := "history.state.gov";:)
+(:declare variable $local:operation := "";:)
 (:declare variable $local:app-root := "/db/apps/monex";:)
 (:declare variable $local:data-root := "/db/apps/monex/data";:)
 
@@ -33,16 +33,16 @@ declare function job:get-notification-method() as function(*) {
         }
     return
         if ($tryImport) then
-            function-lookup(xs:QName("notification:send-email"), 4)
+            function-lookup(xs:QName("notification:send-email"), 5)
         else
-            job:notify-dummy#4
+            job:notify-dummy#5
 };
 
 (:~
  :  Dummy notification function used if mail module is not available.
  :)
 declare %private function job:notify-dummy($receiver as xs:string, $subject as xs:string, 
-    $data as node()*, $settings as element(notifications)) {
+    $data as node()*, $settings as element(notifications), $attachment as xs:string?) {
     ()
 };
 
@@ -109,7 +109,7 @@ declare function job:check-response($instance as element(), $status as xs:string
     let $response := job:response($status, $root, $elapsed)
     let $error := $status != "ok" or $root/jmx:SanityReport/jmx:Status != "PING_OK"
     return (
-        job:notify($error, $instance, $status, $response),
+        job:notify($error, $instance, $status, $response, ()),
         job:store-last-status($response),
         $response
     )
@@ -118,39 +118,76 @@ declare function job:check-response($instance as element(), $status as xs:string
 (:~
  : Send notifications to receivers (if status changed)
  :)
-declare function job:notify($error as xs:boolean, $instance as element(), $status as xs:string, $response as element()) {
+declare function job:notify($error as xs:boolean, $instance as element(), $status as xs:string, $response as element(),
+    $attachment as xs:string?) {
     let $statusRoot := collection($config:data-root)/jmx:jmx[jmx:instance = $instance/@name]
     return
         if ((empty($statusRoot) and $error) or ($statusRoot/jmx:status != $response/jmx:status)) then
             let $notifications := doc($local:app-root || "/" || "notifications.xml")/*
         	for $receiver in $notifications/receiver[watching = $instance/@name or not(watching)]
             return
-                job:get-notification-method()($receiver/@address, $status, $response, $notifications)
+                job:get-notification-method()($receiver/@address, $status, $response, $notifications, $attachment)
         else
             ()
 };
 
-console:send($job:CHANNEL, job:response("pending", (), ())),
-let $start := util:system-time()
+declare function job:ping($instance as element(instance)) as xs:boolean {
+    let $start := util:system-time()
+	let $url :=
+        if ($local:operation and $local:operation != "") then
+            $instance/@url || "/status?operation=" || $local:operation || "&amp;token=" || $instance/@token
+        else
+            $instance/@url || 
+            "/status?c=instances&amp;c=processes&amp;c=locking&amp;c=memory&amp;c=caches&amp;c=system&amp;token=" ||
+            $instance/@token
+    let $request :=
+        <http:request method="GET" href="{$url}" timeout="30"/>
+    return
+        try {
+            let $response := http:send-request($request)
+            return
+                if ($response[1]/@status = "200") then (
+                    if (empty($local:operation) or $local:operation = "") then
+                        job:alerts($instance, $response[2]/*)
+                    else
+                        console:send($job:CHANNEL, job:check-response($instance, "ok", $response[2]/*, util:system-time() - $start)),
+                    true()
+                ) else (
+                    console:send($job:CHANNEL, job:check-response($instance, $response[1]/@message/string(), (), util:system-time() - $start)),
+                    false()
+                )
+        } catch * {
+            console:send($job:CHANNEL, job:check-response($instance, $err:description, (), ())),
+            false()
+        }
+};
+
+declare function job:alerts($instance as element(instance), $jmx as element(jmx:jmx)) {
+    for $alert in $instance/alerts/alert
+    let $alertTriggered := util:eval(
+        "declare default element namespace 'http://exist-db.org/jmx';" ||
+        $alert/@condition
+    )
+    let $log := console:log("monex", "Checking alert: " || $alert/@condition)
+    return
+        if ($alertTriggered) then
+            let $log := console:log("monex", "Alert fired: " || $alert/@name)
+            let $status :=
+                <jmx:jmx>
+                { job:status($alert/@name/string(), ()) }
+                </jmx:jmx>
+            let $log := console:log($status)
+            return
+                job:notify(true(), $instance, "alert: " || $instance/@name, $status, serialize($jmx))
+        else
+            ()
+};
+
+if ($local:operation and $local:operation != "") then
+    console:send($job:CHANNEL, job:response("pending", (), ()))
+else
+    (),
 let $instances := collection($local:app-root)//instance
 let $instance := $instances[@name = $local:name]
-let $url :=
-    if ($local:operation and $local:operation != "") then
-        $instance/@url || "/status?operation=" || $local:operation || "&amp;token=" || $instance/@token
-    else
-        $instance/@url || 
-        "/status?c=instances&amp;c=processes&amp;c=locking&amp;c=memory&amp;c=caches&amp;c=system&amp;token=" ||
-        $instance/@token
-let $request :=
-    <http:request method="GET" href="{$url}" timeout="30"/>
 return
-    try {
-        let $response := http:send-request($request)
-        return
-            if ($response[1]/@status = "200") then
-                console:send($job:CHANNEL, job:check-response($instance, "ok", $response[2]/*, util:system-time() - $start))
-            else
-                console:send($job:CHANNEL, job:check-response($instance, $response[1]/@message/string(), (), util:system-time() - $start))
-    } catch * {
-        console:send($job:CHANNEL, job:check-response($instance, $err:description, (), ()))
-    }
+    job:ping($instance)

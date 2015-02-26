@@ -7,7 +7,8 @@ declare namespace jmx="http://exist-db.org/jmx";
 import module namespace console="http://exist-db.org/xquery/console" at "java:org.exist.console.xquery.ConsoleModule";
 import module namespace mail="http://exist-db.org/xquery/mail" at "java:org.exist.xquery.modules.mail.MailModule";
 
-declare %private function notification:create-email($receiver as xs:string, $subject as xs:string, $data as node()*, $settings as element(notifications)) {
+declare %private function notification:create-email($receiver as xs:string, $subject as xs:string, $data as node()*, $settings as element(notifications),
+    $attachment as xs:string?) {
     <mail>
         <from>{$settings/properties/property[@name = "mail.smtp.user"]/@value}</from>
         <to>{$receiver}</to>
@@ -38,12 +39,19 @@ declare %private function notification:create-email($receiver as xs:string, $sub
                 </html>
             </xhtml>
         </message>
+        {
+            if (exists($attachment)) then
+                <attachment filename="log.xml" mimetype="application/xml">{$attachment}</attachment>
+            else
+                ()
+        }
     </mail>
 };
 
-declare function notification:send-email($receiver as xs:string, $subject as xs:string, $data as node()*, $settings as element(notifications)) {
+declare function notification:send-email($receiver as xs:string, $subject as xs:string, $data as node()*, $settings as element(notifications),
+    $attachment as xs:string?) {
     let $session := mail:get-mail-session($settings/properties)
-    let $message := notification:create-email($receiver, $subject, $data, $settings)
+    let $message := notification:create-email($receiver, $subject, $data, $settings, $attachment)
     let $log := console:log($message)
     return
         mail:send-email($session, $message)
