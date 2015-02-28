@@ -73,3 +73,17 @@ body > .header .logo {
     color: #f6f6f6;
     background: #444;
 }
+
+.form-inline .form-control {
+    width: auto;
+    margin-right: .5em;
+}
+
+.form-inline label, .form-inline .form-group, .form-inline label input {
+    margin-right: .5em;
+}
+
+.form-inline .fa-refresh {
+    display: none;
+    margin-left: 55px;
+}

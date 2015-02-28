@@ -369,6 +369,13 @@ JMX.connection = (function() {
                                 viewModel.gc = function() {
                                     JMX.connection.invoke("gc", "java.lang:type=Memory");
                                 };
+                                if (data.jmx.ProcessReport.MaxQueryHistory) {
+                                    $("#threshold").val(data.jmx.ProcessReport.MinTimeRecorded);
+                                    $("#track-uri").prop("checked", data.jmx.ProcessReport.TrackRequestURI);
+                                    $("#history-max").val(data.jmx.ProcessReport.MaxQueryHistory);
+                                } else {
+                                    $("#configure-history").hide();
+                                }
                                 ko.applyBindings(viewModel, rootDom);
                             } else {
                                 ko.mapping.fromJS(data, viewModel);
@@ -444,6 +451,13 @@ JMX.connection = (function() {
 $(function() {
     JMX.connection.init(JMX_INSTANCES, JMX_ACTIVE);
 
+    $("#configure").click(function(ev) {
+        ev.preventDefault();
+        var threshold = $("#threshold").val();
+        var maxHistory = $("#history-max").val();
+        var trackURI = $("#track-uri").is(":checked");
+        JMX.connection.invoke("configure", "org.exist.management.exist:type=ProcessReport", [threshold, trackURI, maxHistory]);
+    });
     $("#dashboard").each(function() {
         var charts = [];
         $(".chart").each(function() {

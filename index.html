@@ -422,6 +422,26 @@
                             </tbody>
                         </table>
                     </div>
+                    <div class="box-footer">
+                        <form class="form-inline" id="configure-history">
+                            <div class="form-group">
+                                <label for="threshold" class="control-label">Threshold: </label>
+                                <input type="text" class="form-control" id="threshold"/>
+                            </div>
+                            <div class="form-group">
+                                <label for="history-max">Max items in history: </label>
+                                <input type="text" class="form-control" id="history-max"/>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" id="track-uri"/> Track request URI
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <button class="btn btn-primary" id="configure">Set</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </section>
         </div>
