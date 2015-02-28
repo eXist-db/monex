@@ -20,8 +20,13 @@
     </section>
     
     <!-- Main content -->
-    <section class="content profiling" data-template="app:profile">
-        <div class="indexes:show-index-keys"/>
+    <section class="content">
+        <div class="box">
+            <div class="box-header with-border">
+                <h3 class="box-title" data-template="indexes:current-index"/>
+            </div>
+            <div class="box-body" data-template="indexes:show-index-keys"/>
+        </div>
     </section>
     <script type="text/javascript" src="resources/scripts/modernizr.custom.js"/>
     <script type="text/javascript" src="resources/scripts/knockout-3.1.0.js"/>

@@ -17,14 +17,20 @@
     
     <!-- Main content -->
     <section id="visualizer" class="content">
-        <div class="callout callout-info">
-            <p>This feature only works on eXist version 2.2RC2 or higher</p>
+        <div class="pad margin no-print">
+            <div class="callout callout-info">
+                <p>This feature only works on eXist version 2.2RC2 or higher</p>
+            </div>
         </div>
-        <form>
-            <label for="collection">Collection</label>
-            <select id="collection" name="collection"/>
-        </form>
-        <div id="graph" class="col-lg-12 col-xs-12"/>
+        <div class="box">
+            <div class="box-body">
+                <form>
+                    <label for="collection">Collection</label>
+                    <select id="collection" name="collection"/>
+                </form>
+                <div id="graph" class="col-lg-12 col-xs-12"/>
+            </div>
+        </div>
     </section>
     <script>
         var init = true;

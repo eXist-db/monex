@@ -82,23 +82,32 @@ declare variable $indexes:range-lookup :=
 (:
     Main function: outputs the page.
 :)
-declare function indexes:summary($node as node(), $model as map(*)) {
+declare 
+    %templates:wrap
+function indexes:summary($node as node(), $model as map(*)) {
     let $xconfs := collection('/db/system/config/')/cc:collection[cc:index][ends-with(util:document-name(.), '.xconf')]
     return
         if (empty($xconfs)) then
-            <p>No Index Configurations were found in the /db/system/config collection.</p>
-        else
-            (
-            <p>Found index configurations for {count($xconfs)} collections:</p>,
-            <ol>{
-                for $xconf in $xconfs
-                let $xconf-collection-name := util:collection-name($xconf)
-                let $data-collection-name := substring-after(util:collection-name($xconf), '/db/system/config')
-                order by $xconf-collection-name
-                return
-                    <li><a href="collection.html?collection={$data-collection-name}">{$data-collection-name}</a></li>
-            }</ol>
-            )
+            <div class="box-header with-border">
+                <h3 class="box-title">
+                No Index Configurations were found in the /db/system/config collection.
+                </h3>
+            </div>
+        else (
+            <div class="box-header with-border">
+                <h3 class="box-title">Found index configurations for {count($xconfs)} collections:</h3>
+            </div>,
+            <div class="box-body">
+                <ol>{
+                    for $xconf in $xconfs
+                    let $xconf-collection-name := util:collection-name($xconf)
+                    let $data-collection-name := substring-after(util:collection-name($xconf), '/db/system/config')
+                    order by $xconf-collection-name
+                    return
+                        <li><a href="collection.html?collection={$data-collection-name}">{$data-collection-name}</a></li>
+                }</ol>
+            </div>
+        )
 };
 
 declare
@@ -124,7 +133,6 @@ declare function indexes:xconf-to-table($node as node(), $model as map(*)) as it
     let $link := templates:link-to-app("http://exist-db.org/apps/eXide", "index.html?open=" || $resource)
     return
         <div>
-            <h1>Index Configuration for {$data-collection-name}</h1>
             <p>
                 <a href="{$link}" target="eXide" class="eXide-open" data-exide-open="{$resource}">Open .xconf file in eXide</a>
             </p>
@@ -159,7 +167,9 @@ declare function indexes:xconf-to-table($node as node(), $model as map(*)) as it
 (:
     Shows the index keys on a given nodeset or QName
 :)
-declare function indexes:show-index-keys($node as node(), $model as map(*)) {
+declare 
+    %templates:wrap
+function indexes:show-index-keys($node as node(), $model as map(*)) {
     let $query-start-time := util:system-time()
     let $keys := 
         (: legacy fulltext index use the text:index-terms() function :)
@@ -242,7 +252,6 @@ declare function indexes:show-index-keys($node as node(), $model as map(*)) {
     return
     
         <div>
-            <h1>{indexes:index-name-to-label($indexes:index)} Index on {($indexes:field, $indexes:node-name, $indexes:match)[1]}</h1>
             <p>{count($keys)} keys returned in {$query-duration}s</p>
             <p>Keys for the {indexes:index-name-to-label($indexes:index)} index defined on "{string-join(($indexes:field, $indexes:node-name, $indexes:match), '')}" in the <a href="{concat('collection.html?collection=', $indexes:collection)}">{$indexes:collection}</a> collection, by {$indexes:show-keys-by}.</p>
             <form method="get" class="form-horizontal" action="{indexes:remove-parameter-names('start-value')}" role="form">
@@ -284,7 +293,7 @@ declare function indexes:show-index-keys($node as node(), $model as map(*)) {
                     </div>
                 </div>
             </form>
-            <table class="table table-bordered table-striped">
+            <table class="table table-bordered table-striped dataTable">
                 <tr>{
                     for $column in ('term', 'frequency', 'documents', 'position')
                     return

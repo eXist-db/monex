@@ -208,9 +208,11 @@
                                 </tr>
                             </tbody>
                             <tbody data-bind="foreach: jmx.ProcessReport.RunningJobs">
-                                <td data-bind="text: action"/>
-                                <td data-bind="text: id"/>
-                                <td data-bind="text: info"/>
+                                <tr>
+                                    <td data-bind="text: action"/>
+                                    <td data-bind="text: id"/>
+                                    <td data-bind="text: info"/>
+                                </tr>
                             </tbody>
                         </table>
                     </div>

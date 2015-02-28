@@ -99,7 +99,7 @@ JMX.util = (function() {
             }
             if (data.jmx.LockManager) {
                 var waiting = data.jmx.LockManager.WaitingThreads;
-                if (!waiting.length) {
+                if (!waiting || !waiting.length) {
                     data.jmx.LockManager.WaitingThreads = [];
                 }
             }
