@@ -31,65 +31,63 @@
         <div class="row">
             <div class="col-lg-3 col-xs-6">
                 <!-- small box -->
-                <div class="small-box bg-aqua">
-                    <div class="inner">
-                        <h3 id="jmx-brokers">
+                <div class="info-box">
+                    <span class="info-box-icon bg-aqua">
+                        <i class="ion ion-android-storage"/>
+                    </span>
+                    <div class="info-box-content">
+                        <div class="info-box-text">
+                            Active DB Processes
+                        </div>
+                        <div class="info-box-number" id="jmx-brokers">
                             <span data-bind="text: jmx.Database.ActiveBrokers">?</span> of 
                             <span data-bind="text: jmx.Database.TotalBrokers">?</span>
-                        </h3>
-                        <p>
-                            Active DB Processes
-                        </p>
+                        </div>
                     </div>
-                    <div class="icon">
-                        <i class="ion ion-android-storage"/>
-                    </div>
-                    <span class="small-box-footer">&#160;</span>
                 </div>
             </div><!-- ./col -->
             <div class="col-lg-3 col-xs-6">
                 <!-- small box -->
-                <div class="small-box bg-green">
-                    <div class="inner">
-                        <h3 id="jmx-uptime" data-bind="text: uptime($data.jmx.Database.Uptime())">?</h3>
-                        <p>
-                            Uptime
-                        </p>
-                    </div>
-                    <div class="icon">
+                <div class="info-box">
+                    <span class="info-box-icon bg-gree">
                         <i class="ion ion-ios7-time-outline"/>
+                    </span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">
+                            Uptime
+                        </span>
+                        <span class="info-box-number" id="jmx-uptime" data-bind="text: uptime($data.jmx.Database.Uptime())">?</span>
                     </div>
-                    <span class="small-box-footer">&#160;</span>
                 </div>
             </div><!-- ./col -->
             <div class="col-lg-3 col-xs-6">
                 <!-- small box -->
-                <div class="small-box bg-yellow">
-                    <div class="inner">
-                        <h3 id="jmx-queries" data-bind="text: $data.jmx.ProcessReport.RunningQueries.length || 0">?</h3>
-                        <p>
-                            Running Queries
-                        </p>
-                    </div>
-                    <div class="icon">
+                <div class="info-box">
+                    <div class="info-box-icon bg-yellow">
                         <i class="ion ion-ios7-search"/>
                     </div>
-                    <span class="small-box-footer">&#160;</span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">
+                            Running Queries
+                        </span>
+                        <span class="info-box-number">
+                            <span id="jmx-queries" data-bind="text: $data.jmx.ProcessReport.RunningQueries().length || 0">?</span>
+                        </span>
+                    </div>
                 </div>
             </div><!-- ./col -->
             <div class="col-lg-3 col-xs-6">
                 <!-- small box -->
-                <div class="small-box bg-red">
-                    <div class="inner">
-                        <h3 data-bind="text: $data.jmx.LockManager.WaitingThreads.length || 0">?</h3>
-                        <p>
-                            Waiting Threads
-                        </p>
-                    </div>
-                    <div class="icon">
+                <div class="info-box">
+                    <span class="info-box-icon bg-red">
                         <i class="ion ion-pie-graph"/>
+                    </span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">
+                            Waiting Threads
+                        </span>
+                        <span class="info-box-number" data-bind="text: $data.jmx.LockManager.WaitingThreads().length || 0">?</span>
                     </div>
-                    <span class="small-box-footer">&#160;</span>
                 </div>
             </div><!-- ./col -->
         </div><!-- /.row -->
