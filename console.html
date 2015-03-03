@@ -63,7 +63,7 @@
                     eXist once to refresh the library on the web server.</p>
                 <p>Use the console:log functions in your XQuery to send messages to the remote
                     console. For example:</p>
-                <pre>import module namespace console="http://exist-db.org/xquery/console";
+                <pre data-language="xquery">import module namespace console="http://exist-db.org/xquery/console";
 console:log("Hello world!")</pre>
             </div>
         </div>
@@ -73,4 +73,15 @@ console:log("Hello world!")</pre>
     <script type="text/javascript" src="resources/scripts/knockout.mapping-2.4.1.js"/>
     <script type="text/javascript" src="resources/scripts/exadmin.js"/>
     <script type="text/javascript" src="resources/scripts/console.js"/>
+    <script type="text/javascript" src="$shared/resources/scripts/ace/ace.js"/>
+    <script type="text/javascript" src="$shared/resources/scripts/ace/mode-text.js"/>
+    <script type="text/javascript" src="$shared/resources/scripts/ace/mode-xml.js"/>
+    <script type="text/javascript" src="$shared/resources/scripts/ace/mode-xquery.js"/>
+    <script type="text/javascript" src="$shared/resources/scripts/ace/theme-clouds.js"/>
+    <script type="text/javascript" src="resources/scripts/highlight.js"/>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $("pre").highlight();
+        });
+    </script>
 </div>
