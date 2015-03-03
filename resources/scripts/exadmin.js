@@ -149,6 +149,7 @@ JMX.TimeSeries = (function() {
             axisLabelPadding: 6
         },
         legend: {
+            show: true,
             labelBoxBorderColor: "#fff"
         }
     };
@@ -169,10 +170,11 @@ JMX.TimeSeries = (function() {
         return prop || 0;
     };
 
-    Constr = function(container, labels, properties, propertyMaxY) {
+    Constr = function(container, labels, properties, propertyMaxY, unitY) {
         this.container = $(container);
         this.properties = properties;
         this.propertyMaxY = propertyMaxY;
+        this.unitY = unitY;
         this.dataset = [];
         for (var i = 0; i < labels.length; i++) {
             this.dataset.push({
@@ -184,6 +186,9 @@ JMX.TimeSeries = (function() {
 
     Constr.prototype.update = function(data) {
         var max = parseInt(getProperty(data, this.propertyMaxY));
+        if (this.unitY == "mb") {
+            max = max / 1024 / 1024;
+        }
         options.yaxis.max = max;
         if (this.dataset[0].data.length > 100) {
             for (var i = 0; i < this.dataset.length; i++) {
@@ -193,6 +198,9 @@ JMX.TimeSeries = (function() {
         var now = new Date().getTime();
         for (var i = 0; i < this.properties.length; i++) {
             var val = getProperty(data, this.properties[i]);
+            if (this.unitY == "mb") {
+                val = parseInt(val) / 1024 / 1024;
+            }
             this.dataset[i].data.push([now, parseInt(val)]);
         }
 
@@ -464,9 +472,10 @@ $(function() {
             var node = $(this);
             var labels = node.attr("data-labels");
             var properties = node.attr("data-properties");
+            var unitY = node.attr("data-unit-y") || "";
             var max = node.attr("data-max-y");
 
-            charts.push(new JMX.TimeSeries(node, labels.split(","), properties.split(","), max));
+            charts.push(new JMX.TimeSeries(node, labels.split(","), properties.split(","), max, unitY));
         });
         JMX.connection.poll(function(data) {
             for (var i = 0; i < charts.length; i++) {

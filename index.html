@@ -103,7 +103,7 @@
                     <div class="box-body no-padding">
                         <div class="row" data-bind="with: jmx.MemoryImpl.HeapMemoryUsage">
                             <div class="col-sm-7">
-                                <div class="chart" id="memory-graph" style="height: 250px;" data-labels="Used memory,Committed memory" data-properties="jmx.MemoryImpl.HeapMemoryUsage.used,jmx.MemoryImpl.HeapMemoryUsage.committed" data-max-y="jmx.MemoryImpl.HeapMemoryUsage.max"/>
+                                <div class="chart" id="memory-graph" style="height: 250px;" data-labels="Used memory (mb),Committed memory (mb)" data-properties="jmx.MemoryImpl.HeapMemoryUsage.used,jmx.MemoryImpl.HeapMemoryUsage.committed" data-max-y="jmx.MemoryImpl.HeapMemoryUsage.max" data-unit-y="mb"/>
                             </div>
                             <div class="col-sm-5">
                                 <div class="pad">
@@ -410,7 +410,7 @@
                             </thead>
                             <tbody id="jmx-recent-queries" data-bind="foreach: {data: jmx.ProcessReport.RecentQueryHistory, afterRender: function(node) { $('.source-key', node).tooltip(); }}">
                                 <tr>
-                                    <td data-bind="text: new Date(parseInt($data.mostRecentExecutionTime()))"/>
+                                    <td data-bind="text: new Date(parseInt($data.mostRecentExecutionTime())).toISOString()"/>
                                     <td>
                                         <span class="source-key" data-bind="text: $data.sourceKey().replace(/^.*\/([^\/]+)$/, '$1'), attr: { title: sourceKey }" data-toggle="tooltip"/>
                                     </td>
