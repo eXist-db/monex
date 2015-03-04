@@ -92,14 +92,38 @@ declare function job:status($status, $elapsed as xs:duration?) {
     <jmx:timestamp>{current-dateTime()}</jmx:timestamp>,
     if (exists($elapsed)) then
         <jmx:elapsed>{format-number(minutes-from-duration($elapsed), "00")}:{format-number(seconds-from-duration($elapsed), "00.000")}</jmx:elapsed>
-    else
+    else    
         ()
 };
 
 declare function job:store-last-status($status as element()) {
     let $instance := $status/jmx:instance/string()
     return
-        xmldb:store($local:data-root, "state." || $instance || ".xml", $status)[2]
+        xmldb:store(job:get-instance-collection(), "state." || $instance || ".xml", $status)[2]
+};
+
+declare function job:store-data($data as element()) {
+    xmldb:store(job:get-data-collection(), "jmx." || $local:name || "-" || format-time(current-time(), "[H00][m00][s00]") || ".xml", $data)
+};
+
+declare %private function job:get-instance-collection() {
+    let $path := $local:data-root || "/" || $local:name
+    return
+        if (xmldb:collection-available($path)) then
+            $path
+        else
+            xmldb:create-collection($local:data-root, $local:name)
+};
+
+declare %private function job:get-data-collection() {
+    let $instance := job:get-instance-collection()
+    let $name := format-date(current-date(), "[Y0000]-[M00]-[D00]")
+    let $path := $instance || "/" || $name
+    return
+        if (xmldb:collection-available($path)) then
+            $path
+        else
+            xmldb:create-collection($instance, $name)
 };
 
 (:~
@@ -138,12 +162,12 @@ declare function job:ping($instance as element(instance)) as xs:boolean {
             $instance/@url || "/status?operation=" || $local:operation || "&amp;token=" || $instance/@token
         else
             $instance/@url || 
-            "/status?c=instances&amp;c=processes&amp;c=locking&amp;c=memory&amp;c=caches&amp;c=system&amp;token=" ||
+            "/status?c=instances&amp;c=processes&amp;c=locking&amp;c=memory&amp;c=caches&amp;c=system&amp;c=operatingsystem&amp;token=" ||
             $instance/@token
     let $request :=
         <http:request method="GET" href="{$url}" timeout="30"/>
     return
-        try {
+(:        try {:)
             let $response := http:send-request($request)
             return
                 if ($response[1]/@status = "200") then (
@@ -156,27 +180,25 @@ declare function job:ping($instance as element(instance)) as xs:boolean {
                     console:send($job:CHANNEL, job:check-response($instance, $response[1]/@message/string(), (), util:system-time() - $start)),
                     false()
                 )
-        } catch * {
-            console:send($job:CHANNEL, job:check-response($instance, $err:description, (), ())),
-            false()
-        }
+(:        } catch * {:)
+(:            console:send($job:CHANNEL, job:check-response($instance, $err:description, (), ())),:)
+(:            false():)
+(:        }:)
 };
 
 declare function job:alerts($instance as element(instance), $jmx as element(jmx:jmx)) {
-    for $alert in $instance/alerts/alert
+    let $stored := job:store-data($jmx)
+    for $alert in $instance/poll/alert
     let $alertTriggered := util:eval(
         "declare default element namespace 'http://exist-db.org/jmx';" ||
         $alert/@condition
     )
-    let $log := console:log("monex", "Checking alert: " || $alert/@condition)
     return
         if ($alertTriggered) then
-            let $log := console:log("monex", "Alert fired: " || $alert/@name)
             let $status :=
                 <jmx:jmx>
                 { job:status($alert/@name/string(), ()) }
                 </jmx:jmx>
-            let $log := console:log($status)
             return
                 job:notify(true(), $instance, "alert: " || $instance/@name, $status, serialize($jmx))
         else

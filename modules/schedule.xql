@@ -18,7 +18,7 @@ return (
             $cron, "jmx:" || $instance/@name, $params)
     return
         (),
-    for $alerts in $instance/alerts
+    for $alerts in $instance/poll
     let $cron := ($alerts/@cron, "0 * * * * ?")[1]
     let $params :=
         <parameters>
@@ -29,7 +29,7 @@ return (
         </parameters>
     let $result :=
         scheduler:schedule-xquery-cron-job($config:app-root || "/modules/job.xql", 
-            $cron, "jmx:" || $instance/@name || "-alerts", $params)
+            $cron, "jmx:" || $instance/@name || "-poll", $params)
     return
         ()
 )

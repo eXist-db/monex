@@ -13,8 +13,8 @@
 -->
 <instances>
     <!--instance name="my.server.com" url="http://my.server.com:8080/exist" token="" cron="0 * * * * ?">
-        <alerts cron="0/30 * * * * ?">
+        <poll cron="0/30 * * * * ?">
             <alert name="More than 30 threads waiting for locks to be released" condition="count($jmx//LockManager/WaitingThreads/row) > 30"/>
-        </alerts>
+        </poll>
     </instance-->
 </instances>
