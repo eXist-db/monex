@@ -75,9 +75,9 @@
                     intervals. You can also set up email alerts in <a href="notifications.xml" class="templates:load-source">notifications.xml</a>.</p>
                 <p>The configuration for monitoring a remote instance looks as follows:</p>
                 <pre data-language="xml">&lt;instance name="my.server.com" url="http://my.server.com" token="0ade4ba1-cebb-4085-b12c-0ef87f6f032b" cron="0 0/5 * * * ?"&gt;
-    &lt;alerts cron="0 0/2 * * * ?"&gt;
+    &lt;poll cron="0 0/2 * * * ?" store="true"&gt;
         &lt;alert name="More than 40 threads waiting for locks to be released" condition="count($jmx//LockManager/WaitingThreads/row) &amp;gt; 40"/&gt;
-    &lt;/alerts&gt;
+    &lt;/poll&gt;
 &lt;/instance&gt;</pre>
                 <p>The attributes of &lt;instance&gt; are:</p>
                 <table class="table">
@@ -107,14 +107,15 @@
                 <ol>
                     <li>is the server responsive? This sends a "ping" to the server and tries to evaluate
                         a very basic query</li>
-                    <li>if alerts are defined, monex additionally retrieves JMX diagnostics and checks each
-                        alert against the data returned</li>
+                    <li>if polling is defined, monex additionally retrieves JMX diagnostics and checks each
+                        alert against the data returned. Optionally the polled JMX data is stored and can
+                        be analysed over time.</li>
                 </ol>
                 <p>The frequency of both types of checks is configured via a cron expression. The 
                     responsiveness check is always done, even if no alerts are defined. Its interval
                     is configured by the cron expression given in the &lt;instance&gt; element.</p>
                 <p>Alerts are processed in a separate request, whose frequency is determined by the
-                    cron attribute attached to the &lt;alerts&gt; element. The checks proceed as follows:</p>
+                    cron attribute attached to the &lt;poll&gt; element. The checks proceed as follows:</p>
                 <ol>
                     <li>retrieve JMX diagnostics in XML by calling <code>url/status</code>
                     </li>
@@ -131,6 +132,7 @@
     <script type="text/javascript" src="resources/scripts/modernizr.custom.js"/>
     <script type="text/javascript" src="resources/scripts/knockout-3.1.0.js"/>
     <script type="text/javascript" src="resources/scripts/knockout.mapping-2.4.1.js"/>
+    <script type="text/javascript" src="resources/scripts/util.js"/>
     <script type="text/javascript" src="resources/scripts/exadmin.js"/>
     <script type="text/javascript" src="$shared/resources/scripts/ace/ace.js"/>
     <script type="text/javascript" src="$shared/resources/scripts/ace/mode-text.js"/>

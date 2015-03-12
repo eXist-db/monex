@@ -151,12 +151,12 @@
                         <h3 class="box-title">Running Queries</h3>
                     </div><!-- /.box-header -->
                     <div class="box-body no-padding">
-                        <table class="table table-striped">
+                        <table class="table table-striped running-queries">
                             <thead>
                                 <tr>
                                     <th>Id</th>
                                     <th>Source</th>
-                                    <th>Source Type</th>
+                                    <th>URI</th>
                                     <th>Status</th>
                                     <th/>
                                 </tr>
@@ -168,11 +168,11 @@
                             </tbody>
                             <tbody data-bind="foreach: { data: jmx.ProcessReport.RunningQueries, afterRender: addKillBtn }">
                                 <tr>
-                                    <td data-bind="text: id"/>
+                                    <td data-bind="text: $data.thread ? $data.thread : $data.id"/>
                                     <td>
                                         <span class="source-key" data-bind="text: $data.sourceKey().replace(/^.*\/([^\/]+)$/, '$1'), attr: { title: sourceKey }" data-toggle="tooltip"/>
                                     </td>
-                                    <td data-bind="text: sourceType"/>
+                                    <td data-bind="text: ($data.requestURI ? $data.requestURI : '')"/>
                                     <td>
                                         <span class="label" data-bind="text: $data.terminating() == 'false' ? 'running' : 'terminating', css: { 'label-success': $data.terminating() == 'false', 'label-warning': $data.terminating() == 'true' }"/>
                                     </td>
@@ -396,7 +396,9 @@
                 <div class="box box-info">
                     <div class="box-header">
                         <i class="fa fa-bar-chart-o"/>
-                        <h3 class="box-title">Recent Queries</h3>
+                        <h3 class="box-title">Recent Queries
+                            <small data-bind="visible: $data.jmx.ProcessReport.MinTimeRecorded">(execution time &gt; <span data-bind="text: jmx.ProcessReport.MinTimeRecorded"/>ms)</small>
+                        </h3>
                     </div>
                     <div class="box-body no-padding">
                         <table class="table table-striped">
@@ -477,5 +479,6 @@
     <script type="text/javascript" src="resources/scripts/knockout.mapping-2.4.1.js"/>
     <script type="text/javascript" src="resources/scripts/jquery.flot.min.js"/>
     <script type="text/javascript" src="resources/scripts/jquery.flot.time.min.js"/>
+    <script type="text/javascript" src="resources/scripts/util.js"/>
     <script type="text/javascript" src="resources/scripts/exadmin.js"/>
 </div>
