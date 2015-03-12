@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <h1>
+            Timelines
+            <small data-template="app:get-instance"/>
+        </h1>
+        <ol class="breadcrumb">
+            <li>
+                <a href="#">
+                    <i class="fa fa-dashboard"/> Home</a>
+            </li>
+            <li class="active">Timelines</li>
+        </ol>
+    </section>
+    
+    <!-- Main content -->
+    <section id="dashboard" class="content">
+        <div id="connection-alert" class="alert alert-danger" style="display: none;">
+            <i class="fa fa-ban"/>
+            <b>Alert! </b>
+            <span class="message"/>
+        </div>
+        <div id="browser-alert" class="alert alert-danger" style="display: none;">
+            <i class="fa fa-ban"/>
+            <b>Alert! </b> Your browser does not support websockets. Remote monitoring and console
+            will not work!
+        </div>
+        <div class="row">
+            <!-- Left col -->
+            <section class="col-lg-12"> 
+                <!-- Box (Memory Usage) -->
+                <div class="box box-warning">
+                    <div class="box-header">
+                        <i class="fa fa-bar-chart-o"/>
+                        <h3 class="box-title">DB Brokers and Running Queries</h3>
+                    </div><!-- /.box-header -->
+                    <div class="box-body no-padding">
+                        <div class="chart" id="brokers-graph" style="height: 250px;" data-template="app:timeline" data-template-labels="Active brokers, Running queries" data-template-type="lines,lines" data-template-select="$jmx/jmx:Database/jmx:ActiveBrokers, $jmx/jmx:ProcessReport/jmx:RunningQueries/count(./jmx:row)"/>
+                    </div><!-- /.box-body -->
+                    <div class="box-footer">
+                        <button class="pull-right zoom-out btn btn-default">
+                            <i class="fa fa-arrows-alt"/> Zoom Out</button>
+                        <p>Mark a region to zoom in. Click data point to view details.</p>
+                    </div>
+                </div><!-- /.box -->
+            </section>
+            <section class="col-lg-12"> 
+                <!-- Box (Memory Usage) -->
+                <div class="box box-warning">
+                    <div class="box-header">
+                        <i class="fa fa-bar-chart-o"/>
+                        <h3 class="box-title">Waiting Threads</h3>
+                    </div><!-- /.box-header -->
+                    <div class="box-body no-padding">
+                        <div class="chart" id="waiting-threads-graph" style="height: 250px;" data-template="app:timeline" data-template-labels="Waiting Threads" data-template-type="lines,lines" data-template-select="$jmx/jmx:LockManager/jmx:WaitingThreads/count(./jmx:row)"/>
+                    </div><!-- /.box-body -->
+                    <div class="box-footer">
+                        <button class="pull-right zoom-out btn btn-default">
+                            <i class="fa fa-arrows-alt"/> Zoom Out</button>
+                        <p>Mark a region to zoom in. Click data point to view details.</p>
+                    </div>
+                </div><!-- /.box -->
+            </section>
+            <section class="col-lg-12"> 
+                <!-- Box (Memory Usage) -->
+                <div class="box box-warning">
+                    <div class="box-header">
+                        <i class="fa fa-bar-chart-o"/>
+                        <h3 class="box-title">CPU Load</h3>
+                    </div><!-- /.box-header -->
+                    <div class="box-body no-padding">
+                        <div class="chart" id="cpu-graph" style="height: 250px;" data-template="app:timeline" data-template-labels="Process CPU Load, System CPU Load" data-template-type="lines,lines" data-template-select="$jmx/jmx:UnixOperatingSystem/jmx:ProcessCpuLoad,$jmx/jmx:UnixOperatingSystem/jmx:SystemCpuLoad"/>
+                    </div><!-- /.box-body -->
+                    <div class="box-footer">
+                        <button class="pull-right zoom-out btn btn-default">
+                            <i class="fa fa-arrows-alt"/> Zoom Out</button>
+                        <p>Mark a region to zoom in. Click data point to view details.</p>
+                    </div>
+                </div><!-- /.box -->
+            </section>
+            <section class="col-lg-12"> 
+                <!-- Box (Memory Usage) -->
+                <div class="box box-warning">
+                    <div class="box-header">
+                        <i class="fa fa-bar-chart-o"/>
+                        <h3 class="box-title">Java Memory</h3>
+                    </div><!-- /.box-header -->
+                    <div class="box-body no-padding">
+                        <div class="chart" id="memory-graph" style="height: 250px;" data-template="app:timeline" data-template-labels="Used Memory,Committed Memory" data-template-type="lines,lines" data-template-select="$jmx/jmx:MemoryImpl/jmx:HeapMemoryUsage/jmx:used,$jmx/jmx:MemoryImpl/jmx:HeapMemoryUsage/jmx:committed"/>
+                    </div><!-- /.box-body -->
+                    <div class="box-footer">
+                        <button class="pull-right zoom-out btn btn-default">
+                            <i class="fa fa-arrows-alt"/> Zoom Out</button>
+                        <p>Mark a region to zoom in. Click data point to view details.</p>
+                    </div>
+                </div><!-- /.box -->
+            </section>
+            <section class="col-lg-12"> 
+                <!-- Box (Memory Usage) -->
+                <div class="box box-warning">
+                    <div class="box-header">
+                        <i class="fa fa-bar-chart-o"/>
+                        <h3 class="box-title">Recent Query History Statistics</h3>
+                    </div><!-- /.box-header -->
+                    <div class="box-body no-padding">
+                        <div class="chart" id="slow-queries-graph" style="height: 250px;" data-template="app:timeline" data-template-labels="Slowest Query, Average Query" data-template-type="lines,lines" data-template-select="$jmx/jmx:ProcessReport/jmx:RecentQueryHistory/max(jmx:row/jmx:mostRecentExecutionDuration), $jmx/jmx:ProcessReport/jmx:RecentQueryHistory/avg(jmx:row/jmx:mostRecentExecutionDuration)"/>
+                    </div><!-- /.box-body -->
+                    <div class="box-footer">
+                        <button class="pull-right zoom-out btn btn-default">
+                            <i class="fa fa-arrows-alt"/> Zoom Out</button>
+                        <p>Mark a region to zoom in. Click data point to view details.</p>
+                    </div>
+                </div><!-- /.box -->
+            </section>
+        </div><!-- /.row -->
+    </section>
+    <script type="text/javascript" src="resources/scripts/modernizr.custom.js"/>
+    <script type="text/javascript" src="resources/scripts/knockout-3.1.0.js"/>
+    <script type="text/javascript" src="resources/scripts/knockout.mapping-2.4.1.js"/>
+    <script type="text/javascript" src="resources/scripts/jquery.flot.min.js"/>
+    <script type="text/javascript" src="resources/scripts/jquery.flot.time.min.js"/>
+    <script type="text/javascript" src="resources/scripts/jquery.flot.selection.min.js"/>
+    <script type="text/javascript" src="resources/scripts/jquery.flot.tooltip.min.js"/>
+    <script type="text/javascript" src="resources/scripts/timeline.js"/>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $(".chart").timeline();
+        });
+    </script>
+</div>

@@ -87,3 +87,39 @@ body > .header .logo {
     display: none;
     margin-left: 55px;
 }
+
+.running-queries td:nth-child(1), .running-queries th:nth-child(1) {
+    width: 20%;
+}
+
+.running-queries td:nth-child(2), .running-queries th:nth-child(2) {
+    width: 20%;
+}
+
+.running-queries td:nth-child(3), .running-queries th:nth-child(3) {
+    width: 50%;
+}
+
+.running-queries td:nth-child(4), .running-queries th:nth-child(4) {
+    width: 10%;
+}
+
+.content-header .previous {
+    margin-right: 10px;
+}
+
+.content-header .next {
+    margin-left: 10px;
+}
+
+.content-header .edit-buttons {
+    margin-right: 8px;
+}
+
+.stacktrace {
+    max-width: 100%;
+}
+
+.stacktrace pre {
+    word-break: normal;
+}

@@ -4,9 +4,11 @@ module namespace app="http://exist-db.org/apps/admin/templates";
 
 declare namespace html="http://www.w3.org/1999/xhtml";
 declare namespace prof="http://exist-db.org/xquery/profiling";
-declare namespace scheduler="http://exist-db.org/xquery/scheduler";
 declare namespace jmx="http://exist-db.org/jmx";
+declare namespace output="http://www.w3.org/2010/xslt-xquery-serialization";
+declare namespace json="http://www.json.org";
 
+import module namespace scheduler="http://exist-db.org/xquery/scheduler" at "java:org.exist.xquery.modules.scheduler.SchedulerModule";
 import module namespace templates="http://exist-db.org/xquery/templates" ;
 import module namespace config="http://exist-db.org/apps/admin/config" at "config.xqm";
 import module namespace console="http://exist-db.org/xquery/console";
@@ -44,6 +46,14 @@ function app:instances($node as node(), $model as map(*), $instance as xs:string
                 <i class="fa fa-angle-double-right"/>
                 {$current/@name/string()}
             </a>
+            {
+                if ($current/poll/@store = ("yes", "true")) then
+                    <ul>
+                        <li><a href="timelines.html?instance={$current/@name}">Timelines</a></li>
+                    </ul>
+                else
+                    ()
+            }
         </li>
 };
 
@@ -256,4 +266,156 @@ declare %private function app:truncate-source($source as xs:string) as xs:string
         substring($source, 1, 60)
     else
         $source
+};
+
+declare
+    %templates:wrap
+    %templates:default("instance", "localhost")
+function app:timeline($node as node(), $model as map(*), $instance as xs:string, $select as xs:string, 
+    $labels as xs:string, $type as xs:string) {
+    let $labels := tokenize($labels, "\s*,\s*")
+    let $xpaths := tokenize($select, "\s*,\s*")
+    let $type := tokenize($type, "\s*,\s*")
+    let $jmx := collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:Database]
+    return
+        if ($jmx) then
+            let $result :=
+                <result>
+                {
+                    for $xpath at $n in $xpaths
+                    let $result := util:eval($xpath, true())
+                    return
+                        <json:value json:array="true">
+                            <label>{$labels[$n]}</label>
+                            <data>
+                            {
+                                let $unsorted :=
+                                    for $val at $pos in $result
+                                    let $time := xs:dateTime($jmx[$pos]/jmx:timestamp)
+                                    return
+                                        <json:value json:array="true">
+                                            <json:value json:literal="true">{app:time-to-milliseconds($time)}</json:value>
+                                            <json:value json:literal="true">
+                                            {
+                                                let $n := number($val)
+                                                return
+                                                    if ($n) then $n else 0
+                                            }
+                                            </json:value>
+                                        </json:value>
+                                for $item in $unsorted
+                                order by $item/json:value[1] ascending
+                                return
+                                    $item
+                            }
+                            </data>
+                            {
+                            element { $type[$n] } {
+                                <show>true</show>
+                            }
+                            }
+                        </json:value>
+                }
+                </result>
+            return
+                attribute data-data {
+                    serialize($result, 
+                        <output:serialization-parameters>
+                            <output:method>json</output:method>
+                        </output:serialization-parameters>
+                    )
+                }
+        else
+            attribute data-data { "[]" }
+};
+
+declare
+    %templates:wrap
+    %templates:default("instance", "localhost")
+function app:load-record($node as node(), $model as map(*), $instance as xs:string, $timestamp as xs:long) {
+    let $date := app:milliseconds-to-time($timestamp)
+    let $jmx := collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:timestamp = $date]
+    return
+        serialize($jmx)
+};
+
+declare
+    %templates:wrap
+function app:timestamp($node as node(), $model as map(*), $timestamp as xs:long) {
+    app:milliseconds-to-time($timestamp)
+};
+
+declare function app:time-navigation-back($node as node(), $model as map(*), $instance as xs:string, $timestamp as xs:long) {
+    let $date := app:milliseconds-to-time($timestamp)
+    let $jmx := 
+        (
+            for $rec in collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:timestamp < xs:dateTime($date)]
+            order by xs:dateTime($rec/jmx:timestamp)
+            return
+                $rec
+        )
+        [last()]
+    return
+        element { node-name($node) } {
+            $node/@*,
+            attribute href { "?timestamp=" || app:time-to-milliseconds(xs:dateTime($jmx/jmx:timestamp)) || 
+                "&amp;instance=" || $instance },
+            templates:process($node/*, $model)
+        }
+};
+
+declare function app:time-navigation-forward($node as node(), $model as map(*), $instance as xs:string, $timestamp as xs:long) {
+    let $date := app:milliseconds-to-time($timestamp)
+    let $jmx :=
+        (
+            for $rec in collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:timestamp > xs:dateTime($date)]
+            order by xs:dateTime($rec/jmx:timestamp)
+            return
+                $rec
+        )
+        [1]
+    return
+        element { node-name($node) } {
+            $node/@*,
+            attribute href { "?timestamp=" || app:time-to-milliseconds(xs:dateTime($jmx/jmx:timestamp)) || 
+                "&amp;instance=" || $instance },
+            templates:process($node/*, $model)
+        }
+};
+
+declare %private function app:time-to-milliseconds($dateTime as xs:dateTime) {
+    let $diff := $dateTime - xs:dateTime("1970-01-01T00:00:00Z")
+    return
+        (days-from-duration($diff) * 60 * 60 * 24 +
+        hours-from-duration($diff) * 60 * 60 +
+        minutes-from-duration($diff) * 60 +
+        seconds-from-duration($diff)) * 1000
+};
+
+declare %private function app:milliseconds-to-time($timestamp as xs:long) as xs:dateTime {
+    let $days := xs:int($timestamp div 1000 div 24 div 60 div 60)
+    let $remainder := $timestamp - ($days * 24 * 60 * 60 * 1000)
+    let $hours := xs:int($remainder div 1000 div 60 div 60)
+    let $remainder := $remainder - ($hours * 60 * 60 * 1000)
+    let $minutes := xs:int($remainder div 1000 div 60)
+    let $remainder := $remainder - ($minutes * 60 * 1000)
+    let $seconds := xs:int($remainder div 1000)
+    let $millis := format-number($remainder - ($seconds * 1000), "000")
+    return
+        xs:dateTime("1970-01-01T00:00:00Z") + 
+        xs:dayTimeDuration("P" || $days || "DT" || $hours || "H" || $minutes || "M" || $seconds || "." || $millis || "S")
+};
+
+declare function app:edit-source($node as node(), $model as map(*), $instance as xs:string, $timestamp as xs:long) as node()* {
+    let $date := app:milliseconds-to-time($timestamp)
+    let $doc := collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:timestamp = xs:dateTime($date)]
+    let $link := templates:link-to-app("http://exist-db.org/apps/eXide", "index.html?open=" || document-uri(root($doc)))
+    return
+        element { node-name($node) } {
+            attribute href { $link },
+            attribute target { "eXide" },
+            attribute class { $node/@class || " eXide-open" },
+            attribute data-exide-open { document-uri(root($doc)) },
+            $node/node()
+        }
 };

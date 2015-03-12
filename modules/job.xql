@@ -103,7 +103,16 @@ declare function job:store-last-status($status as element()) {
 };
 
 declare function job:store-data($data as element()) {
-    xmldb:store(job:get-data-collection(), "jmx." || $local:name || "-" || format-time(current-time(), "[H00][m00][s00]") || ".xml", $data)
+    let $jmx :=
+        <jmx:jmx>
+        {
+            $data/@*,
+            <jmx:timestamp>{current-dateTime()}</jmx:timestamp>,
+            $data/*
+        }
+        </jmx:jmx>
+    return
+        xmldb:store(job:get-data-collection(), "jmx." || $local:name || "-" || format-time(current-time(), "[H00][m00][s00]") || ".xml", $jmx)
 };
 
 declare %private function job:get-instance-collection() {
@@ -187,7 +196,11 @@ declare function job:ping($instance as element(instance)) as xs:boolean {
 };
 
 declare function job:alerts($instance as element(instance), $jmx as element(jmx:jmx)) {
-    let $stored := job:store-data($jmx)
+    let $stored := 
+        if ($instance/poll/@store = ("true", "yes")) then
+            job:store-data($jmx)
+        else
+            ()
     for $alert in $instance/poll/alert
     let $alertTriggered := util:eval(
         "declare default element namespace 'http://exist-db.org/jmx';" ||
