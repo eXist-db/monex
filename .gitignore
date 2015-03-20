@@ -1,7 +1,7 @@
 # Created by .gitignore support plugin (hsz.mobi)
 *.class
 .idea/*
-build
-lib
+build/
+lib/
 expath-pkg.xml
 local.build.properties
