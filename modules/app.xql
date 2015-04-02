@@ -271,8 +271,7 @@ declare %private function app:truncate-source($source as xs:string) as xs:string
 declare
     %templates:wrap
     %templates:default("instance", "localhost")
-function app:timeline($node as node(), $model as map(*), $instance as xs:string, $select as xs:string, 
-    $labels as xs:string, $type as xs:string) {
+function app:timeline($node as node(), $model as map(*), $instance as xs:string, $select as xs:string, $labels as xs:string, $type as xs:string) {
     let $labels := tokenize($labels, "\s*,\s*")
     let $xpaths := tokenize($select, "\s*,\s*")
     let $type := tokenize($type, "\s*,\s*")
@@ -383,7 +382,7 @@ declare function app:time-navigation-forward($node as node(), $model as map(*), 
         }
 };
 
-declare %private function app:time-to-milliseconds($dateTime as xs:dateTime) {
+declare  function app:time-to-milliseconds($dateTime as xs:dateTime) {
     let $diff := $dateTime - xs:dateTime("1970-01-01T00:00:00Z")
     return
         (days-from-duration($diff) * 60 * 60 * 24 +
@@ -392,7 +391,7 @@ declare %private function app:time-to-milliseconds($dateTime as xs:dateTime) {
         seconds-from-duration($diff)) * 1000
 };
 
-declare %private function app:milliseconds-to-time($timestamp as xs:long) as xs:dateTime {
+declare function app:milliseconds-to-time($timestamp as xs:long) as xs:dateTime {
     let $days := xs:int($timestamp div 1000 div 24 div 60 div 60)
     let $remainder := $timestamp - ($days * 24 * 60 * 60 * 1000)
     let $hours := xs:int($remainder div 1000 div 60 div 60)
