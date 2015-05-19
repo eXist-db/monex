@@ -250,6 +250,13 @@ declare function app:user-info($node as node(), $model as map(*)) {
         </p>
 };
 
+declare function app:form-action-to-current-url($node as node(), $model as map(*)) {
+    <form action="{request:get-url()}">{
+        $node/attribute()[not(name(.) = 'action')], 
+        $node/node()
+    }</form>
+};
+
 declare %private function app:sort($function as element(), $sort as xs:string) {
     if ($sort eq "name") then
         $function/@name
