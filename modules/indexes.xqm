@@ -12,8 +12,6 @@ module namespace indexes="http://exist-db.org/xquery/admin-interface/indexes";
 declare namespace cc="http://exist-db.org/collection-config/1.0";
 declare namespace range="http://exist-db.org/xquery/range";
 
-
-import module namespace console="http://exist-db.org/xquery/console" at "java:org.exist.console.xquery.ConsoleModule";
 import module namespace templates="http://exist-db.org/xquery/templates";
 
 (: 
@@ -172,11 +170,8 @@ declare
 function indexes:show-index-keys($node as node(), $model as map(*)) {
     let $query-start-time := util:system-time()
     let $keys := 
-        (: legacy fulltext index use the text:index-terms() function :)
-        if ($indexes:index eq 'legacy-fulltext-index') then
-            text:index-terms($indexes:node-set, $indexes:start-value, $indexes:callback, $indexes:max-number-returned)
         (: range indexes can use util:index-keys() without specifying the index :)
-        else if ($indexes:index eq 'range-index') then
+        if ($indexes:index eq 'range-index') then
             if (util:index-type($indexes:node-set) eq 'xs:string') then 
                 util:index-keys($indexes:node-set, $indexes:start-value, $indexes:callback, $indexes:max-number-returned)
             else 
@@ -200,7 +195,6 @@ function indexes:show-index-keys($node as node(), $model as map(*)) {
         (: all other indexes need to specify the index in the 5th parameter of util:index-keys() :)
         else
             let $index := if ($indexes:index = "new-range-index") then "range-index" else $indexes:index
-            let $log := console:log("start-value: " || $indexes:start-value)
             return
                 switch ($indexes:show-keys-by)
                     case "field" return
