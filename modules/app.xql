@@ -11,7 +11,6 @@ declare namespace json="http://www.json.org";
 import module namespace scheduler="http://exist-db.org/xquery/scheduler" at "java:org.exist.xquery.modules.scheduler.SchedulerModule";
 import module namespace templates="http://exist-db.org/xquery/templates" ;
 import module namespace config="http://exist-db.org/apps/admin/config" at "config.xqm";
-import module namespace console="http://exist-db.org/xquery/console";
 
 declare variable $app:OPTIMIZATIONS :=
     <optimizations>
@@ -21,6 +20,14 @@ declare variable $app:OPTIMIZATIONS :=
     </optimizations>;
 
 declare variable $app:get-scheduled-jobs := function-lookup(xs:QName("scheduler:get-scheduled-jobs"), 0);
+
+declare variable $app:jmx-token :=
+    try {
+        util:import-module(xs:anyURI("http://exist-db.org/xquery/console"), "console", xs:anyURI("java:org.exist.console.xquery.ConsoleModule")),
+        function-lookup(xs:QName("console:jmx-token"), 0)()
+    } catch * {
+        false()
+    };
 
 declare function app:scheduler-enabled($node as node(), $model as map(*)) {
     if (exists($app:get-scheduled-jobs)) then
@@ -62,7 +69,7 @@ declare
     %templates:default("instance", "localhost")
 function app:instances-data($node as node(), $model as map(*), $instance as xs:string) {
     let $instances := (
-        <instance name="localhost" url="local" token="{console:jmx-token()}"/>,
+        <instance name="localhost" url="local" token="{$app:jmx-token}"/>,
         collection($config:app-root)//instance
     )
     return
