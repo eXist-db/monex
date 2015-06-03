@@ -16,8 +16,8 @@
                 xaxis: {
                     mode: "time",
                     show: true,
-                    //minTickSize: [1, "hour"],
-                    timeformat: "%Y/%m/%d<br/>%H:%I:%S",
+                    // minTickSize: [1, "minute"],
+                    timeformat: "%Y/%m/%d<br/>%H:%M:%S",
                     ticks: 10,
                     axisLabel: "Time",
                     axisLabelUseCanvas: true,
@@ -49,7 +49,7 @@
         		    content: "%x"
         		}
             };
-
+            
             this.each(function() {
                 var container = $(this);
                 var data = container.data("data");
