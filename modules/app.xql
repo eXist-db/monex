@@ -278,11 +278,18 @@ declare %private function app:truncate-source($source as xs:string) as xs:string
 declare
     %templates:wrap
     %templates:default("instance", "localhost")
-function app:timeline($node as node(), $model as map(*), $instance as xs:string, $select as xs:string, $labels as xs:string, $type as xs:string) {
+    %templates:default("start", "")
+    %templates:default("end", "")
+function app:timeline($node as node(), $model as map(*), $instance as xs:string, $select as xs:string, $labels as xs:string, $type as xs:string, $start as xs:string, $end as xs:string) {
     let $labels := tokenize($labels, "\s*,\s*")
     let $xpaths := tokenize($select, "\s*,\s*")
     let $type := tokenize($type, "\s*,\s*")
     let $jmx := collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:Database]
+    
+    let $end := xs:double(if($end = "") then (app:time-to-milliseconds(current-dateTime())) else ($end))
+    let $start := xs:double(if(not($start = "")) then ($start) else if($end - 604800000 gt 0) then ($end - 604800000) else (0))
+
+    
     return
         if ($jmx) then
             let $result :=
@@ -298,17 +305,22 @@ function app:timeline($node as node(), $model as map(*), $instance as xs:string,
                                 let $unsorted :=
                                     for $val at $pos in $result
                                     let $time := xs:dateTime($jmx[$pos]/jmx:timestamp)
-                                    return
-                                        <json:value json:array="true">
-                                            <json:value json:literal="true">{app:time-to-milliseconds($time)}</json:value>
-                                            <json:value json:literal="true">
-                                            {
-                                                let $n := number($val)
-                                                return
-                                                    if ($n) then $n else 0
-                                            }
+                                    let $time-in-millis := app:time-to-milliseconds($time)
+                                    return 
+                                        if($time-in-millis gt $start and $time-in-millis lt $end)
+                                        then (
+                                        
+                                            <json:value json:array="true">
+                                                <json:value json:literal="true">{app:time-to-milliseconds($time)}</json:value>
+                                                <json:value json:literal="true">
+                                                {
+                                                    let $n := number($val)
+                                                    return
+                                                        if ($n) then $n else 0
+                                                }
+                                                </json:value>
                                             </json:value>
-                                        </json:value>
+                                        )else ()
                                 for $item in $unsorted
                                 order by $item/json:value[1] ascending
                                 return

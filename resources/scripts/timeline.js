@@ -49,7 +49,7 @@
         		    content: "%x"
         		}
             };
-            
+
             this.each(function() {
                 var container = $(this);
                 var data = container.data("data");
