@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
+    <div id="tooltip" style="position:absolute;z-index:10;display:none; border:1px solid #fdd;padding:2px;background-color:#fee;opacity: 0.80;"/>
     <!-- Content Header (Page header) -->
     <section class="content-header">
         <h1>
@@ -83,7 +84,7 @@
                         <h3 class="box-title">CPU Load</h3>
                     </div><!-- /.box-header -->
                     <div class="box-body no-padding">
-                        <div class="chart" id="cpu-graph" style="height: 250px;" data-template="app:timeline" data-template-labels="Process CPU Load, System CPU Load" data-template-type="lines,lines" data-template-select="$jmx/jmx:UnixOperatingSystem/jmx:ProcessCpuLoad,$jmx/jmx:UnixOperatingSystem/jmx:SystemCpuLoad"/>
+                        <div class="chart" id="cpu-graph" style="height: 250px;" data-template="app:timeline" data-template-labels="Process CPU Load, System CPU Load" data-template-type="lines,lines" data-template-select="$jmx/jmx:OperatingSystemImpl/jmx:ProcessCpuLoad,$jmx/jmx:OperatingSystemImpl/jmx:SystemCpuLoad"/>
                     </div><!-- /.box-body -->
                     <div class="box-footer">
                         <button class="pull-right zoom-out btn btn-default">
@@ -199,7 +200,7 @@
                     function($0, $1, $2, $3) { queryString[$1] = $3; }
                 );
                 var url = url + "?instance=" + queryString['instance'] + "&amp;start=" + startNew + "&amp;end=" + endNew;
-                console.log("url new: ", url);
+                // console.log("url new: ", url);
                 location.href = url;
             });            
         });
