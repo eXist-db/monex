@@ -4,11 +4,12 @@
     <properties>
         <property name="mail.debug" value="true"/>
         <property name="mail.smtp.starttls.enable" value="true"/>
+        <property name="mail.smtp.ssl.trust" value="mail.smtp.host.value"/>
         <property name="mail.smtp.auth" value="true"/>
         <property name="mail.smtp.port" value="587"/>
         <property name="mail.smtp.host" value="smtp.gmail.com"/>
         <property name="mail.smtp.user" value="alerts"/>
-        <property name="mail.smtp.password" value="passwd"/>
+        <property name="mail.smtp.password" value="your-passwd"/>
     </properties>
     <!-- 
         One or more accounts to send alerts to.

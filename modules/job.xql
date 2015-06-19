@@ -225,4 +225,10 @@ else
 let $instances := collection($local:app-root)//instance
 let $instance := $instances[@name = $local:name]
 return
-    job:ping($instance)
+    try {
+        job:ping($instance)
+    } catch * {
+        let $status := <jmx:jmx>{ job:status($err:code || " Desc:" || $err:desc, ()) }</jmx:jmx>
+        return
+            job:notify(true(), $instance, "alert: " || $instance/@name, $status, ())
+    }
