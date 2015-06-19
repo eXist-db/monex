@@ -1,7 +1,7 @@
 (function($) {
-    
-     var methods = {
-        
+
+    var methods = {
+
         init: function() {
             var options = {
                 series: {
@@ -41,15 +41,13 @@
                     clickable: true,
                     autoHighlight: true
                 },
-        		selection: {
-        		    mode: "x"
-        		},
-        		tooltip: true,
-        		tooltipOpts: {
-        		    content: "%x"
-        		}
+                selection: {
+                    mode: "x"
+                },
+                tooltip: false
+
             };
-            
+
             this.each(function() {
                 var container = $(this);
                 var data = container.data("data");
@@ -65,10 +63,27 @@
                     plot.setupGrid();
                     plot.draw();
                 });
+                container.bind("plothover", function (event, pos, item) {
+                    // var str = "(" + pos.x.toFixed(2) + ", " + pos.y.toFixed(2) + ")";
+                    // console.log("str: ", str);
+
+                    if (item) {
+
+                        var x = item.datapoint[0].toFixed(2),
+                            y = item.datapoint[1].toFixed(2);
+                        var date = new Date(x-0)
+                        // console.log("item: x:", x, " date:",date, " y:",y);
+
+                        $("#tooltip").html(item.series.label + " at " + date + " = " + y).css({top: item.pageY+5, left: item.pageX+5, display:"block"});
+                    } else {
+                        $("#tooltip").hide();
+                    }
+                });
+
                 container.bind("plotselected", function (event, ranges) {
                     $(document).trigger("chart:zoomIn", [ranges.xaxis.from, ranges.xaxis.to]);
                     plot.clearSelection();
-            	});
+                });
                 container.parent().parent().find(".zoom-out").click(function(ev) {
                     ev.preventDefault();
                     $(document).trigger("chart:zoomIn", [min, max]);
@@ -78,15 +93,16 @@
                     // if you need global screen coordinates, they are pos.pageX, pos.pageY
                     if (item) {
                         var millis = new Date(item.datapoint[0]);
-                        console.log(millis.toISOString());
+                        // console.log(millis.toISOString());
                         window.open("details.html?timestamp=" + item.datapoint[0] + "&instance=" + JMX_INSTANCE, "_blank");
                     }
                 });
             });
         }
-     };
-     
-     $.fn.timeline = function (method) {
+    };
+
+    $.fn.timeline = function (method) {
+        //http://www.flotcharts.org
         if (methods[method]) {
             return methods[method].apply(this, Array.prototype.slice.call(arguments, 1));
         } else if (typeof method === 'object' || !method) {

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
+    <div id="tooltip" style="position:absolute;z-index:10;display:none; border:1px solid #fdd;padding:2px;background-color:#fee;opacity: 0.80;"/>
     <!-- Content Header (Page header) -->
     <section class="content-header">
         <h1>
@@ -29,6 +30,18 @@
         </div>
         <div class="row">
             <!-- Left col -->
+            <section class="col-lg-12">
+                <div class="box">
+                    <div class="box-body">
+                        <div id="reportrange" class="pull-right" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc">
+                            <i class="glyphicon glyphicon-calendar fa fa-calendar"/>
+                            <span/>
+                            <b class="caret"/>
+                        </div>
+                    </div>
+                    <div class="box-footer"/>
+                </div>
+            </section>
             <section class="col-lg-12"> 
                 <!-- Box (Memory Usage) -->
                 <div class="box box-warning">
@@ -46,7 +59,7 @@
                     </div>
                 </div><!-- /.box -->
             </section>
-            <section class="col-lg-12">
+            <section class="col-lg-12"> 
                 <!-- Box (Memory Usage) -->
                 <div class="box box-warning">
                     <div class="box-header">
@@ -63,7 +76,7 @@
                     </div>
                 </div><!-- /.box -->
             </section>
-            <section class="col-lg-12">
+            <section class="col-lg-12"> 
                 <!-- Box (Memory Usage) -->
                 <div class="box box-warning">
                     <div class="box-header">
@@ -71,7 +84,7 @@
                         <h3 class="box-title">CPU Load</h3>
                     </div><!-- /.box-header -->
                     <div class="box-body no-padding">
-                        <div class="chart" id="cpu-graph" style="height: 250px;" data-template="app:timeline" data-template-labels="Process CPU Load, System CPU Load" data-template-type="lines,lines" data-template-select="$jmx//jmx:ProcessCpuLoad, $jmx//jmx:SystemCpuLoad"/>
+                        <div class="chart" id="cpu-graph" style="height: 250px;" data-template="app:timeline" data-template-labels="Process CPU Load, System CPU Load" data-template-type="lines,lines" data-template-select="$jmx/jmx:OperatingSystemImpl/jmx:ProcessCpuLoad,$jmx/jmx:OperatingSystemImpl/jmx:SystemCpuLoad"/>
                     </div><!-- /.box-body -->
                     <div class="box-footer">
                         <button class="pull-right zoom-out btn btn-default">
@@ -80,7 +93,7 @@
                     </div>
                 </div><!-- /.box -->
             </section>
-            <section class="col-lg-12">
+            <section class="col-lg-12"> 
                 <!-- Box (Memory Usage) -->
                 <div class="box box-warning">
                     <div class="box-header">
@@ -97,7 +110,7 @@
                     </div>
                 </div><!-- /.box -->
             </section>
-            <section class="col-lg-12">
+            <section class="col-lg-12"> 
                 <!-- Box (Memory Usage) -->
                 <div class="box box-warning">
                     <div class="box-header">
@@ -124,9 +137,72 @@
     <script type="text/javascript" src="resources/scripts/jquery.flot.selection.min.js"/>
     <script type="text/javascript" src="resources/scripts/jquery.flot.tooltip.min.js"/>
     <script type="text/javascript" src="resources/scripts/timeline.js"/>
+    <script type="text/javascript" src="//cdn.jsdelivr.net/momentjs/2.9.0/moment.min.js"/>
+    <script type="text/javascript" src="//cdn.jsdelivr.net/bootstrap.daterangepicker/1/daterangepicker.js"/>
+    <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/bootstrap.daterangepicker/1/daterangepicker-bs3.css"/>
     <script type="text/javascript">
         $(document).ready(function() {
             $(".chart").timeline();
+            
+            $('#reportrange span').html(moment().subtract(29, 'days').format('MMMM D, YYYY') + ' - ' + moment().format('MMMM D, YYYY'));
+            
+            $('#reportrange').daterangepicker({
+                format: 'MM/DD/YYYY',
+                startDate: moment().subtract(29, 'days'),
+                endDate: moment(),
+                minDate: '01/01/2012',
+                maxDate: '12/31/2015',
+                dateLimit: { days: 60 },
+                showDropdowns: true,
+                showWeekNumbers: true,
+                timePicker: false,
+                timePickerIncrement: 1,
+                timePicker12Hour: true,
+                ranges: {
+                   'Today': [moment(), moment()],
+                   'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                   'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                   'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                   'This Month': [moment().startOf('month'), moment().endOf('month')],
+                   'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                },
+                opens: 'left',
+                drops: 'down',
+                buttonClasses: ['btn', 'btn-sm'],
+                applyClass: 'btn-primary',
+                cancelClass: 'btn-default',
+                separator: ' to ',
+                locale: {
+                    applyLabel: 'Submit',
+                    cancelLabel: 'Cancel',
+                    fromLabel: 'From',
+                    toLabel: 'To',
+                    customRangeLabel: 'Custom',
+                    daysOfWeek: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr','Sa'],
+                    monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+                    firstDay: 1
+                }
+            }, function(start, end, label) {
+                console.log(start.toISOString(), end.toISOString(), label);
+                $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+                var startNew = new Date(start).getTime();
+                var endNew =new Date(end).getTime();
+                console.log("startNew:", startNew, " endNew: ", endNew);
+                var url = $(location).attr('protocol') + "//" + $(location).attr('hostname') + ":" + $(location).attr('port') + $(location).attr('pathname'); 
+                console.log("url: ", url);
+                var search = $(location).attr('search');
+                console.log("search: ", search);
+                
+                
+                var queryString = {};
+                search.replace(
+                    new RegExp("([^?=&amp;]+)(=([^&amp;]*))?", "g"),
+                    function($0, $1, $2, $3) { queryString[$1] = $3; }
+                );
+                var url = url + "?instance=" + queryString['instance'] + "&amp;start=" + startNew + "&amp;end=" + endNew;
+                // console.log("url new: ", url);
+                location.href = url;
+            });            
         });
     </script>
 </div>
