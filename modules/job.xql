@@ -228,7 +228,7 @@ return
     try {
         job:ping($instance)
     } catch * {
-        let $status := <jmx:jmx>{ job:status($err:code || " Desc:" || $err:desc, ()) }</jmx:jmx>
+        let $status := <jmx:jmx>{ job:status("code: " || $err:code || " description:" ||  $err:description || " value: " || $err:value, ()) }</jmx:jmx>
         return
             job:notify(true(), $instance, "alert: " || $instance/@name, $status, ())
     }
