@@ -59,7 +59,7 @@ $.AdminLTE.options = {
   enableFastclick: true,
   //Box Widget Plugin. Enable this plugin
   //to allow boxes to be collapsed and/or removed
-  enableBoxWidget: false,
+  enableBoxWidget: true,
   //Box Widget plugin options
   boxWidgetOptions: {
     boxWidgetIcons: {
