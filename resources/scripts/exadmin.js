@@ -411,22 +411,6 @@ JMX.connection = (function() {
 }());
 
 $(function() {
-    $("#poll-period").ionRangeSlider({
-        min: 0.5,
-        max: 60.0,
-        from: 1.0,
-        type: "single",
-        step: 0.1,
-        postfix: " sec",
-        hasGrid: true,
-        onChange: function(data) {
-            JMX.connection.setPollPeriod(data.from);
-        }
-    });
-    $("#pause-btn").click(function(ev) {
-        JMX.connection.togglePolling();
-    });
-    
     JMX.connection.init(JMX_INSTANCES, JMX_ACTIVE);
 
     $("#configure").click(function(ev) {
@@ -436,6 +420,7 @@ $(function() {
         var trackURI = $("#track-uri").is(":checked");
         JMX.connection.invoke("configure", "org.exist.management.exist:type=ProcessReport", [threshold, historyTimespan, trackURI]);
     });
+    // the following block should only be run on the main dashboard page
     $("#dashboard").each(function() {
         var charts = [];
         $(".chart").each(function() {
@@ -446,6 +431,21 @@ $(function() {
             var max = node.attr("data-max-y");
 
             charts.push(new JMX.TimeSeries(node, labels.split(","), properties.split(","), max, unitY));
+        });
+        $("#poll-period").ionRangeSlider({
+            min: 0.5,
+            max: 60.0,
+            from: 1.0,
+            type: "single",
+            step: 0.1,
+            postfix: " sec",
+            hasGrid: true,
+            onChange: function(data) {
+                JMX.connection.setPollPeriod(data.from);
+            }
+        });
+        $("#pause-btn").click(function(ev) {
+            JMX.connection.togglePolling();
         });
         JMX.connection.poll(function(data) {
             for (var i = 0; i < charts.length; i++) {
