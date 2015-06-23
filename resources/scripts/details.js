@@ -1,9 +1,10 @@
 $(function() { 
-    var xml = $.parseXML($("#jmx-data").text()); 
+    var xml = $.parseXML($("#jmx-data").text());
     var data = JMX.util.fixjs(JMX.util.jmx2js(xml)); 
-    var viewModel = ko.mapping.fromJS(data); 
+    var viewModel = ko.mapping.fromJS(data);
     ko.applyBindings(viewModel, document.getElementById("details"));
-    
+    $("#recentQueries").DataTable( { responsive: true } );
+
     $(".thread").hover(function(ev) {
         var name = $(this).text();
         $(".thread").each(function() {
