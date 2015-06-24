@@ -155,6 +155,10 @@ JMX.connection = (function() {
 
     var currentInstance;
 
+    var onUpdateCb;
+    var poll = true;
+    var pollPeriod = 1000;
+    
     function Instance(config, schedulerActive) {
         this.name = ko.observable(config.name);
         this.url = ko.observable(config.url);
@@ -281,11 +285,15 @@ JMX.connection = (function() {
         },
 
         poll: function(onUpdate) {
+            onUpdateCb = onUpdate;
+            if (!poll) {
+                return;
+            }
             var url;
             var name = currentInstance.name();
             if (name == "localhost") {
                 url = location.pathname.replace(/^(.*)\/apps\/.*$/, "$1") +
-                    "/status?c=instances&c=processes&c=locking&c=memory&c=caches&c=system&token=" + currentInstance.token;
+                    "/status?c=instances&c=processes&c=locking&c=memory&c=caches&c=system&c=operatingsystem&token=" + currentInstance.token;
             } else {
                 url = "modules/remote.xql?name=" + name;
             }
@@ -310,10 +318,10 @@ JMX.connection = (function() {
                                 viewModel.gc = function() {
                                     JMX.connection.invoke("gc", "java.lang:type=Memory");
                                 };
-                                if (data.jmx.ProcessReport.MaxQueryHistory) {
-                                    $("#threshold").val(data.jmx.ProcessReport.MinTimeRecorded);
-                                    $("#track-uri").prop("checked", data.jmx.ProcessReport.TrackRequestURI);
-                                    $("#history-max").val(data.jmx.ProcessReport.MaxQueryHistory);
+                                if (data.jmx.ProcessReport.TrackRequestURI) {
+                                    $("#threshold").val(data.jmx.ProcessReport.MinTime);
+                                    $("#track-uri").prop("checked", data.jmx.ProcessReport.TrackRequestURI == "true");
+                                    $("#history-timespan").val(data.jmx.ProcessReport.HistoryTimespan);
                                 } else {
                                     $("#configure-history").hide();
                                 }
@@ -325,7 +333,7 @@ JMX.connection = (function() {
                         if (onUpdate) {
                             onUpdate(data);
                         }
-                        setTimeout(function() { JMX.connection.poll(onUpdate); }, 1000);
+                        setTimeout(function() { JMX.connection.poll(onUpdate); }, pollPeriod);
                     } else {
                         $("#connection-alert").show(400).find(".message").text("No response from server. Retrying ...");
                         setTimeout(function() { JMX.connection.poll(onUpdate); }, 5000);
@@ -385,6 +393,19 @@ JMX.connection = (function() {
                     instance.message(data.status);
                     instance.time("?");
             }
+        },
+        
+        setPollPeriod: function(period) {
+            pollPeriod = parseFloat(period) * 1000;
+        },
+        
+        togglePolling: function() {
+            if (poll) {
+                poll = false;
+            } else {
+                poll = true;
+                JMX.connection.poll(onUpdateCb);
+            }
         }
     };
 }());
@@ -395,10 +416,11 @@ $(function() {
     $("#configure").click(function(ev) {
         ev.preventDefault();
         var threshold = $("#threshold").val();
-        var maxHistory = $("#history-max").val();
+        var historyTimespan = $("#history-timespan").val();
         var trackURI = $("#track-uri").is(":checked");
-        JMX.connection.invoke("configure", "org.exist.management.exist:type=ProcessReport", [threshold, trackURI, maxHistory]);
+        JMX.connection.invoke("configure", "org.exist.management.exist:type=ProcessReport", [threshold, historyTimespan, trackURI]);
     });
+    // the following block should only be run on the main dashboard page
     $("#dashboard").each(function() {
         var charts = [];
         $(".chart").each(function() {
@@ -410,10 +432,32 @@ $(function() {
 
             charts.push(new JMX.TimeSeries(node, labels.split(","), properties.split(","), max, unitY));
         });
+        $("#poll-period").ionRangeSlider({
+            min: 0.5,
+            max: 60.0,
+            from: 1.0,
+            type: "single",
+            step: 0.1,
+            postfix: " sec",
+            hasGrid: true,
+            onChange: function(data) {
+                JMX.connection.setPollPeriod(data.from);
+            }
+        });
+        $("#pause-btn").click(function(ev) {
+            JMX.connection.togglePolling();
+        });
         JMX.connection.poll(function(data) {
             for (var i = 0; i < charts.length; i++) {
                 charts[i].update(data);
             }
+            $(".stack").popover({
+                placement: "auto right",
+                html: true,
+                container: "#dashboard",
+                trigger: "focus",
+                template: '<div class="popover stacktrace" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><pre class="popover-content"></pre></div>'
+            });
         });
     });
 

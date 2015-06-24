@@ -123,3 +123,8 @@ body > .header .logo {
 .stacktrace pre {
     word-break: normal;
 }
+
+.scrollable {
+    max-height: 400px;
+    overflow-y: auto;
+}

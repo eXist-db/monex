@@ -54,6 +54,10 @@ JMX.util = (function() {
                 if (!jobs || !jobs.length) {
                     data.jmx.ProcessReport.RunningJobs = [];
                 }
+                var recent = data.jmx.ProcessReport.RecentQueryHistory;
+                if (!recent || !recent.length) {
+                    data.jmx.ProcessReport.RecentQueryHistory = [];
+                }
             }
             if (data.jmx.LockManager) {
                 var waiting = data.jmx.LockManager.WaitingThreads;
