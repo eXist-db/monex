@@ -1,7 +1,5 @@
 package org.exist.console.xquery;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.exist.console.ConsoleAdapter;
 import org.exist.xquery.AbstractInternalModule;
 import org.exist.xquery.FunctionDef;
@@ -28,8 +26,6 @@ public class ConsoleModule extends AbstractInternalModule {
     };
 
     private static ConsoleAdapter adapter = null;
-
-    private static final Logger LOG = LogManager.getLogger(ConsoleModule.class);
 
     public static void log(String channel, String message) {
         log(channel, false, message);
