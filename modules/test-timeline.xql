@@ -26,7 +26,7 @@ declare function local:test-timeline-cpu($node,$map,$instance,$type){
 declare function local:test-timeline(){
     let $node := <test/>
     let $map := map {}
-    let $instance := "history.state.gov"
+    let $instance := "exist-db.org"
     let $type := "lines,lines"
 
     return 
@@ -55,7 +55,7 @@ declare function local:test-xpath-expression-without-eval($instance){
  local:test-timeline()
 :)
 
-local:test-xpath-expression-without-eval("history.state.gov")
+local:test-xpath-expression-without-eval("exist-db.org")
 
 
     

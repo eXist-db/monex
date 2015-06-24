@@ -1,6 +1,7 @@
 package org.exist.remoteconsole;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.util.ajax.JSON;
 import org.eclipse.jetty.websocket.WebSocket;
 import org.eclipse.jetty.websocket.WebSocketServlet;
@@ -18,7 +19,7 @@ import java.util.concurrent.*;
 @WebServlet(urlPatterns = { "rconsole" })
 public class RemoteConsoleServlet extends WebSocketServlet {
 
-    private static final Logger LOG = Logger.getLogger(RemoteConsoleServlet.class);
+    private static final Logger LOG = LogManager.getLogger(RemoteConsoleServlet.class);
 
     private static boolean started = false;
 
