@@ -8,7 +8,7 @@ import module namespace console="http://exist-db.org/xquery/console";
 declare namespace job="http://exist-db.org/apps/monex/job";
 declare namespace jmx="http://exist-db.org/jmx";
 
-(:declare variable $local:name := "history.state.gov";:)
+(:declare variable $local:name := "exist-db.org";:)
 (:declare variable $local:operation := "";:)
 (:declare variable $local:app-root := "/db/apps/monex";:)
 (:declare variable $local:data-root := "/db/apps/monex/data";:)
