@@ -259,7 +259,7 @@ declare function app:user-info($node as node(), $model as map(*)) {
 
 declare function app:form-action-to-current-url($node as node(), $model as map(*)) {
     <form action="{request:get-url()}">{
-        $node/attribute()[not(name(.) = 'action')], 
+        $node/attribute()[not(name(.) = 'action')],
         $node/node()
     }</form>
 };
@@ -291,10 +291,11 @@ function app:timeline($node as node(), $model as map(*), $instance as xs:string,
     let $labels := tokenize($labels, "\s*,\s*")
     let $xpaths := tokenize($select, "\s*,\s*")
     let $type := tokenize($type, "\s*,\s*")
-    let $jmx := collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:Database]
+
+    let $end := xs:dateTime(if($end = "") then (current-dateTime()) else ($end))
+    let $start := xs:dateTime(if(not($start = "")) then ($start) else ($end - xs:dayTimeDuration('P1D')))
+    let $jmx := collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:Database][xs:dateTime(./jmx:timestamp) ge $start][xs:dateTime(./jmx:timestamp) le $end]
     
-    let $end := xs:double(if($end = "") then (app:time-to-milliseconds(current-dateTime())) else ($end))
-    let $start := xs:double(if(not($start = "")) then ($start) else if($end - 604800000 gt 0) then ($end - 604800000) else (0))
 
     
     return
@@ -312,22 +313,27 @@ function app:timeline($node as node(), $model as map(*), $instance as xs:string,
                                 let $unsorted :=
                                     for $val at $pos in $result
                                     let $time := xs:dateTime($jmx[$pos]/jmx:timestamp)
-                                    let $time-in-millis := app:time-to-milliseconds($time)
                                     return 
-                                        if($time-in-millis gt $start and $time-in-millis lt $end)
-                                        then (
-                                        
-                                            <json:value json:array="true">
-                                                <json:value json:literal="true">{app:time-to-milliseconds($time)}</json:value>
-                                                <json:value json:literal="true">
-                                                {
-                                                    let $n := number($val)
-                                                    return
-                                                        if ($n) then $n else 0
-                                                }
-                                                </json:value>
+                                        <json:value json:array="true">
+                                            <json:value json:literal="true">{app:time-to-milliseconds($time)}</json:value>
+                                            <json:value json:literal="true">
+                                            {
+                                                let $n := number($val)
+                                                return
+                                                    if ($n) then $n else 0
+                                            }
                                             </json:value>
-                                        )else ()
+                                        </json:value>
+                                (:
+                                    let $items-descending := for $item in $unsorted
+                                                        order by $item/json:value[2] descending
+                                                        return $item
+
+                                    let $items-ascending := for $item in $unsorted
+                                                        order by $item/json:value[2] ascending
+                                                        return $item
+                                    let $selected-items := ($items-descending , $items-ascending )
+                                :)
                                 for $item in $unsorted
                                 order by $item/json:value[1] ascending
                                 return
