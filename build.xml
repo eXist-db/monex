@@ -50,6 +50,7 @@
         <zip destfile="${build.dir}/${project.name}-${project.version}.xar">
             <fileset dir=".">
                 <include name="*.*"/>
+                <include name="data/**"/>
                 <include name="modules/**"/>
                 <include name="templates/**"/>
                 <include name="resources/**"/>
