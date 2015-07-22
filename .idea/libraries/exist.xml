@@ -1,7 +1,7 @@
 <component name="libraryTable">
   <library name="exist">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../exist/eXist/exist.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../exist-releases/exist.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
