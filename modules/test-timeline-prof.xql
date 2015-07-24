@@ -20,7 +20,7 @@ declare function local:run-timeline($header, $select, $start, $end){
         let $tbegin := util:system-dateTime()
         let $result := app:timeline($node,$map,$instance, $select,$labels,$type,$start,$end)
         let $tend := util:system-dateTime()
-        return "" || $header || " -- " || string(seconds-from-duration($tend - $tbegin)) || " (" || count($result) || ")"
+        return "" || $header || " -- " || string(seconds-from-duration($tend - $tbegin))
     )
 };
 
@@ -78,7 +78,7 @@ declare function local:test-timeline-from-html(){
 declare function local:test-timeline-from-html-splitted(){
 
     let $select0 := "1"
-    let $h0 := "trivial1"
+    let $h0 := "trivial '1'"
 
     let $select1a := "$jmx/jmx:Database/jmx:ActiveBrokers"
     let $h1a := "ActiveBrokers"
@@ -108,20 +108,19 @@ declare function local:test-timeline-from-html-splitted(){
     let $h5b := "avg duration"
 
 
-    return 
-        (
-            local:run-timeline($h0, $select0, $start, $end),
-            local:run-timeline($h1a, $select1a, $start, $end),
-            local:run-timeline($h1b, $select1b, $start, $end),
-            local:run-timeline($h2, $select2, $start, $end),
-            local:run-timeline($h3a, $select3a, $start, $end),
-            local:run-timeline($h3b, $select3b, $start, $end),
-            local:run-timeline($h4a, $select4a, $start, $end),
-            local:run-timeline($h4b, $select4b, $start, $end),
-            local:run-timeline($h5a, $select5a, $start, $end),
-            local:run-timeline($h5b, $select5b, $start, $end),
-            ()
-        )
+    return (
+        local:run-timeline($h0, $select0, $start, $end),
+        local:run-timeline($h1a, $select1a, $start, $end),
+        local:run-timeline($h1b, $select1b, $start, $end),
+        local:run-timeline($h2, $select2, $start, $end),
+        local:run-timeline($h3a, $select3a, $start, $end),
+        local:run-timeline($h3b, $select3b, $start, $end),
+        local:run-timeline($h4a, $select4a, $start, $end),
+        local:run-timeline($h4b, $select4b, $start, $end),
+        local:run-timeline($h5a, $select5a, $start, $end),
+        local:run-timeline($h5b, $select5b, $start, $end),
+        ()
+    )
 };
 
 (: TEST TIME INTERVALS
@@ -139,6 +138,6 @@ declare variable $end := "2015-07-08T23:59:59.999Z";
 
 
 local:test-timeline(),
-local:test-timeline-from-html(),
-local:test-timeline-from-html-splitted(),
+(:local:test-timeline-from-html(),:)
+(:local:test-timeline-from-html-splitted(),:)
 ()

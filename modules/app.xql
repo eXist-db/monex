@@ -304,17 +304,20 @@ function app:timeline($node as node(), $model as map(*), $instance as xs:string,
                 <result>
                 {
                     for $xpath at $n in $xpaths
+                    let $timestamps := (for $jmx in $jmxs return xs:dateTime($jmx/jmx:timestamp))
+                    let $expression := "for $jmx in $jmxs return ("|| $xpath ||",0)[1]"
+                    let $values := util:eval($expression, true())
                     return
                         <json:value json:array="true">
                             <label>{$labels[$n]}</label>
                             <data>
                             {
                                 let $unsorted :=
-                                    for $jmx in $jmxs
-                                    let $val := util:eval($xpath, true())
-                                    let $time := xs:dateTime($jmx/jmx:timestamp)
+                                    for $jmx at $pos in $jmxs
+                                    let $val := $values[$pos]
+                                    let $time := $timestamps[$pos]
                                     where $val (: this line filters empty results out :)
-                                    return 
+                                    return
                                         <json:value json:array="true">
                                             <json:value json:literal="true">{app:time-to-milliseconds($time)}</json:value>
                                             <json:value json:literal="true">
