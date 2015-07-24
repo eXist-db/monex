@@ -294,25 +294,26 @@ function app:timeline($node as node(), $model as map(*), $instance as xs:string,
 
     let $end := xs:dateTime(if($end = "") then (current-dateTime()) else ($end))
     let $start := xs:dateTime(if(not($start = "")) then ($start) else ($end - xs:dayTimeDuration('P1D')))
-    let $jmx := collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:Database][xs:dateTime(./jmx:timestamp) ge $start][xs:dateTime(./jmx:timestamp) le $end]
+    let $jmxs := collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:Database][xs:dateTime(./jmx:timestamp) ge $start][xs:dateTime(./jmx:timestamp) le $end]
     
 
     
     return
-        if ($jmx) then
+        if ($jmxs) then
             let $result :=
                 <result>
                 {
                     for $xpath at $n in $xpaths
-                    let $result := util:eval($xpath, true())
                     return
                         <json:value json:array="true">
                             <label>{$labels[$n]}</label>
                             <data>
                             {
                                 let $unsorted :=
-                                    for $val at $pos in $result
-                                    let $time := xs:dateTime($jmx[$pos]/jmx:timestamp)
+                                    for $jmx in $jmxs
+                                    let $val := util:eval($xpath, true())
+                                    let $time := xs:dateTime($jmx/jmx:timestamp)
+                                    where $val (: this line filters empty results out :)
                                     return 
                                         <json:value json:array="true">
                                             <json:value json:literal="true">{app:time-to-milliseconds($time)}</json:value>
