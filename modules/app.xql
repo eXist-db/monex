@@ -303,8 +303,8 @@ function app:timeline($node as node(), $model as map(*), $instance as xs:string,
             let $result :=
                 <result>
                 {
-                    for $xpath at $n in $xpaths
                     let $timestamps := (for $jmx in $jmxs return app:time-to-milliseconds(xs:dateTime($jmx/jmx:timestamp)))
+                    for $xpath at $n in $xpaths
                     let $expression := "for $jmx in $jmxs return number((("|| $xpath ||"),0)[1])"
                     let $values := util:eval($expression, true())
                     return

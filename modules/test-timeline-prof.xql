@@ -138,6 +138,6 @@ declare variable $end := "2015-07-08T23:59:59.999Z";
 
 
 (:local:test-timeline(),:)
-(:local:test-timeline-from-html(),:)
-local:test-timeline-from-html-splitted(),
+local:test-timeline-from-html(),
+(:local:test-timeline-from-html-splitted(),:)
 ()
