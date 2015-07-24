@@ -304,48 +304,30 @@ function app:timeline($node as node(), $model as map(*), $instance as xs:string,
                 <result>
                 {
                     for $xpath at $n in $xpaths
+                    let $timestamps := (for $jmx in $jmxs return app:time-to-milliseconds(xs:dateTime($jmx/jmx:timestamp)))
+                    let $expression := "for $jmx in $jmxs return number((("|| $xpath ||"),0)[1])"
+                    let $values := util:eval($expression, true())
                     return
                         <json:value json:array="true">
                             <label>{$labels[$n]}</label>
                             <data>
                             {
-                                let $unsorted :=
-                                    for $jmx in $jmxs
-                                    let $val := util:eval($xpath, true())
-                                    let $time := xs:dateTime($jmx/jmx:timestamp)
-                                    where $val (: this line filters empty results out :)
-                                    return 
-                                        <json:value json:array="true">
-                                            <json:value json:literal="true">{app:time-to-milliseconds($time)}</json:value>
-                                            <json:value json:literal="true">
-                                            {
-                                                let $n := number($val)
-                                                return
-                                                    if ($n) then $n else 0
-                                            }
-                                            </json:value>
-                                        </json:value>
-                                (:
-                                    let $items-descending := for $item in $unsorted
-                                                        order by $item/json:value[2] descending
-                                                        return $item
-
-                                    let $items-ascending := for $item in $unsorted
-                                                        order by $item/json:value[2] ascending
-                                                        return $item
-                                    let $selected-items := ($items-descending , $items-ascending )
-                                :)
-                                for $item in $unsorted
-                                order by $item/json:value[1] ascending
+                                for $jmx at $pos in $jmxs
+                                let $val := $values[$pos]
+                                let $time := $timestamps[$pos]
+                                where $val  (: this line filters empty results out :)
+                                order by $time ascending
                                 return
-                                    $item
+                                    <json:value json:array="true">
+                                        <json:value json:literal="true">{$time}</json:value>
+                                        <json:value json:literal="true">{$val}</json:value>
+                                    </json:value>
                             }
                             </data>
                             {
                             element { $type[$n] } {
                                 <show>true</show>
-                            }
-                            }
+                            }   }
                         </json:value>
                 }
                 </result>
