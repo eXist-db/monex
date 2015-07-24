@@ -26,7 +26,7 @@ declare function local:test-timeline-recentqueries($node,$map,$instance,$type,$s
     let $select := "$jmx/jmx:ProcessReport/jmx:RecentQueryHistory/max(jmx:row/jmx:mostRecentExecutionDuration), $jmx/jmx:ProcessReport/jmx:RecentQueryHistory/avg(jmx:row/jmx:mostRecentExecutionDuration)"
     let $labels := "Slowest Query, Average Query"
     return 
-        app:timeline-fe($node,$map,$instance, $select,$labels,$type,$start, $end)
+        app:timeline($node,$map,$instance, $select,$labels,$type,$start, $end)
 };
 
 
