@@ -53,9 +53,9 @@ declare function local:test-timeline(){
 
     return 
         (
-            (: local:test-timeline-brokers($node,$map,$instance,$type,$start,$end),
-            local:test-timeline-cpu($node,$map,$instance,$type,$start,$end) :)
             console:log("starting: duration: " || $start || "-" || $end),
+            local:test-timeline-brokers($node,$map,$instance,$type,$start,$end),
+            (: local:test-timeline-cpu($node,$map,$instance,$type,$start,$end) :)
             local:test-timeline-recentqueries($node,$map,$instance,$type,$start,$end),
             console:log("end")
         )
