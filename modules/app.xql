@@ -305,7 +305,7 @@ function app:timeline($node as node(), $model as map(*), $instance as xs:string,
                 {
                     let $timestamps := (for $jmx in $jmxs return app:time-to-milliseconds(xs:dateTime($jmx/jmx:timestamp)))
                     for $xpath at $n in $xpaths
-                    let $expression := "for $jmx in $jmxs return number((("|| $xpath ||"),0)[1])"
+                    let $expression := "for $jmx in $jmxs return number((("|| $xpath ||"),'NaN')[1])"
                     let $values := util:eval($expression, true())
                     return
                         <json:value json:array="true">
@@ -315,7 +315,7 @@ function app:timeline($node as node(), $model as map(*), $instance as xs:string,
                                 for $jmx at $pos in $jmxs
                                 let $val := $values[$pos]
                                 let $time := $timestamps[$pos]
-                                where $val  (: this line filters empty AND ZERO results out :)
+                                where $val = $val  (: this line filters NaN and empty results out :)
                                 order by $time ascending
                                 return
                                     <json:value json:array="true">
