@@ -9,30 +9,55 @@ import module namespace config="http://exist-db.org/apps/admin/config" at "confi
 import module namespace console="http://exist-db.org/xquery/console";
 
 
-declare function local:test-timeline-brokers($node,$map,$instance,$type){
+declare function local:test-timeline-brokers($node,$map,$instance,$type,$start,$end){
     let $select := "$jmx/jmx:Database/jmx:ActiveBrokers, $jmx/jmx:ProcessReport/jmx:RunningQueries/count(./jmx:row)"
     let $labels := "Active brokers, Running queries"
     return 
-        app:timeline($node,$map,$instance, $select,$labels,$type)
+        app:timeline($node,$map,$instance, $select,$labels,$type,$start,$end)
 };
 
-declare function local:test-timeline-cpu($node,$map,$instance,$type){
+declare function local:test-timeline-cpu($node,$map,$instance,$type,$start,$end){
     let $select := "$jmx/jmx:OperatingSystemImpl/jmx:ProcessCpuLoad, $jmx/jmx:OperatingSystemImpl/jmx:SystemCpuLoad"
     let $labels := "Process CPU Load, System CPU Load"
     return 
-        app:timeline($node,$map,$instance, $select,$labels,$type)
+        app:timeline($node,$map,$instance, $select,$labels,$type,$start, $end)
 };
+declare function local:test-timeline-recentqueries($node,$map,$instance,$type,$start,$end){
+    let $select := "$jmx/jmx:ProcessReport/jmx:RecentQueryHistory/max(jmx:row/jmx:mostRecentExecutionDuration), $jmx/jmx:ProcessReport/jmx:RecentQueryHistory/avg(jmx:row/jmx:mostRecentExecutionDuration)"
+    let $labels := "Slowest Query, Average Query"
+    return 
+        app:timeline($node,$map,$instance, $select,$labels,$type,$start, $end)
+};
+
+
+
 
 declare function local:test-timeline(){
     let $node := <test/>
     let $map := map {}
-    let $instance := "exist-db.org"
+    let $instance := "history.state.gov"
     let $type := "lines,lines"
+    (:
+    let $start := " 2015-06-29T10:00:00.000Z"
+    let $end := " 2015-06-29T13:57:00.000Z"
+    
+    let $start := "2015-06-29T09:00:00.000Z"
+    let $end := "2015-06-29T13:57:00.000Z"
+    :)
+    let $start := "2015-06-29T00:00:00.000Z"
+    let $end := "2015-06-29T16:59:00.000Z"
+
+    (:
+    # 1435586160031
+    :)
 
     return 
         (
-            local:test-timeline-brokers($node,$map,$instance,$type),
-            local:test-timeline-cpu($node,$map,$instance,$type)
+            console:log("starting: duration: " || $start || "-" || $end),
+            local:test-timeline-brokers($node,$map,$instance,$type,$start,$end),
+            (: local:test-timeline-cpu($node,$map,$instance,$type,$start,$end) :)
+            local:test-timeline-recentqueries($node,$map,$instance,$type,$start,$end),
+            console:log("end")
         )
 };
 
@@ -51,11 +76,11 @@ declare function local:test-xpath-expression-without-eval($instance){
             $jmx//jmx:ProcessCpuLoad
 };
 
-(:  
- local:test-timeline()
-:)
+local:test-timeline()
 
-local:test-xpath-expression-without-eval("exist-db.org")
+
+
+(:   :local:test-xpath-expression-without-eval("history.state.gov") :)
 
 
     
