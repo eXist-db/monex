@@ -1,9 +1,7 @@
 (function($) {
-
-    var methods = {
-
-        init: function() {
-            var options = {
+    $.TimelineOptions = function (element) { 
+        console.log("timeline options");
+        var options = {
                 series: {
                     lines: {
                         lineWidth: 1.2,
@@ -45,8 +43,14 @@
                     mode: "x"
                 },
                 tooltip: false
+            }
+            return options
+    };
+    
+    var methods = {
 
-            };
+        init: function() {
+            var options = $.TimelineOptions();
 
             this.each(function() {
                 var container = $(this);
@@ -64,15 +68,15 @@
                     plot.draw();
                 });
                 container.bind("plothover", function (event, pos, item) {
-                    // var str = "(" + pos.x.toFixed(2) + ", " + pos.y.toFixed(2) + ")";
-                    // console.log("str: ", str);
+                     var str = "(" + pos.x.toFixed(2) + ", " + pos.y.toFixed(2) + ")";
+                     console.log("str: ", str);
 
                     if (item) {
 
                         var x = item.datapoint[0].toFixed(2),
                             y = item.datapoint[1].toFixed(2);
                         var date = new Date(x-0)
-                        // console.log("item: x:", x, " date:",date, " y:",y);
+                         console.log("item: x:", x, " date:",date, " y:",y);
 
                         $("#tooltip").html(item.series.label + " at " + date + " = " + y).css({top: item.pageY+5, left: item.pageX+5, display:"block"});
                     } else {
@@ -93,7 +97,7 @@
                     // if you need global screen coordinates, they are pos.pageX, pos.pageY
                     if (item) {
                         var millis = new Date(item.datapoint[0]);
-                        // console.log(millis.toISOString());
+                        console.log(millis.toISOString());
                         window.open("details.html?timestamp=" + item.datapoint[0] + "&instance=" + JMX_INSTANCE, "_blank");
                     }
                 });
