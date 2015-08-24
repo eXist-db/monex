@@ -127,6 +127,7 @@
     <script type="text/javascript" src="resources/scripts/jquery.flot.time.min.js"/>
     <script type="text/javascript" src="resources/scripts/jquery.flot.selection.min.js"/>
     <script type="text/javascript" src="resources/scripts/jquery.flot.tooltip.min.js"/>
+    <script type="text/javascript" src="resources/scripts/timerange.js"/>
     <script type="text/javascript" src="resources/scripts/timeline.js"/>
     <script type="text/javascript" src="//cdn.jsdelivr.net/momentjs/2.9.0/moment.min.js"/>
     <script type="text/javascript" src="//cdn.jsdelivr.net/bootstrap.daterangepicker/1/daterangepicker.js"/>
@@ -134,8 +135,11 @@
     <script type="text/javascript">
         $(document).ready(function() {
             console.log("ready");
-
-            var options = new $.TimelineOptions();
+            var timerange = $.TimerangeSetup();
+            console.log("timerange: ", timerange);
+            var options = $.TimelineOptions();
+            
+            
             
             $( ".default-chart" ).each(function( index ) {
                 var id = $( this ).attr("id") 
@@ -146,76 +150,19 @@
                     method: 'GET',
                     dataType: 'json',
                     success: function(dataset){
-                        console.log("success");
-                        console.log(dataset);
-                        
-                        $.plot($("#" + id), dataset, options);
-                        //$("#flot-placeholder").UseTooltip();
+                        // console.log("dataset: ", dataset);
+                        // console.log("options: ", options);
+                        var container = $("#" + id);
+                        var data = dataset;
+                        new $.TimelineSetup(container, data,options);
                     }
                 });   
                 
             });
             
-
-
-            $('#reportrange span').html(moment().subtract(1, 'days').format('MMMM D, YYYY') + ' - ' + moment().format('MMMM D, YYYY'));
             
-            $('#reportrange').daterangepicker({
-                        format: 'MM/DD/YYYY',
-                        startDate: moment().subtract(1, 'days'),
-                        endDate: moment(),
-                        dateLimit: { days: 60 },
-                        showDropdowns: true,
-                        showWeekNumbers: true,
-                        timePicker: false,
-                        timePickerIncrement: 1,
-                        timePicker12Hour: true,
-                        ranges: {
-                           'Today': [moment(), moment()],
-                           'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-                           'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                           'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                           'This Month': [moment().startOf('month'), moment().endOf('month')],
-                           'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
-                        },
-                        opens: 'left',
-                        drops: 'down',
-                        buttonClasses: ['btn', 'btn-sm'],
-                        applyClass: 'btn-primary',
-                        cancelClass: 'btn-default',
-                        separator: ' to ',
-                        locale: {
-                            applyLabel: 'Submit',
-                            cancelLabel: 'Cancel',
-                            fromLabel: 'From',
-                            toLabel: 'To',
-                            customRangeLabel: 'Custom',
-                            daysOfWeek: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr','Sa'],
-                            monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-                            firstDay: 1
-                        }
-                    }, function(start, end, label) {
-                        console.log(start.toISOString(), end.toISOString(), label);
-                        $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
-                        var startNew = new Date(start).getTime();
-                        var endNew =new Date(end).getTime();
-                        console.log("startNew:", startNew, " endNew: ", endNew);
-                        var url = $(location).attr('protocol') + "//" + $(location).attr('hostname') + ":" + $(location).attr('port') + $(location).attr('pathname'); 
-                        console.log("url: ", url);
-                        var search = $(location).attr('search');
-                        console.log("search: ", search);
-                        
-                        
-                        var queryString = {};
-                        search.replace(
-                            new RegExp("([^?=&amp;]+)(=([^&amp;]*))?", "g"),
-                            function($0, $1, $2, $3) { queryString[$1] = $3; }
-                        );
-                        var url = url + "?instance=" + queryString['instance'] + "&amp;start=" + start.toISOString() + "&amp;end=" + end.toISOString();
-                        console.log("url new: ", url)
-                        location.href = url;
-                    }
-            ); // end $('#reportrange').daterangepicker()            
+
+      
         });
     </script>
 </div>

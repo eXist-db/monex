@@ -11,19 +11,13 @@ import module namespace scheduler="http://exist-db.org/xquery/scheduler" at "jav
 import module namespace templates="http://exist-db.org/xquery/templates" ;
 import module namespace config="http://exist-db.org/apps/admin/config" at "config.xqm";
 
+declare option exist:serialize "method=json media-type=text/javascript";
+
 let $node := <test/>
 let $map := map {}
 let $instance := request:get-parameter("instance", "history.state.gov")
-let $start := request:get-parameter("start","2015-06-29T22:00:00.000Z")
-let $end := request:get-parameter("end","2015-06-30T21:59:59.999Z")
-
-(: 
-let $ids := ("brokers-graph", "threads-graph", "cpu-graph", "memory-graph", "slow-queries-graph")
-for $id in $ids
-    return (
-        app:default-timeline($node, $map ,$instance, $id , $start, $end)
- :) 
- 
+let $start := request:get-parameter("start","")
+let $end := request:get-parameter("end","")
 let $id := request:get-parameter("id","cpu-graph") 
 return 
-    app:default-timeline($node, $map ,$instance, $id , $start, $end) 
+    app:default-timeline($node, $map ,$instance, $id , $start, $end)  

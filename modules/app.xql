@@ -343,33 +343,32 @@ declare function app:cpu-graph($jmx) {
             <lines><show>true</show></lines>,
             <label>Process CPU Load</label>,
             <data>{
-                for $val in $jmx/jmx:OperatingSystemImpl/jmx:ProcessCpuLoad
-                    let $time := app:time-to-milliseconds($val/../../jmx:timestamp)
+                for $process in $jmx/jmx:OperatingSystemImpl/jmx:ProcessCpuLoad
+                    let $time := app:time-to-milliseconds($process/../../jmx:timestamp)
                     order by $time
                     return 
                             <json:value json:array="true">
                                 <json:value json:literal="true">{$time}</json:value>
-                                <json:value json:literal="true">{$val/text()}</json:value>
+                                <json:value json:literal="true">{$process/text()}</json:value>
                             </json:value>
             }</data>
         </json:value>,
-            
         <json:value json:array="true">
             <lines><show>true</show></lines>,
             <label>System CPU Load</label>,
             <data> 
             {
-                for $val in $jmx/jmx:OperatingSystemImpl/jmx:SystemCpuLoad
-                    let $time := app:time-to-milliseconds($val/../../jmx:timestamp)
+                for $system in $jmx/jmx:OperatingSystemImpl/jmx:SystemCpuLoad
+                    let $time := app:time-to-milliseconds($system/../../jmx:timestamp)
                     order by $time
                     return 
                             <json:value json:array="true">
                                 <json:value json:literal="true">{$time}</json:value>
-                                <json:value json:literal="true">{$val//count(./jmx:row)}</json:value>
+                                <json:value json:literal="true">{$system//text()}</json:value>
                             </json:value>
             }
             </data>
-        </json:value>                
+        </json:value>
     )    
 };
 
@@ -399,7 +398,7 @@ declare function app:memory-graph($jmx) {
                     return 
                             <json:value json:array="true">
                                 <json:value json:literal="true">{$time}</json:value>
-                                <json:value json:literal="true">{$committed/count(./jmx:row)}</json:value>
+                                <json:value json:literal="true">{$committed/text()}</json:value>
                             </json:value>
             }
             </data>,
@@ -469,7 +468,7 @@ function app:default-timeline($node as node(), $model as map(*), $instance as xs
                         default return ()
                     }</result>
             return 
-                app:serialize-to-json($result)
+                $result
 
         )
         else
