@@ -289,7 +289,7 @@ declare function app:threads-graph($jmx) {
             <lines><show>true</show></lines>,
             <label>Waiting Threads</label>,
             <data>{
-                for $val in $jmx/jmx:LockManager/jmx:WaitingThreads
+                for $val in $jmx//jmx:WaitingThreads
                     let $time := app:time-to-milliseconds($val/../../jmx:timestamp)
                     order by $time
                     return 
@@ -308,7 +308,7 @@ declare function app:brokers-graph($jmx) {
             <lines><show>true</show></lines>,
             <label>Active brokers</label>,
             <data>{
-                for $val in $jmx/jmx:Database/jmx:ActiveBrokers
+                for $val in $jmx//jmx:ActiveBrokers
                     let $time := app:time-to-milliseconds($val/../../jmx:timestamp)
                     order by $time
                     return 
@@ -324,7 +324,7 @@ declare function app:brokers-graph($jmx) {
             <label>Running queries</label>,
             <data> 
             {
-                for $val in $jmx/jmx:ProcessReport/jmx:RunningQueries
+                for $val in $jmx//jmx:RunningQueries
                     let $time := app:time-to-milliseconds($val/../../jmx:timestamp)
                     order by $time
                     return 
@@ -343,7 +343,7 @@ declare function app:cpu-graph($jmx) {
             <lines><show>true</show></lines>,
             <label>Process CPU Load</label>,
             <data>{
-                for $process in $jmx/jmx:OperatingSystemImpl/jmx:ProcessCpuLoad
+                for $process in $jmx//jmx:ProcessCpuLoad
                     let $time := app:time-to-milliseconds($process/../../jmx:timestamp)
                     order by $time
                     return 
@@ -358,7 +358,7 @@ declare function app:cpu-graph($jmx) {
             <label>System CPU Load</label>,
             <data> 
             {
-                for $system in $jmx/jmx:OperatingSystemImpl/jmx:SystemCpuLoad
+                for $system in $jmx//jmx:SystemCpuLoad
                     let $time := app:time-to-milliseconds($system/../../jmx:timestamp)
                     order by $time
                     return 
@@ -377,7 +377,7 @@ declare function app:memory-graph($jmx) {
         <json:value json:array="true">
             <label>Used Memory</label>,
             <data>{
-                for $used in $jmx/jmx:MemoryImpl/jmx:HeapMemoryUsage/jmx:used
+                for $used in $jmx//jmx:HeapMemoryUsage/jmx:used
                     let $time := app:time-to-milliseconds($used/../../../jmx:timestamp)
                     order by $time
                     return 
@@ -392,7 +392,7 @@ declare function app:memory-graph($jmx) {
             <label>Committed Memory</label>,
             <data> 
             {
-                for $committed in $jmx/jmx:MemoryImpl/jmx:HeapMemoryUsage/jmx:committed
+                for $committed in $jmx//jmx:HeapMemoryUsage/jmx:committed
                     let $time := app:time-to-milliseconds($committed/../../../jmx:timestamp)
                     order by $time
                     return 

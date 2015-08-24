@@ -1,6 +1,6 @@
 (function($) {
     $.TimelineOptions = function (element) { 
-        console.log("timeline options");
+        // console.log("timeline options");
         var options = {
                 series: {
                     lines: {
@@ -54,7 +54,7 @@
         // console.log("TimelineSetup.options: ", options);
         
         var plot = $.plot(container, dataset, options);
-        console.log("timeline: ",plot);
+        // console.log("timeline: ",plot);
         $.TimelineFunctions(plot, container, dataset, options); 
     };
     
@@ -100,7 +100,7 @@
             // if you need global screen coordinates, they are pos.pageX, pos.pageY
             if (item) {
                 var millis = new Date(item.datapoint[0]);
-                console.log(millis.toISOString());
+                // console.log(millis.toISOString());
                 window.open("details.html?timestamp=" + item.datapoint[0] + "&instance=" + JMX_INSTANCE, "_blank");
             }
         });    

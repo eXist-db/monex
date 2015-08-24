@@ -134,17 +134,14 @@
     <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/bootstrap.daterangepicker/1/daterangepicker-bs3.css"/>
     <script type="text/javascript">
         $(document).ready(function() {
-            console.log("ready");
             var timerange = $.TimerangeSetup();
-            console.log("timerange: ", timerange);
+            // console.log("timerange: ", timerange);
             var options = $.TimelineOptions();
-            
-            
-            
+
             $( ".default-chart" ).each(function( index ) {
                 var id = $( this ).attr("id") 
-                console.log( index + ": " + id);
-                var url = "modules/update-timeline.xql" + $(location).attr('search') + "&amp;id=" + id
+                // console.log( index + ": " + id);
+                var url = "modules/update-timeline.xql" + $(location).attr('search') + "&amp;id=" + id;
                 $.ajax({
                     url: url,
                     method: 'GET',

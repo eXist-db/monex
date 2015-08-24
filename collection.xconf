@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <collection xmlns="http://exist-db.org/collection-config/1.0">
-    <index xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <index xmlns:jmx="http://exist-db.org/jmx" xmlns:xs="http://www.w3.org/2001/XMLSchema">
         <fulltext default="none" attributes="false"/>
+        <range>
+            <create qname="jmx:ActiveBrokers" type="xs:integer"/>
+            <create qname="jmx:RunningQueries" type="xs:integer"/>
+            <create qname="jmx:WaitingThreads" type="xs:integer"/>
+            <create qname="jmx:ProcessCpuLoad" type="xs:long"/>
+            <create qname="jmx:SystemCpuLoad" type="xs:long"/>
+            <create qname="jmx:HeapMemoryUsage">
+                <field name="jmx-used" match="jmx:used" type="xs:long"/>
+                <field name="jmx-committed" match="jmx:committed" type="xs:long"/>
+            </create>
+            <create qname="jmx:mostRecentExecutionDuration" type="xs:integer"/>
+        </range>
     </index>
 </collection>

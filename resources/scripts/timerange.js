@@ -23,8 +23,8 @@
         }
         
 
-        console.log("start: ",selectedStartDate);
-        console.log("end: ",selectedEndDate);
+        // console.log("start: ",selectedStartDate);
+        // console.log("end: ",selectedEndDate);
         
         $('#reportrange span').html(selectedStartDate.format('MMMM D, YYYY') + ' - ' + selectedEndDate.format('MMMM D, YYYY'));
         $('#reportrange').daterangepicker({
@@ -62,15 +62,15 @@
                         firstDay: 1
                     }
                 }, function(start, end, label) {
-                    console.log(start.toISOString(), end.toISOString(), label);
+                    // console.log(start.toISOString(), end.toISOString(), label);
                     $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
                     var startNew = new Date(start).getTime();
                     var endNew =new Date(end).getTime();
-                    console.log("startNew:", startNew, " endNew: ", endNew);
+                    // console.log("startNew:", startNew, " endNew: ", endNew);
                     var url = $(location).attr('protocol') + "//" + $(location).attr('hostname') + ":" + $(location).attr('port') + $(location).attr('pathname'); 
-                    console.log("url: ", url);
+                    // console.log("url: ", url);
                     var search = $(location).attr('search');
-                    console.log("search: ", search);
+                    // console.log("search: ", search);
                     
                     
                     var queryString = {};
@@ -79,7 +79,7 @@
                         function($0, $1, $2, $3) { queryString[$1] = $3; }
                     );
                     var url = url + "?instance=" + JMX_INSTANCE  + "&start=" + start.toISOString() + "&end=" + end.toISOString();
-                    console.log("url new: ", url)
+                    // console.log("url new: ", url)
                     location.href = url;
                 }
         ); // end $('#reportrange').daterangepicker()              
