@@ -364,7 +364,7 @@ declare function app:cpu-graph($jmx) {
                     return 
                             <json:value json:array="true">
                                 <json:value json:literal="true">{$time}</json:value>
-                                <json:value json:literal="true">{$system//text()}</json:value>
+                                <json:value json:literal="true">{$system/text()}</json:value>
                             </json:value>
             }
             </data>
@@ -420,7 +420,7 @@ declare function app:slow-queries-graph($jmx) {
                     return 
                             <json:value json:array="true">
                                 <json:value json:literal="true">{$time}</json:value>
-                                <json:value json:literal="true">{$val/max(jmx:row/jmx:mostRecentExecutionDuration)}</json:value>
+                                <json:value json:literal="true">{max($val//jmx:mostRecentExecutionDuration)}</json:value>
                             </json:value>
             }</data>,
             <lines><show>true</show></lines>
@@ -436,7 +436,7 @@ declare function app:slow-queries-graph($jmx) {
                     return 
                             <json:value json:array="true">
                                 <json:value json:literal="true">{$time}</json:value>
-                                <json:value json:literal="true">{$val/avg(jmx:row/jmx:mostRecentExecutionDuration)}</json:value>
+                                <json:value json:literal="true">{avg($val//jmx:mostRecentExecutionDuration)}</json:value>
                             </json:value>
             }
             </data>,
