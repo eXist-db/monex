@@ -164,10 +164,13 @@
                             // console.log("dataset: ", dataset);
                             // console.log("options: ", options);
                             // console.log("loaded "+id);
+                            startNextTask();
                             var container = $("#" + id);
                             var data = dataset;
-                            startNextTask();
                             new $.TimelineSetup(container, data,options);
+                        },
+                        error: function(){
+                            startNextTask();
                         }
                     });
                 };
