@@ -134,6 +134,19 @@
     <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/bootstrap.daterangepicker/1/daterangepicker-bs3.css"/>
     <script type="text/javascript">
         $(document).ready(function() {
+            const concurrentQueries = 2;
+            var currentQueries = 0;
+            var scheduledTasks = [];
+
+            var startNextTask = function() {
+                var task = scheduledTasks.shift();
+                if(task) {
+                    task();
+                } else {
+                    currentQueries--;
+                }
+            };
+
             var timerange = $.TimerangeSetup();
             // console.log("timerange: ", timerange);
             var options = $.TimelineOptions();
@@ -142,24 +155,29 @@
                 var id = $( this ).attr("id") 
                 // console.log( index + ": " + id);
                 var url = "modules/update-timeline.xql" + $(location).attr('search') + "&amp;id=" + id;
-                $.ajax({
-                    url: url,
-                    method: 'GET',
-                    dataType: 'json',
-                    success: function(dataset){
-                        // console.log("dataset: ", dataset);
-                        // console.log("options: ", options);
-                        var container = $("#" + id);
-                        var data = dataset;
-                        new $.TimelineSetup(container, data,options);
-                    }
-                });   
-                
+                var task = function () {
+                    $.ajax({
+                        url: url,
+                        method: 'GET',
+                        dataType: 'json',
+                        success: function(dataset){
+                            // console.log("dataset: ", dataset);
+                            // console.log("options: ", options);
+                            // console.log("loaded "+id);
+                            var container = $("#" + id);
+                            var data = dataset;
+                            startNextTask();
+                            new $.TimelineSetup(container, data,options);
+                        }
+                    });
+                };
+                if(currentQueries &lt; concurrentQueries) {
+                    currentQueries++;
+                    task(); // starting directly
+                } else {
+                    scheduledTasks.push(task); // scheduling
+                }
             });
-            
-            
-
-      
         });
     </script>
 </div>
