@@ -445,6 +445,9 @@ declare function app:slow-queries-graph($jmx) {
     )    
 };
 
+declare function app:jmxs-for-time-interval($instance as xs:string, $start as xs:dateTime, $end as xs:dateTime) {
+    collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:Database][xs:dateTime(./jmx:timestamp) ge $start][xs:dateTime(./jmx:timestamp) le $end]
+};
 
 declare
     %templates:wrap
@@ -454,7 +457,7 @@ declare
 function app:default-timeline($node as node(), $model as map(*), $instance as xs:string, $gid, $start as xs:string, $end as xs:string) {
     let $end := xs:dateTime(if($end = "") then (current-dateTime()) else ($end))
     let $start := xs:dateTime(if(not($start = "")) then ($start) else ($end - xs:dayTimeDuration('P1D')))
-    let $jmx := collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:Database][xs:dateTime(./jmx:timestamp) ge $start][xs:dateTime(./jmx:timestamp) le $end]
+    let $jmx := app:jmxs-for-time-interval($instance, $start, $end)
     return     
         if ($jmx) then(
             let $result := <result>{
@@ -498,10 +501,8 @@ function app:timeline($node as node(), $model as map(*), $instance as xs:string,
 
     let $end := xs:dateTime(if($end = "") then (current-dateTime()) else ($end))
     let $start := xs:dateTime(if(not($start = "")) then ($start) else ($end - xs:dayTimeDuration('P1D')))
-    let $jmxs := collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:Database][xs:dateTime(./jmx:timestamp) ge $start][xs:dateTime(./jmx:timestamp) le $end]
-    
+    let $jmxs := app:jmxs-for-time-interval($instance, $start, $end)
 
-    
     return
         if ($jmxs) then
             let $result :=
