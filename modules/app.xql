@@ -455,7 +455,25 @@ declare function app:process-time-interval-params($pstart as xs:string, $pend as
 
 declare function app:jmxs-for-time-interval($instance as xs:string, $start as xs:dateTime, $end as xs:dateTime) {
     util:log-system-out("jmx for time interval " || $start || " -> " || $end),
-    collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:Database][xs:dateTime(./jmx:timestamp) ge $start][xs:dateTime(./jmx:timestamp) le $end]
+    
+    let $cached-timeline-start := session:get-attribute("cached-timeline-start")
+    let $cached-timeline-end := session:get-attribute("cached-timeline-end")
+    return
+        if($cached-timeline-start = $start and $cached-timeline-end = $end)
+        then (
+            util:log-system-out("FOUND"),
+            session:get-attribute("cached-timeline-jmxs")
+        ) else (
+            util:log-system-out("NOT FOUND"),
+            let $jmxs := collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:Database]
+                    [xs:dateTime(jmx:timestamp) ge $start][xs:dateTime(jmx:timestamp) le $end]
+            return (
+                session:set-attribute("cached-timeline-jmxs", $jmxs),
+                session:set-attribute("cached-timeline-start", $start),
+                session:set-attribute("cached-timeline-end", $end),
+                $jmxs
+            )
+        )
 };
 
 declare
