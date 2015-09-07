@@ -445,7 +445,16 @@ declare function app:slow-queries-graph($jmx) {
     )    
 };
 
+(: Takes start & end parameters as strings and returns start & end time points as xs:dateTime.
+ : The function returns a sequence of exactly 2 values: ($start, $end). :)
+declare function app:process-time-interval-params($pstart as xs:string, $pend as xs:string) as xs:dateTime+ {
+    let $end := xs:dateTime(if($pend = "") then (current-dateTime()) else ($pend))
+    let $start := xs:dateTime(if(not($pstart = "")) then ($pstart) else ($end - xs:dayTimeDuration('P1D')))
+    return ($start, $end)
+};
+
 declare function app:jmxs-for-time-interval($instance as xs:string, $start as xs:dateTime, $end as xs:dateTime) {
+    util:log-system-out("jmx for time interval " || $start || " -> " || $end),
     collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:Database][xs:dateTime(./jmx:timestamp) ge $start][xs:dateTime(./jmx:timestamp) le $end]
 };
 
@@ -455,9 +464,8 @@ declare
     %templates:default("start", "")
     %templates:default("end", "")
 function app:default-timeline($node as node(), $model as map(*), $instance as xs:string, $gid, $start as xs:string, $end as xs:string) {
-    let $end := xs:dateTime(if($end = "") then (current-dateTime()) else ($end))
-    let $start := xs:dateTime(if(not($start = "")) then ($start) else ($end - xs:dayTimeDuration('P1D')))
-    let $jmx := app:jmxs-for-time-interval($instance, $start, $end)
+    let $timespec := app:process-time-interval-params($start, $end)
+    let $jmx := app:jmxs-for-time-interval($instance, $timespec[1], $timespec[2])
     return     
         if ($jmx) then(
             let $result := <result>{
@@ -499,9 +507,8 @@ function app:timeline($node as node(), $model as map(*), $instance as xs:string,
     let $xpaths := tokenize($select, "\s*,\s*")
     let $type := tokenize($type, "\s*,\s*")
 
-    let $end := xs:dateTime(if($end = "") then (current-dateTime()) else ($end))
-    let $start := xs:dateTime(if(not($start = "")) then ($start) else ($end - xs:dayTimeDuration('P1D')))
-    let $jmxs := app:jmxs-for-time-interval($instance, $start, $end)
+    let $timespec := app:process-time-interval-params($start, $end)
+    let $jmxs := app:jmxs-for-time-interval($instance, $timespec[1], $timespec[2])
 
     return
         if ($jmxs) then
