@@ -445,6 +445,37 @@ declare function app:slow-queries-graph($jmx) {
     )    
 };
 
+(: Takes start & end parameters as strings and returns start & end time points as xs:dateTime.
+ : The function returns a sequence of exactly 2 values: ($start, $end). :)
+declare function app:process-time-interval-params($pstart as xs:string, $pend as xs:string) as xs:dateTime+ {
+    let $end := if($pend != "") then xs:dateTime($pend) else current-dateTime()
+    let $start := if($pstart != "") then xs:dateTime($pstart) else ($end - xs:dayTimeDuration('P1D'))
+    return ($start, $end)
+};
+
+declare function app:jmxs-for-time-interval($instance as xs:string, $start as xs:dateTime, $end as xs:dateTime) {
+    let $lock := doc($config:app-root || "/timeline-cache-lock.xml") return
+    util:exclusive-lock($lock, (
+        let $cached-timeline-start := session:get-attribute("cached-timeline-start")
+        let $cached-timeline-end := session:get-attribute("cached-timeline-end")
+        return
+            if($cached-timeline-start = $start and $cached-timeline-end = $end)
+            then (
+(:                util:log-system-out("FOUND"),:)
+                session:get-attribute("cached-timeline-jmxs")
+            ) else (
+(:                util:log-system-out("NOT FOUND"),:)
+                let $jmxs := collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:Database]
+                        [xs:dateTime(jmx:timestamp) ge $start][xs:dateTime(jmx:timestamp) le $end]
+                return (
+                    session:set-attribute("cached-timeline-jmxs", $jmxs),
+                    session:set-attribute("cached-timeline-start", $start),
+                    session:set-attribute("cached-timeline-end", $end),
+                    $jmxs
+                )
+            )
+    ))
+};
 
 declare
     %templates:wrap
@@ -452,9 +483,8 @@ declare
     %templates:default("start", "")
     %templates:default("end", "")
 function app:default-timeline($node as node(), $model as map(*), $instance as xs:string, $gid, $start as xs:string, $end as xs:string) {
-    let $end := xs:dateTime(if($end = "") then (current-dateTime()) else ($end))
-    let $start := xs:dateTime(if(not($start = "")) then ($start) else ($end - xs:dayTimeDuration('P1D')))
-    let $jmx := collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:Database][xs:dateTime(./jmx:timestamp) ge $start][xs:dateTime(./jmx:timestamp) le $end]
+    let $timespec := app:process-time-interval-params($start, $end)
+    let $jmx := app:jmxs-for-time-interval($instance, $timespec[1], $timespec[2])
     return     
         if ($jmx) then(
             let $result := <result>{
@@ -496,12 +526,9 @@ function app:timeline($node as node(), $model as map(*), $instance as xs:string,
     let $xpaths := tokenize($select, "\s*,\s*")
     let $type := tokenize($type, "\s*,\s*")
 
-    let $end := xs:dateTime(if($end = "") then (current-dateTime()) else ($end))
-    let $start := xs:dateTime(if(not($start = "")) then ($start) else ($end - xs:dayTimeDuration('P1D')))
-    let $jmxs := collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:Database][xs:dateTime(./jmx:timestamp) ge $start][xs:dateTime(./jmx:timestamp) le $end]
-    
+    let $timespec := app:process-time-interval-params($start, $end)
+    let $jmxs := app:jmxs-for-time-interval($instance, $timespec[1], $timespec[2])
 
-    
     return
         if ($jmxs) then
             let $result :=
