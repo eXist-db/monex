@@ -448,8 +448,8 @@ declare function app:slow-queries-graph($jmx) {
 (: Takes start & end parameters as strings and returns start & end time points as xs:dateTime.
  : The function returns a sequence of exactly 2 values: ($start, $end). :)
 declare function app:process-time-interval-params($pstart as xs:string, $pend as xs:string) as xs:dateTime+ {
-    let $end := xs:dateTime(if($pend = "") then (current-dateTime()) else ($pend))
-    let $start := xs:dateTime(if(not($pstart = "")) then ($pstart) else ($end - xs:dayTimeDuration('P1D')))
+    let $end := if($pend != "") then xs:dateTime($pend) else current-dateTime()
+    let $start := if($pstart != "") then xs:dateTime($pstart) else ($end - xs:dayTimeDuration('P1D'))
     return ($start, $end)
 };
 
