@@ -283,168 +283,6 @@ declare %private function app:truncate-source($source as xs:string) as xs:string
 };
 
 
-declare function app:threads-graph($jmx) {
-    (
-        <json:value json:array="true">
-            <lines><show>true</show></lines>,
-            <label>Waiting Threads</label>,
-            <data>{
-                for $val in $jmx//jmx:WaitingThreads
-                    let $time := app:time-to-milliseconds($val/../../jmx:timestamp)
-                    order by $time
-                    return 
-                            <json:value json:array="true">
-                                <json:value json:literal="true">{$time}</json:value>
-                                <json:value json:literal="true">{$val//count(./jmx:row)}</json:value>
-                            </json:value>
-            }</data>
-        </json:value>
-    )    
-};
-
-declare function app:brokers-graph($jmx) {
-    (
-        <json:value json:array="true">
-            <lines><show>true</show></lines>,
-            <label>Active brokers</label>,
-            <data>{
-                for $val in $jmx//jmx:ActiveBrokers
-                    let $time := app:time-to-milliseconds($val/../../jmx:timestamp)
-                    order by $time
-                    return 
-                            <json:value json:array="true">
-                                <json:value json:literal="true">{$time}</json:value>
-                                <json:value json:literal="true">{$val/text()}</json:value>
-                            </json:value>
-            }</data>
-        </json:value>,
-            
-        <json:value json:array="true">
-            <lines><show>true</show></lines>,
-            <label>Running queries</label>,
-            <data> 
-            {
-                for $val in $jmx//jmx:RunningQueries
-                    let $time := app:time-to-milliseconds($val/../../jmx:timestamp)
-                    order by $time
-                    return 
-                            <json:value json:array="true">
-                                <json:value json:literal="true">{$time}</json:value>
-                                <json:value json:literal="true">{$val//count(./jmx:row)}</json:value>
-                            </json:value>
-            }
-            </data>
-        </json:value>                
-    )    
-};
-declare function app:cpu-graph($jmx) {
-    (
-        <json:value json:array="true">
-            <lines><show>true</show></lines>,
-            <label>Process CPU Load</label>,
-            <data>{
-                for $process in $jmx//jmx:ProcessCpuLoad
-                    let $time := app:time-to-milliseconds($process/../../jmx:timestamp)
-                    order by $time
-                    return 
-                            <json:value json:array="true">
-                                <json:value json:literal="true">{$time}</json:value>
-                                <json:value json:literal="true">{$process/text()}</json:value>
-                            </json:value>
-            }</data>
-        </json:value>,
-        <json:value json:array="true">
-            <lines><show>true</show></lines>,
-            <label>System CPU Load</label>,
-            <data> 
-            {
-                for $system in $jmx//jmx:SystemCpuLoad
-                    let $time := app:time-to-milliseconds($system/../../jmx:timestamp)
-                    order by $time
-                    return 
-                            <json:value json:array="true">
-                                <json:value json:literal="true">{$time}</json:value>
-                                <json:value json:literal="true">{$system/text()}</json:value>
-                            </json:value>
-            }
-            </data>
-        </json:value>
-    )    
-};
-
-declare function app:memory-graph($jmx) {
-    (
-        <json:value json:array="true">
-            <label>Used Memory</label>,
-            <data>{
-                for $used in $jmx//jmx:HeapMemoryUsage/jmx:used
-                    let $time := app:time-to-milliseconds($used/../../../jmx:timestamp)
-                    order by $time
-                    return 
-                            <json:value json:array="true">
-                                <json:value json:literal="true">{$time}</json:value>
-                                <json:value json:literal="true">{$used/text()}</json:value>
-                            </json:value>
-            }</data>,
-            <lines><show>true</show></lines>
-        </json:value>,
-        <json:value json:array="true">
-            <label>Committed Memory</label>,
-            <data> 
-            {
-                for $committed in $jmx//jmx:HeapMemoryUsage/jmx:committed
-                    let $time := app:time-to-milliseconds($committed/../../../jmx:timestamp)
-                    order by $time
-                    return 
-                            <json:value json:array="true">
-                                <json:value json:literal="true">{$time}</json:value>
-                                <json:value json:literal="true">{$committed/text()}</json:value>
-                            </json:value>
-            }
-            </data>,
-            <lines><show>true</show></lines>
-        </json:value>
-        
-    )    
-};
-declare function app:slow-queries-graph($jmx) {
-    (
-        
-        
-        <json:value json:array="true">
-            <label>Slowest Query</label>,
-            <data>{
-                for $val in $jmx/jmx:ProcessReport/jmx:RecentQueryHistory
-                    let $time := app:time-to-milliseconds($val/../../jmx:timestamp)
-                    order by $time
-                    return 
-                            <json:value json:array="true">
-                                <json:value json:literal="true">{$time}</json:value>
-                                <json:value json:literal="true">{max($val//jmx:mostRecentExecutionDuration)}</json:value>
-                            </json:value>
-            }</data>,
-            <lines><show>true</show></lines>
-        </json:value>,
-            
-        <json:value json:array="true">
-            <label>Average Query</label>,
-            <data> 
-            {
-                for $val in $jmx/jmx:ProcessReport/jmx:RecentQueryHistory
-                    let $time := app:time-to-milliseconds($val/../../jmx:timestamp)
-                    order by $time
-                    return 
-                            <json:value json:array="true">
-                                <json:value json:literal="true">{$time}</json:value>
-                                <json:value json:literal="true">{avg($val//jmx:mostRecentExecutionDuration)}</json:value>
-                            </json:value>
-            }
-            </data>,
-            <lines><show>true</show></lines>
-        </json:value>                
-    )    
-};
-
 (: Takes start & end parameters as strings and returns start & end time points as xs:dateTime.
  : The function returns a sequence of exactly 2 values: ($start, $end). :)
 declare function app:process-time-interval-params($pstart as xs:string, $pend as xs:string) as xs:dateTime+ {
@@ -453,6 +291,8 @@ declare function app:process-time-interval-params($pstart as xs:string, $pend as
     return ($start, $end)
 };
 
+(: Returns the set of JMX recordes from the given time period.
+ : A session-scope cache is used to keep the most recent results in memory. :)
 declare function app:jmxs-for-time-interval($instance as xs:string, $start as xs:dateTime, $end as xs:dateTime) {
     let $lock := doc($config:app-root || "/timeline-cache-lock.xml") return
     util:exclusive-lock($lock, (
@@ -461,10 +301,8 @@ declare function app:jmxs-for-time-interval($instance as xs:string, $start as xs
         return
             if($cached-timeline-start = $start and $cached-timeline-end = $end)
             then (
-(:                util:log-system-out("FOUND"),:)
                 session:get-attribute("cached-timeline-jmxs")
             ) else (
-(:                util:log-system-out("NOT FOUND"),:)
                 let $jmxs := collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:Database]
                         [xs:dateTime(jmx:timestamp) ge $start][xs:dateTime(jmx:timestamp) le $end]
                 return (
@@ -477,32 +315,75 @@ declare function app:jmxs-for-time-interval($instance as xs:string, $start as xs
     ))
 };
 
+(: Executes the given timeline queries and returns unprocessed results.
+ : Sequences of equal length and corresponding order should be passed as xpaths, labels, and types arguments. :)
+declare function app:make-timeline($instance as xs:string, $xpaths as xs:string+, $labels as xs:string+, $types as xs:string+, $start as xs:dateTime, $end as xs:dateTime) as item()* {
+    let $jmxs := app:jmxs-for-time-interval($instance, $start, $end)
+    return
+        if ($jmxs) then
+            <result>
+            {
+                let $timestamps := (for $jmx in $jmxs return app:time-to-milliseconds(xs:dateTime($jmx/jmx:timestamp)))
+                for $xpath at $n in $xpaths
+                let $expression := "for $jmx in $jmxs return number((("|| $xpath ||"),0)[1])"
+                let $values := util:eval($expression, true())
+                return
+                    <json:value json:array="true">
+                        <label>{$labels[$n]}</label>
+                        <data> 
+                        {
+                            for $val at $pos in $values
+                            let $time := $timestamps[$pos]
+                            order by $time ascending
+                            return
+                                <json:value json:array="true">
+                                    <json:value json:literal="true">{$time}</json:value>
+                                    <json:value json:literal="true">{$val}</json:value>
+                                </json:value>
+                        }
+                        </data>
+                        {
+                        element { $types[$n] } {
+                            <show>true</show>
+                        }   }
+                    </json:value>
+            }
+            </result>
+        else
+            attribute data-data { "[]" }
+};
+
+(: Timeline for predefined standard graphs. :)
 declare
     %templates:wrap
     %templates:default("instance", "localhost")
     %templates:default("start", "")
     %templates:default("end", "")
 function app:default-timeline($node as node(), $model as map(*), $instance as xs:string, $gid, $start as xs:string, $end as xs:string) {
-    let $timespec := app:process-time-interval-params($start, $end)
-    let $jmx := app:jmxs-for-time-interval($instance, $timespec[1], $timespec[2])
-    return     
-        if ($jmx) then(
-            let $result := <result>{
-                    switch ($gid) 
-                        case "brokers-graph" return app:brokers-graph($jmx)
-                        case "threads-graph" return app:threads-graph($jmx)
-                        case "cpu-graph" return app:cpu-graph($jmx)
-                        case "memory-graph" return app:memory-graph($jmx)
-                        case "slow-queries-graph" return app:slow-queries-graph($jmx)
-                        
-                        default return ()
-                    }</result>
-            return 
-                $result
+    let $default-xpaths := map { 
+        "brokers-graph" := ("$jmx//jmx:ActiveBrokers", "count($jmx//jmx:RunningQueries/jmx:row)"),
+        "threads-graph" := ("count($jmx//jmx:WaitingThreads/jmx:row)"),
+        "cpu-graph" := ("$jmx//jmx:ProcessCpuLoad", "$jmx//jmx:SystemCpuLoad"), 
+        "memory-graph" := ("$jmx//jmx:HeapMemoryUsage/jmx:used", "$jmx//jmx:HeapMemoryUsage/jmx:committed"), 
+        "slow-queries-graph" := ("max($jmx//jmx:mostRecentExecutionDuration)",
+                "avg($jmx//jmx:mostRecentExecutionDuration)")
+        (: full path is $jmx/jmx:ProcessReport/jmx:RecentQueryHistory/jmx:row/jmx:mostRecentExecutionDuration :)
+    }
+    let $default-labels := map {
+        "brokers-graph" := ("Active brokers", "Running queries"),
+        "threads-graph" := ("Waiting Threads"),
+        "cpu-graph" := ("Process CPU Load", "System CPU Load"), 
+        "memory-graph" := ("Used Memory", "Committed Memory"), 
+        "slow-queries-graph" := ("Slowest Query", "Average Query")
+    }
+    let $default-type := "lines"
 
-        )
-        else
-            attribute data-data { "[]" }
+    let $timespec := app:process-time-interval-params($start, $end)
+    let $xpaths := $default-xpaths($gid)
+    let $labels := $default-labels($gid)
+    let $types := for $i in (1 to count($xpaths)) return $default-type
+    return
+        app:make-timeline($instance, $xpaths, $labels, $types, $timespec[1], $timespec[2])
 };
 
 declare function app:serialize-to-json($result) {
@@ -512,10 +393,10 @@ declare function app:serialize-to-json($result) {
                 <output:method>json</output:method>
             </output:serialization-parameters>
         )
-}  
+    }  
 };
 
-
+(: General timeline function for non-standard queries. :)
 declare
     %templates:wrap
     %templates:default("instance", "localhost")
@@ -524,51 +405,20 @@ declare
 function app:timeline($node as node(), $model as map(*), $instance as xs:string, $select as xs:string, $labels as xs:string, $type as xs:string, $start as xs:string, $end as xs:string) {
     let $labels := tokenize($labels, "\s*,\s*")
     let $xpaths := tokenize($select, "\s*,\s*")
-    let $type := tokenize($type, "\s*,\s*")
+    let $types := tokenize($type, "\s*,\s*")
 
     let $timespec := app:process-time-interval-params($start, $end)
-    let $jmxs := app:jmxs-for-time-interval($instance, $timespec[1], $timespec[2])
-
+    let $result := app:make-timeline($instance, $xpaths, $labels, $types, $timespec[1], $timespec[2])
     return
-        if ($jmxs) then
-            let $result :=
-                <result>
-                {
-                    let $timestamps := (for $jmx in $jmxs return app:time-to-milliseconds(xs:dateTime($jmx/jmx:timestamp)))
-                    for $xpath at $n in $xpaths
-                    let $expression := "for $jmx in $jmxs return number((("|| $xpath ||"),0)[1])"
-                    let $values := util:eval($expression, true())
-                    return
-                        <json:value json:array="true">
-                            <label>{$labels[$n]}</label>
-                            <data> 
-                            {
-                                for $jmx at $pos in $jmxs
-                                let $val := $values[$pos]
-                                let $time := $timestamps[$pos]
-                                order by $time ascending
-                                return
-                                    <json:value json:array="true">
-                                        <json:value json:literal="true">{$time}</json:value>
-                                        <json:value json:literal="true">{$val}</json:value>
-                                    </json:value>
-                            }
-                            </data>
-                            {
-                            element { $type[$n] } {
-                                <show>true</show>
-                            }   }
-                        </json:value>
-                }
-                </result>
-            return
-                attribute data-data {
-                    serialize($result, 
-                        <output:serialization-parameters>
-                            <output:method>json</output:method>
-                        </output:serialization-parameters>
-                    )
-                }
+        if($result)
+        then
+            attribute data-data {
+                serialize($result, 
+                    <output:serialization-parameters>
+                        <output:method>json</output:method>
+                    </output:serialization-parameters>
+                )
+            }
         else
             attribute data-data { "[]" }
 };
