@@ -24,6 +24,19 @@ declare function local:run-timeline($header, $select, $start, $end){
     )
 };
 
+declare function local:run-default-timeline($gid, $start, $end){
+    let $node := <test/>
+    let $map := map {}
+    let $instance := "history.state.gov"
+    return (
+        console:log("Starting " || $gid),
+        let $tbegin := util:system-dateTime()
+        let $result := app:default-timeline($node, $map, $instance, $gid, $start, $end)
+        let $tend := util:system-dateTime()
+        return "" || $gid || " -- " || string(seconds-from-duration($tend - $tbegin))
+    )
+};
+
 declare function local:test-timeline(){
     let $select0 := "1"
     let $h0 := "dummy 1"
@@ -123,6 +136,14 @@ declare function local:test-timeline-from-html-splitted(){
     )
 };
 
+
+declare function local:test-default-timeline(){
+    let $list := ("brokers-graph", "threads-graph", "cpu-graph", "memory-graph", "slow-queries-graph")
+    for $gid in $list
+    return
+        local:run-default-timeline($gid, $start, $end)
+};
+
 (: TEST TIME INTERVALS
  : provided as global variables
  :)
@@ -138,6 +159,7 @@ declare variable $end := "2015-07-08T23:59:59.999Z";
 
 
 (:local:test-timeline(),:)
-local:test-timeline-from-html(),
+(:local:test-timeline-from-html(),:)
 (:local:test-timeline-from-html-splitted(),:)
+local:test-default-timeline(),
 ()
