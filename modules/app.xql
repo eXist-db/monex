@@ -29,6 +29,27 @@ declare variable $app:jmx-token :=
         false()
     };
 
+declare variable $app:default-timeline-xpaths := map { 
+    "brokers-graph" := ("$jmx//jmx:ActiveBrokers", "count($jmx//jmx:RunningQueries/jmx:row)"),
+    "threads-graph" := ("count($jmx//jmx:WaitingThreads/jmx:row)"),
+    "cpu-graph" := ("$jmx//jmx:ProcessCpuLoad", "$jmx//jmx:SystemCpuLoad"), 
+    "memory-graph" := ("$jmx//jmx:HeapMemoryUsage/jmx:used", "$jmx//jmx:HeapMemoryUsage/jmx:committed"), 
+    "slow-queries-graph" := ("max($jmx//jmx:mostRecentExecutionDuration)",
+            "avg($jmx//jmx:mostRecentExecutionDuration)")
+    (: full path is $jmx/jmx:ProcessReport/jmx:RecentQueryHistory/jmx:row/jmx:mostRecentExecutionDuration :)
+};
+
+declare variable $app:default-timeline-labels := map {
+    "brokers-graph" := ("Active brokers", "Running queries"),
+    "threads-graph" := ("Waiting Threads"),
+    "cpu-graph" := ("Process CPU Load", "System CPU Load"), 
+    "memory-graph" := ("Used Memory", "Committed Memory"), 
+    "slow-queries-graph" := ("Slowest Query", "Average Query")
+};
+
+declare variable $app:default-timeline-type := "lines";
+
+
 declare function app:scheduler-enabled($node as node(), $model as map(*)) {
     if (exists($app:get-scheduled-jobs)) then
         ()
@@ -360,28 +381,10 @@ declare
     %templates:default("start", "")
     %templates:default("end", "")
 function app:default-timeline($node as node(), $model as map(*), $instance as xs:string, $gid, $start as xs:string, $end as xs:string) {
-    let $default-xpaths := map { 
-        "brokers-graph" := ("$jmx//jmx:ActiveBrokers", "count($jmx//jmx:RunningQueries/jmx:row)"),
-        "threads-graph" := ("count($jmx//jmx:WaitingThreads/jmx:row)"),
-        "cpu-graph" := ("$jmx//jmx:ProcessCpuLoad", "$jmx//jmx:SystemCpuLoad"), 
-        "memory-graph" := ("$jmx//jmx:HeapMemoryUsage/jmx:used", "$jmx//jmx:HeapMemoryUsage/jmx:committed"), 
-        "slow-queries-graph" := ("max($jmx//jmx:mostRecentExecutionDuration)",
-                "avg($jmx//jmx:mostRecentExecutionDuration)")
-        (: full path is $jmx/jmx:ProcessReport/jmx:RecentQueryHistory/jmx:row/jmx:mostRecentExecutionDuration :)
-    }
-    let $default-labels := map {
-        "brokers-graph" := ("Active brokers", "Running queries"),
-        "threads-graph" := ("Waiting Threads"),
-        "cpu-graph" := ("Process CPU Load", "System CPU Load"), 
-        "memory-graph" := ("Used Memory", "Committed Memory"), 
-        "slow-queries-graph" := ("Slowest Query", "Average Query")
-    }
-    let $default-type := "lines"
-
     let $timespec := app:process-time-interval-params($start, $end)
-    let $xpaths := $default-xpaths($gid)
-    let $labels := $default-labels($gid)
-    let $types := for $i in (1 to count($xpaths)) return $default-type
+    let $xpaths := $app:default-timeline-xpaths($gid)
+    let $labels := $app:default-timeline-labels($gid)
+    let $types := for $i in (1 to count($xpaths)) return $app:default-timeline-type
     return
         app:make-timeline($instance, $xpaths, $labels, $types, $timespec[1], $timespec[2])
 };
