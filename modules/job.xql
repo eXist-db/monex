@@ -226,7 +226,6 @@ let $instances := collection($local:app-root)//instance
 let $instance := $instances[@name = $local:name]
 return
     try {
-        avg(22),
         job:ping($instance)
     } catch java:org.expath.httpclient.HttpClientException {
         let $status := <jmx:jmx>{ job:status("code: " || $err:code || " description:" ||  $err:description || " value: " || $err:value, ()) }</jmx:jmx>
