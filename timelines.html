@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
-    <div id="tooltip" style="position:absolute;z-index:10;display:none; border:1px solid #fdd;padding:2px;background-color:#fee;opacity: 0.80;"/>
-    <!-- Content Header (Page header) -->
+    <div id="tooltip" style="position:absolute;z-index:10;display:none; border:1px solid #fdd;padding:2px;background-color:#fee;opacity: 0.80;"/><!-- Content Header (Page header) -->
     <section class="content-header">
         <h1>
             Timelines
@@ -14,9 +13,7 @@
             </li>
             <li class="active">Timelines</li>
         </ol>
-    </section>
-    
-    <!-- Main content -->
+    </section><!-- Main content -->
     <section id="dashboard" class="content">
         <div id="connection-alert" class="alert alert-danger" style="display: none;">
             <i class="fa fa-ban"/>
@@ -28,8 +25,7 @@
             <b>Alert! </b> Your browser does not support websockets. Remote monitoring and console
             will not work!
         </div>
-        <div class="row">
-            <!-- Left col -->
+        <div class="row"><!-- Left col -->
             <section class="col-lg-12">
                 <div class="box">
                     <div class="box-body">
@@ -42,15 +38,14 @@
                     <div class="box-footer"/>
                 </div>
             </section>
-            <section class="col-lg-12"> 
-                <!-- Box (Memory Usage) -->
+            <section class="col-lg-12"><!-- Box (Memory Usage) -->
                 <div class="box box-warning">
                     <div class="box-header">
                         <i class="fa fa-bar-chart-o"/>
                         <h3 class="box-title">DB Brokers and Running Queries</h3>
                     </div><!-- /.box-header -->
                     <div class="box-body no-padding">
-                        <div class="chart" id="brokers-graph" style="height: 250px;" data-template="app:timeline" data-template-labels="Active brokers, Running queries" data-template-type="lines,lines" data-template-select="$jmx/jmx:Database/jmx:ActiveBrokers, $jmx/jmx:ProcessReport/jmx:RunningQueries/count(./jmx:row)"/>
+                        <div class="default-chart" id="brokers-graph" style="height: 250px;"/>
                     </div><!-- /.box-body -->
                     <div class="box-footer">
                         <button class="pull-right zoom-out btn btn-default">
@@ -59,15 +54,14 @@
                     </div>
                 </div><!-- /.box -->
             </section>
-            <section class="col-lg-12"> 
-                <!-- Box (Memory Usage) -->
+            <section class="col-lg-12"><!-- Box (Memory Usage) -->
                 <div class="box box-warning">
                     <div class="box-header">
                         <i class="fa fa-bar-chart-o"/>
                         <h3 class="box-title">Waiting Threads</h3>
                     </div><!-- /.box-header -->
                     <div class="box-body no-padding">
-                        <div class="chart" id="waiting-threads-graph" style="height: 250px;" data-template="app:timeline" data-template-labels="Waiting Threads" data-template-type="lines,lines" data-template-select="$jmx/jmx:LockManager/jmx:WaitingThreads/count(./jmx:row)"/>
+                        <div class="default-chart" id="threads-graph" style="height: 250px;"/>
                     </div><!-- /.box-body -->
                     <div class="box-footer">
                         <button class="pull-right zoom-out btn btn-default">
@@ -76,15 +70,14 @@
                     </div>
                 </div><!-- /.box -->
             </section>
-            <section class="col-lg-12"> 
-                <!-- Box (Memory Usage) -->
+            <section class="col-lg-12"><!-- Box (Memory Usage) -->
                 <div class="box box-warning">
                     <div class="box-header">
                         <i class="fa fa-bar-chart-o"/>
                         <h3 class="box-title">CPU Load</h3>
                     </div><!-- /.box-header -->
                     <div class="box-body no-padding">
-                        <div class="chart" id="cpu-graph" style="height: 250px;" data-template="app:timeline" data-template-labels="Process CPU Load, System CPU Load" data-template-type="lines,lines" data-template-select="$jmx/jmx:OperatingSystemImpl/jmx:ProcessCpuLoad,$jmx/jmx:OperatingSystemImpl/jmx:SystemCpuLoad"/>
+                        <div class="default-chart" id="cpu-graph" style="height: 250px;"/>
                     </div><!-- /.box-body -->
                     <div class="box-footer">
                         <button class="pull-right zoom-out btn btn-default">
@@ -93,15 +86,14 @@
                     </div>
                 </div><!-- /.box -->
             </section>
-            <section class="col-lg-12"> 
-                <!-- Box (Memory Usage) -->
+            <section class="col-lg-12"><!-- Box (Memory Usage) -->
                 <div class="box box-warning">
                     <div class="box-header">
                         <i class="fa fa-bar-chart-o"/>
                         <h3 class="box-title">Java Memory</h3>
                     </div><!-- /.box-header -->
                     <div class="box-body no-padding">
-                        <div class="chart" id="memory-graph" style="height: 250px;" data-template="app:timeline" data-template-labels="Used Memory,Committed Memory" data-template-type="lines,lines" data-template-select="$jmx/jmx:MemoryImpl/jmx:HeapMemoryUsage/jmx:used,$jmx/jmx:MemoryImpl/jmx:HeapMemoryUsage/jmx:committed"/>
+                        <div class="default-chart" id="memory-graph" style="height: 250px;"/>
                     </div><!-- /.box-body -->
                     <div class="box-footer">
                         <button class="pull-right zoom-out btn btn-default">
@@ -110,15 +102,14 @@
                     </div>
                 </div><!-- /.box -->
             </section>
-            <section class="col-lg-12"> 
-                <!-- Box (Memory Usage) -->
+            <section class="col-lg-12"><!-- Box (Memory Usage) -->
                 <div class="box box-warning">
                     <div class="box-header">
                         <i class="fa fa-bar-chart-o"/>
                         <h3 class="box-title">Recent Query History Statistics</h3>
                     </div><!-- /.box-header -->
                     <div class="box-body no-padding">
-                        <div class="chart" id="slow-queries-graph" style="height: 250px;" data-template="app:timeline" data-template-labels="Slowest Query, Average Query" data-template-type="lines,lines" data-template-select="$jmx/jmx:ProcessReport/jmx:RecentQueryHistory/max(jmx:row/jmx:mostRecentExecutionDuration), $jmx/jmx:ProcessReport/jmx:RecentQueryHistory/avg(jmx:row/jmx:mostRecentExecutionDuration)"/>
+                        <div class="default-chart" id="slow-queries-graph" style="height: 250px;"/>
                     </div><!-- /.box-body -->
                     <div class="box-footer">
                         <button class="pull-right zoom-out btn btn-default">
@@ -136,71 +127,60 @@
     <script type="text/javascript" src="resources/scripts/jquery.flot.time.min.js"/>
     <script type="text/javascript" src="resources/scripts/jquery.flot.selection.min.js"/>
     <script type="text/javascript" src="resources/scripts/jquery.flot.tooltip.min.js"/>
+    <script type="text/javascript" src="resources/scripts/timerange.js"/>
     <script type="text/javascript" src="resources/scripts/timeline.js"/>
     <script type="text/javascript" src="//cdn.jsdelivr.net/momentjs/2.9.0/moment.min.js"/>
     <script type="text/javascript" src="//cdn.jsdelivr.net/bootstrap.daterangepicker/1/daterangepicker.js"/>
     <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/bootstrap.daterangepicker/1/daterangepicker-bs3.css"/>
     <script type="text/javascript">
         $(document).ready(function() {
-            $(".chart").timeline();
-            
-            $('#reportrange span').html(moment().subtract(1, 'days').format('MMMM D, YYYY') + ' - ' + moment().format('MMMM D, YYYY'));
-            
-            $('#reportrange').daterangepicker({
-                format: 'MM/DD/YYYY',
-                startDate: moment().subtract(1, 'days'),
-                endDate: moment(),
-                dateLimit: { days: 60 },
-                showDropdowns: true,
-                showWeekNumbers: true,
-                timePicker: false,
-                timePickerIncrement: 1,
-                timePicker12Hour: true,
-                ranges: {
-                   'Today': [moment(), moment()],
-                   'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-                   'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                   'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                   'This Month': [moment().startOf('month'), moment().endOf('month')],
-                   'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
-                },
-                opens: 'left',
-                drops: 'down',
-                buttonClasses: ['btn', 'btn-sm'],
-                applyClass: 'btn-primary',
-                cancelClass: 'btn-default',
-                separator: ' to ',
-                locale: {
-                    applyLabel: 'Submit',
-                    cancelLabel: 'Cancel',
-                    fromLabel: 'From',
-                    toLabel: 'To',
-                    customRangeLabel: 'Custom',
-                    daysOfWeek: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr','Sa'],
-                    monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-                    firstDay: 1
+            const concurrentQueries = 2;
+            var currentQueries = 0;
+            var scheduledTasks = [];
+
+            var startNextTask = function() {
+                var task = scheduledTasks.shift();
+                if(task) {
+                    task();
+                } else {
+                    currentQueries--;
                 }
-            }, function(start, end, label) {
-                console.log(start.toISOString(), end.toISOString(), label);
-                $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
-                var startNew = new Date(start).getTime();
-                var endNew =new Date(end).getTime();
-                console.log("startNew:", startNew, " endNew: ", endNew);
-                var url = $(location).attr('protocol') + "//" + $(location).attr('hostname') + ":" + $(location).attr('port') + $(location).attr('pathname'); 
-                console.log("url: ", url);
-                var search = $(location).attr('search');
-                console.log("search: ", search);
-                
-                
-                var queryString = {};
-                search.replace(
-                    new RegExp("([^?=&amp;]+)(=([^&amp;]*))?", "g"),
-                    function($0, $1, $2, $3) { queryString[$1] = $3; }
-                );
-                var url = url + "?instance=" + queryString['instance'] + "&amp;start=" + start.toISOString() + "&amp;end=" + end.toISOString();
-                console.log("url new: ", url)
-                location.href = url;
-            });            
+            };
+
+            var timerange = $.TimerangeSetup();
+            // console.log("timerange: ", timerange);
+            var options = $.TimelineOptions();
+
+            $( ".default-chart" ).each(function( index ) {
+                var id = $( this ).attr("id") 
+                // console.log( index + ": " + id);
+                var url = "modules/update-timeline.xql" + $(location).attr('search') + "&amp;id=" + id;
+                var task = function () {
+                    $.ajax({
+                        url: url,
+                        method: 'GET',
+                        dataType: 'json',
+                        success: function(dataset){
+                            // console.log("dataset: ", dataset);
+                            // console.log("options: ", options);
+                            // console.log("loaded "+id);
+                            startNextTask();
+                            var container = $("#" + id);
+                            var data = dataset;
+                            new $.TimelineSetup(container, data,options);
+                        },
+                        error: function(){
+                            startNextTask();
+                        }
+                    });
+                };
+                if(currentQueries &lt; concurrentQueries) {
+                    currentQueries++;
+                    task(); // starting directly
+                } else {
+                    scheduledTasks.push(task); // scheduling
+                }
+            });
         });
     </script>
 </div>
