@@ -41,8 +41,8 @@ declare function job:get-notification-method() as function(*) {
 (:~
  :  Dummy notification function used if mail module is not available.
  :)
-declare %private function job:notify-dummy($receiver as xs:string, $subject as xs:string,
-        $data as node()*, $settings as element(notifications), $attachment as xs:string?) {
+declare %private function job:notify-dummy($receiver as xs:string, $subject as xs:string, 
+    $data as node()*, $settings as element(notifications), $attachment as xs:string?) {
     ()
 };
 
@@ -69,7 +69,7 @@ declare %private function job:trim-whitespace($node) {
  :)
 declare function job:response($status as xs:string, $root as node()?, $elapsed as xs:duration?) {
     if ($root) then
-    (: merge status into returned response :)
+        (: merge status into returned response :)
         let $root := job:trim-whitespace($root)
         return
             element { node-name($root) } {
@@ -79,7 +79,7 @@ declare function job:response($status as xs:string, $root as node()?, $elapsed a
             }
     else
         <jmx:jmx>
-            { job:status($status, $elapsed) }
+        { job:status($status, $elapsed) }
         </jmx:jmx>
 };
 
@@ -92,7 +92,7 @@ declare function job:status($status, $elapsed as xs:duration?) {
     <jmx:timestamp>{current-dateTime()}</jmx:timestamp>,
     if (exists($elapsed)) then
         <jmx:elapsed>{format-number(minutes-from-duration($elapsed), "00")}:{format-number(seconds-from-duration($elapsed), "00.000")}</jmx:elapsed>
-    else
+    else    
         ()
 };
 
@@ -105,11 +105,11 @@ declare function job:store-last-status($status as element()) {
 declare function job:store-data($data as element()) {
     let $jmx :=
         <jmx:jmx>
-            {
-                $data/@*,
-                <jmx:timestamp>{current-dateTime()}</jmx:timestamp>,
-                $data/*
-            }
+        {
+            $data/@*,
+            <jmx:timestamp>{current-dateTime()}</jmx:timestamp>,
+            $data/*
+        }
         </jmx:jmx>
     return
         xmldb:store(job:get-data-collection(), "jmx." || $local:name || "-" || format-time(current-time(), "[H00][m00][s00]") || ".xml", $jmx)
@@ -151,13 +151,13 @@ declare function job:check-response($instance as element(), $status as xs:string
 (:~
  : Send notifications to receivers (if status changed)
  :)
-declare function job:notify($error as xs:boolean, $instance as element(), $status as xs:string, $response as element(),
-        $attachment as xs:string?) {
+declare function job:notify($error as xs:boolean, $instance as element()?, $status as xs:string, $response as element(),
+    $attachment as xs:string?) {
     let $statusRoot := collection($config:data-root)/jmx:jmx[jmx:instance = $instance/@name]
     return
         if ((empty($statusRoot) and $error) or ($statusRoot/jmx:status != $response/jmx:status)) then
             let $notifications := doc($local:app-root || "/" || "notifications.xml")/*
-            for $receiver in $notifications/receiver[watching = $instance/@name or not(watching)]
+        	for $receiver in $notifications/receiver[watching = $instance/@name or not(watching)]
             return
                 job:get-notification-method()($receiver/@address, $status, $response, $notifications, $attachment)
         else
@@ -166,29 +166,29 @@ declare function job:notify($error as xs:boolean, $instance as element(), $statu
 
 declare function job:ping($instance as element(instance)) as xs:boolean {
     let $start := util:system-time()
-    let $url :=
+	let $url :=
         if ($local:operation and $local:operation != "") then
             $instance/@url || "/status?operation=" || $local:operation || "&amp;token=" || $instance/@token
         else
-            $instance/@url ||
+            $instance/@url || 
             "/status?c=instances&amp;c=processes&amp;c=locking&amp;c=memory&amp;c=caches&amp;c=system&amp;c=operatingsystem&amp;token=" ||
             $instance/@token
     let $request :=
         <http:request method="GET" href="{$url}" timeout="30"/>
     return
-    (:        try {:)
-        let $response := http:send-request($request)
-        return
-            if ($response[1]/@status = "200") then (
-                if (empty($local:operation) or $local:operation = "") then
-                    job:alerts($instance, $response[2]/*)
-                else
-                    console:send($job:CHANNEL, job:check-response($instance, "ok", $response[2]/*, util:system-time() - $start)),
-                true()
-            ) else (
-                console:send($job:CHANNEL, job:check-response($instance, $response[1]/@message/string(), (), util:system-time() - $start)),
-                false()
-            )
+(:        try {:)
+            let $response := http:send-request($request)
+            return
+                if ($response[1]/@status = "200") then (
+                    if (empty($local:operation) or $local:operation = "") then
+                        job:alerts($instance, $response[2]/*)
+                    else
+                        console:send($job:CHANNEL, job:check-response($instance, "ok", $response[2]/*, util:system-time() - $start)),
+                    true()
+                ) else (
+                    console:send($job:CHANNEL, job:check-response($instance, $response[1]/@message/string(), (), util:system-time() - $start)),
+                    false()
+                )
 (:        } catch * {:)
 (:            console:send($job:CHANNEL, job:check-response($instance, $err:description, (), ())),:)
 (:            false():)
@@ -196,21 +196,21 @@ declare function job:ping($instance as element(instance)) as xs:boolean {
 };
 
 declare function job:alerts($instance as element(instance), $jmx as element(jmx:jmx)) {
-    let $stored :=
+    let $stored := 
         if ($instance/poll/@store = ("true", "yes")) then
             job:store-data($jmx)
         else
             ()
     for $alert in $instance/poll/alert
     let $alertTriggered := util:eval(
-            "declare default element namespace 'http://exist-db.org/jmx';" ||
-            $alert/@condition
+        "declare default element namespace 'http://exist-db.org/jmx';" ||
+        $alert/@condition
     )
     return
         if ($alertTriggered) then
             let $status :=
                 <jmx:jmx>
-                    { job:status($alert/@name/string(), ()) }
+                { job:status($alert/@name/string(), ()) }
                 </jmx:jmx>
             return
                 job:notify(true(), $instance, "alert: " || $instance/@name, $status, serialize($jmx))
@@ -224,11 +224,20 @@ else
     (),
 let $instances := collection($local:app-root)//instance
 let $instance := $instances[@name = $local:name]
-let $start := util:system-time()
 return
     try {
+        avg(22),
         job:ping($instance)
+    } catch java:org.expath.httpclient.HttpClientException {
+        let $status := <jmx:jmx>{ job:status("code: " || $err:code || " description:" ||  $err:description || " value: " || $err:value, ()) }</jmx:jmx>
+        return
+            job:notify(true(), $instance, "alert: " || $instance/@name, $status, ())
     } catch * {
-        console:send($local:name, job:check-response($instance, $err:code, (), util:system-time() - $start))
-
+        job:notify(true(), (), "alert: " || $err:description, 
+            <jmx:jmx>
+                <jmx:instance>local</jmx:instance>
+                <jmx:timestamp>{current-dateTime()}</jmx:timestamp>
+                <jmx:status>monex error: {$err:code} - {$err:description}</jmx:status>
+            </jmx:jmx>,
+            ())
     }
