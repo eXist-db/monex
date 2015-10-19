@@ -12,6 +12,7 @@ module namespace indexes="http://exist-db.org/xquery/admin-interface/indexes";
 declare namespace cc="http://exist-db.org/collection-config/1.0";
 declare namespace range="http://exist-db.org/xquery/range";
 
+import module namespace console="http://exist-db.org/xquery/console";
 import module namespace templates="http://exist-db.org/xquery/templates";
 
 (: 
@@ -207,8 +208,8 @@ function indexes:show-index-keys($node as node(), $model as map(*)) {
                         util:index-keys($indexes:node-set, $indexes:start-value, $indexes:callback, $indexes:max-number-returned, $index)
                     default return
                         util:index-keys-by-qname($indexes:qname, $indexes:start-value, $indexes:callback, $indexes:max-number-returned, $index)
-    let $log := util:log("DEBUG", concat("INDEXES index type:    ", $indexes:index))
-    let $log := util:log("DEBUG", concat("INDEXES qname     :    ", $indexes:qname))
+    let $log := console:log(concat("INDEXES index type:    ", $indexes:index))
+    let $log := console:log(concat("INDEXES qname     :    ", $indexes:qname))
     
     (:  Reminder for sorting:
            term = $key/td[1]
@@ -612,7 +613,7 @@ declare function indexes:get-nodeset-from-qname($collection as xs:string, $node-
             ,
             'collection("', $collection, '")//', $node-name
         )
-    let $log := util:log("DEBUG", concat("INDEXES get-nodeset:          ", $nodeset-expression))
+    let $log := console:log(concat("INDEXES get-nodeset:          ", $nodeset-expression))
     return
         util:eval($nodeset-expression)
 };
@@ -647,7 +648,7 @@ declare function indexes:get-nodeset-from-field($collection as xs:string, $paren
         'collection("' || $collection || '")//' || $parentQName
     let $nodeset-expression :=
             if ($match) then $nodeset-expression || "/" || $match else $nodeset-expression
-    let $log := util:log("DEBUG", concat("INDEXES get-nodeset:          ", $nodeset-expression))
+    let $log := console:log(concat("INDEXES get-nodeset:          ", $nodeset-expression))
     return
         util:eval($nodeset-expression)
 };
