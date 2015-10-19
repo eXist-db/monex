@@ -675,7 +675,7 @@ declare function indexes:get-namespace-uri-from-node-name($node-name, $collectio
                     substring-before($node-name, ':')
     
     let $xconf := indexes:get-xconf($collection)
-    let $uri := (namespace-uri-for-prefix($name, $xconf/cc:collection), namespace-uri-for-prefix($name, $xconf//cc:index))
+    let $uri := (namespace-uri-for-prefix($name, $xconf/cc:collection), namespace-uri-for-prefix($name, $xconf//cc:index))[1]
     return
         $uri
 };
