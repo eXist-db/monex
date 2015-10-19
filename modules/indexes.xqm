@@ -39,7 +39,10 @@ declare variable $indexes:node-set :=
 declare variable $indexes:qname := 
     if ($indexes:node-name ne '') then 
         if (not(matches($indexes:node-name, 'xml:')) and contains($indexes:node-name, ':')) then
-            QName(indexes:get-namespace-uri-from-node-name($indexes:node-name, $indexes:collection), $indexes:node-name) 
+            QName(
+                indexes:get-namespace-uri-from-node-name($indexes:node-name, $indexes:collection), 
+                if (starts-with($indexes:node-name, '@')) then substring-after($indexes:node-name, '@') else $indexes:node-name
+            ) 
         else 
             xs:QName($indexes:node-name)
     else ();
