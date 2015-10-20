@@ -51,6 +51,7 @@
             <fileset dir=".">
                 <include name="*.*"/>
                 <include name="data/**"/>
+                <include name="indexes-test/**"/>
                 <include name="modules/**"/>
                 <include name="templates/**"/>
                 <include name="resources/**"/>

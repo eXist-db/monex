@@ -12,6 +12,7 @@ module namespace indexes="http://exist-db.org/xquery/admin-interface/indexes";
 declare namespace cc="http://exist-db.org/collection-config/1.0";
 declare namespace range="http://exist-db.org/xquery/range";
 
+import module namespace console="http://exist-db.org/xquery/console";
 import module namespace templates="http://exist-db.org/xquery/templates";
 
 (: 
@@ -38,7 +39,10 @@ declare variable $indexes:node-set :=
 declare variable $indexes:qname := 
     if ($indexes:node-name ne '') then 
         if (not(matches($indexes:node-name, 'xml:')) and contains($indexes:node-name, ':')) then
-            QName(indexes:get-namespace-uri-from-node-name($indexes:node-name, $indexes:collection), $indexes:node-name) 
+            QName(
+                indexes:get-namespace-uri-from-node-name($indexes:node-name, $indexes:collection), 
+                if (starts-with($indexes:node-name, '@')) then substring-after($indexes:node-name, '@') else $indexes:node-name
+            ) 
         else 
             xs:QName($indexes:node-name)
     else ();
@@ -207,8 +211,8 @@ function indexes:show-index-keys($node as node(), $model as map(*)) {
                         util:index-keys($indexes:node-set, $indexes:start-value, $indexes:callback, $indexes:max-number-returned, $index)
                     default return
                         util:index-keys-by-qname($indexes:qname, $indexes:start-value, $indexes:callback, $indexes:max-number-returned, $index)
-    let $log := util:log("DEBUG", concat("INDEXES index type:    ", $indexes:index))
-    let $log := util:log("DEBUG", concat("INDEXES qname     :    ", $indexes:qname))
+    let $log := console:log(concat("INDEXES index type:    ", $indexes:index))
+    let $log := console:log(concat("INDEXES qname     :    ", $indexes:qname))
     
     (:  Reminder for sorting:
            term = $key/td[1]
@@ -612,7 +616,7 @@ declare function indexes:get-nodeset-from-qname($collection as xs:string, $node-
             ,
             'collection("', $collection, '")//', $node-name
         )
-    let $log := util:log("DEBUG", concat("INDEXES get-nodeset:          ", $nodeset-expression))
+    let $log := console:log(concat("INDEXES get-nodeset:          ", $nodeset-expression))
     return
         util:eval($nodeset-expression)
 };
@@ -647,7 +651,7 @@ declare function indexes:get-nodeset-from-field($collection as xs:string, $paren
         'collection("' || $collection || '")//' || $parentQName
     let $nodeset-expression :=
             if ($match) then $nodeset-expression || "/" || $match else $nodeset-expression
-    let $log := util:log("DEBUG", concat("INDEXES get-nodeset:          ", $nodeset-expression))
+    let $log := console:log(concat("INDEXES get-nodeset:          ", $nodeset-expression))
     return
         util:eval($nodeset-expression)
 };
@@ -674,7 +678,7 @@ declare function indexes:get-namespace-uri-from-node-name($node-name, $collectio
                     substring-before($node-name, ':')
     
     let $xconf := indexes:get-xconf($collection)
-    let $uri := (namespace-uri-for-prefix($name, $xconf/cc:collection), namespace-uri-for-prefix($name, $xconf//cc:index))
+    let $uri := (namespace-uri-for-prefix($name, $xconf/cc:collection), namespace-uri-for-prefix($name, $xconf//cc:index))[1]
     return
         $uri
 };
