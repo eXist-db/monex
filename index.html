@@ -309,7 +309,7 @@
                         <div class="clearfix">
                             <span class="pull-left">Cache Manager</span>
                             <small class="pull-right">
-                                <span data-bind="text: MaxTotal">0</span>/<span data-bind="text: CurrentSize">0</span> pages</small>
+                                Using <span data-bind="text: CurrentSize">0</span> of <span data-bind="text: MaxTotal">0</span> pages</small>
                         </div>
                         <div class="progress xs">
                             <div class="progress-bar progress-bar-success progress-cache" data-bind="style: {width: Math.round($data.CurrentSize() / ($data.MaxTotal() / 100)) + '%'}"/>
@@ -319,7 +319,7 @@
                         <div class="clearfix">
                             <span class="pull-left">Collection Cache Manager</span>
                             <small class="pull-right">
-                                <span data-bind="text: MaxTotal">0</span>/<span data-bind="text: CurrentSize">0</span> bytes</small>
+                                Using <span data-bind="text: CurrentSize">0</span> of <span data-bind="text: MaxTotal">0</span> bytes</small>
                         </div>
                         <div class="progress xs">
                             <div class="progress-bar progress-bar-success progress-cache" data-bind="style: {width: Math.round($data.CurrentSize() / ($data.MaxTotal() / 100)) + '%'}"/>
