@@ -26,5 +26,10 @@
                 <li>Store last ping status in db; send alerts only if status changed</li>
             </ul>
         </change>
+        <change version="0.9.1">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Fix eXist dependency to work with 3.0RC2 and final</li>
+            </ul>
+        </change>
     </changelog>
 </meta>
