@@ -2,6 +2,7 @@ package org.exist.console.xquery;
 
 import org.exist.dom.QName;
 import org.exist.storage.serializers.Serializer;
+import org.exist.util.serializer.XQuerySerializer;
 import org.exist.util.serializer.json.JSONWriter;
 import org.exist.xquery.*;
 import org.exist.xquery.value.*;
@@ -89,6 +90,12 @@ public class Log extends BasicFunction {
     static {
         SERIALIZATION_PROPERTIES.setProperty(OutputKeys.INDENT, "yes");
         SERIALIZATION_PROPERTIES.setProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+    }
+
+    private static final Properties JSON_SERIALIZATION_PROPERTIES = new Properties();
+    static {
+        JSON_SERIALIZATION_PROPERTIES.setProperty(OutputKeys.INDENT, "yes");
+        JSON_SERIALIZATION_PROPERTIES.setProperty(OutputKeys.METHOD, "json");
     }
 
     private Expression parent = null;
@@ -179,6 +186,15 @@ public class Log extends BasicFunction {
                     out.append(serializer.serialize((NodeValue) item));
                 } catch (SAXException e) {
                     out.append(e.getMessage());
+                }
+            } else if (item.getType() == Type.MAP || item.getType() == Type.ARRAY) {
+                final StringWriter writer = new StringWriter();
+                final XQuerySerializer xqSerializer = new XQuerySerializer(context.getBroker(), JSON_SERIALIZATION_PROPERTIES, writer);
+                try {
+                    xqSerializer.serialize(item.toSequence());
+                    out.append(writer.toString());
+                } catch (SAXException e) {
+                    throw new XPathException(this, e.getMessage());
                 }
             } else if (jsonFormat) {
                 out.append('"').append(item.getStringValue()).append('"');
