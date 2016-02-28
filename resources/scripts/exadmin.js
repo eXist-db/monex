@@ -329,7 +329,7 @@ JMX.connection = (function() {
                                 if (name == "localhost") {
                                     viewModel.url = "";
                                 } else {
-                                    viewModel.url = currentInstance.url().replace(/^(.*)\/[^\/]*$/, "$1");
+                                    viewModel.url = currentInstance.url().replace(/\/exist\/?$/, "");
                                 }
                                 ko.applyBindings(viewModel, rootDom);
                             } else {
