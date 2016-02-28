@@ -1,6 +1,5 @@
 xquery version "3.0";
 
-import module namespace notification="http://exist-db.org/apps/monex/notification" at "notification.xql";
 import module namespace config="http://exist-db.org/apps/admin/config" at "config.xqm";
 import module namespace http="http://expath.org/ns/http-client" at "java:org.exist.xquery.modules.httpclient.HTTPClientModule";
 import module namespace console="http://exist-db.org/xquery/console";
@@ -8,7 +7,7 @@ import module namespace console="http://exist-db.org/xquery/console";
 declare namespace job="http://exist-db.org/apps/monex/job";
 declare namespace jmx="http://exist-db.org/jmx";
 
-(:declare variable $local:name := "exist-db.org";:)
+(:declare variable $local:name := "admin.exist-db.org";:)
 (:declare variable $local:operation := "";:)
 (:declare variable $local:app-root := "/db/apps/monex";:)
 (:declare variable $local:data-root := "/db/apps/monex/data";:)
@@ -20,29 +19,27 @@ declare variable $local:data-root external;
 
 declare variable $job:CHANNEL := "jmx.ping";
 
-(:~
- : Check if mail module is available before importing the notification module.
- :)
-declare function job:get-notification-method() as function(*) {
+declare function job:get-notification-method() as function(*)* {
+    for $method in doc($local:app-root || "/" || "notifications.xml")//method
     let $tryImport :=
         try {
-            util:import-module(xs:anyURI("http://exist-db.org/xquery/mail"), "mail", xs:anyURI("java:org.exist.xquery.modules.mail.MailModule")),
+            util:import-module(xs:anyURI($method/@uri), $method/@prefix, xs:anyURI("xmldb:exist://" || $config:app-root || "/" || $method/@at)),
             true()
         } catch * {
             false()
         }
     return
         if ($tryImport) then
-            function-lookup(xs:QName("notification:send-email"), 5)
+            function-lookup(xs:QName($method/@prefix || ":notify"), 5)
         else
-            job:notify-dummy#5
+            ()
 };
 
 (:~
  :  Dummy notification function used if mail module is not available.
  :)
-declare %private function job:notify-dummy($receiver as xs:string, $subject as xs:string, 
-    $data as node()*, $settings as element(notifications), $attachment as xs:string?) {
+declare %private function job:notify-dummy($root as xs:string, $instance as element(), $status as xs:string, $response as element(),
+    $attachment as xs:string?) {
     ()
 };
 
@@ -92,7 +89,7 @@ declare function job:status($status, $elapsed as xs:duration?) {
     <jmx:timestamp>{current-dateTime()}</jmx:timestamp>,
     if (exists($elapsed)) then
         <jmx:elapsed>{format-number(minutes-from-duration($elapsed), "00")}:{format-number(seconds-from-duration($elapsed), "00.000")}</jmx:elapsed>
-    else    
+    else
         ()
 };
 
@@ -152,14 +149,15 @@ declare function job:check-response($instance as element(), $status as xs:string
  : Send notifications to receivers (if status changed)
  :)
 declare function job:notify($error as xs:boolean, $instance as element()?, $status as xs:string, $response as element(),
-    $attachment as xs:string?) {
+    $attachment as element()?) {
     let $statusRoot := collection($config:data-root)/jmx:jmx[jmx:instance = $instance/@name]
     return
         if ((empty($statusRoot) and $error) or ($statusRoot/jmx:status != $response/jmx:status)) then
-            let $notifications := doc($local:app-root || "/" || "notifications.xml")/*
-        	for $receiver in $notifications/receiver[watching = $instance/@name or not(watching)]
-            return
-                job:get-notification-method()($receiver/@address, $status, $response, $notifications, $attachment)
+            for $fn in job:get-notification-method()
+            return (
+                console:log("Sending notification to " || function-name($fn)),
+                $fn($local:app-root, $instance, $status, $response, $attachment)
+            )
         else
             ()
 };
@@ -170,7 +168,7 @@ declare function job:ping($instance as element(instance)) as xs:boolean {
         if ($local:operation and $local:operation != "") then
             $instance/@url || "/status?operation=" || $local:operation || "&amp;token=" || $instance/@token
         else
-            $instance/@url || 
+            $instance/@url ||
             "/status?c=instances&amp;c=processes&amp;c=locking&amp;c=memory&amp;c=caches&amp;c=system&amp;c=operatingsystem&amp;token=" ||
             $instance/@token
     let $request :=
@@ -196,7 +194,7 @@ declare function job:ping($instance as element(instance)) as xs:boolean {
 };
 
 declare function job:alerts($instance as element(instance), $jmx as element(jmx:jmx)) {
-    let $stored := 
+    let $stored :=
         if ($instance/poll/@store = ("true", "yes")) then
             job:store-data($jmx)
         else
@@ -213,7 +211,7 @@ declare function job:alerts($instance as element(instance), $jmx as element(jmx:
                 { job:status($alert/@name/string(), ()) }
                 </jmx:jmx>
             return
-                job:notify(true(), $instance, "alert: " || $instance/@name, $status, serialize($jmx))
+                job:notify(true(), $instance, "alert: " || $instance/@name, $status, $jmx)
         else
             ()
 };
@@ -232,7 +230,7 @@ return
         return
             job:notify(true(), $instance, "alert: " || $instance/@name, $status, ())
     } catch * {
-        job:notify(true(), (), "alert: " || $err:description, 
+        job:notify(true(), (), "alert: " || $err:description,
             <jmx:jmx>
                 <jmx:instance>local</jmx:instance>
                 <jmx:timestamp>{current-dateTime()}</jmx:timestamp>

@@ -1,26 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <notifications>
-    <!-- Provide mail server settings here if you want to receive alerts -->
-    <properties>
-        <property name="mail.debug" value="true"/>
-        <property name="mail.smtp.starttls.enable" value="true"/>
-        <property name="mail.smtp.ssl.trust" value="mail.smtp.host.value"/>
-        <property name="mail.smtp.auth" value="true"/>
-        <property name="mail.smtp.port" value="587"/>
-        <property name="mail.smtp.host" value="smtp.gmail.com"/>
-        <property name="mail.smtp.user" value="alerts"/>
-        <property name="mail.smtp.password" value="your-passwd"/>
-    </properties>
-    <!-- 
-        One or more accounts to send alerts to.
-
-        The instances to watch may be specified in a list of
-        <watching> elements. If no <watching> element is present,
-        the account receives all notifications.
-    -->
-    <!--
-    <receiver address="alert@email.com" name="John Doe">
-        <watching>instance</watching>
-    </receiver>
-    -->
+    <method prefix="notification" uri="http://exist-db.org/apps/monex/notification" at="modules/notification.xql"><!-- Provide mail server settings here if you want to receive alerts -->
+        <properties>
+            <property name="mail.debug" value="true"/>
+            <property name="mail.smtp.starttls.enable" value="true"/>
+            <property name="mail.smtp.auth" value="true"/>
+            <property name="mail.smtp.port" value="587"/>
+            <property name="mail.smtp.host" value="smtp.gmail.com"/>
+            <property name="mail.smtp.user" value="alerts"/>
+            <property name="mail.smtp.password" value="1234567"/>
+        </properties>
+        <!-- One or more accounts to send alerts to -->
+        <!--
+        <receiver address="alert@email.com" name="John Doe">
+            <watching>instance</watching>
+        </receiver>
+        -->
+    </method>
 </notifications>
