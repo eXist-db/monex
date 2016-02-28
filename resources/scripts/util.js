@@ -7,6 +7,9 @@ JMX.util = (function() {
             if (!node) {
                 return null;
             }
+            if (!(node.firstChild || node.attributes.length > 0)) {
+                return null;
+            }
             var parent = {};
             if (node.nodeType == Node.ELEMENT_NODE) {
                 for (var i = 0; i < node.attributes.length; i++) {
@@ -47,7 +50,7 @@ JMX.util = (function() {
             }
             if (data.jmx.ProcessReport) {
                 var queries = data.jmx.ProcessReport.RunningQueries;
-                if (!queries.length) {
+                if (!queries || !queries.length) {
                     data.jmx.ProcessReport.RunningQueries = [];
                 }
                 var jobs = data.jmx.ProcessReport.RunningJobs;
@@ -65,7 +68,7 @@ JMX.util = (function() {
                     data.jmx.LockManager.WaitingThreads = [];
                 }
             }
-            if (data.jmx.Database.ActiveBrokersMap) {
+            if (data.jmx.Database) {
                 var active = data.jmx.Database.ActiveBrokersMap;
                 if (!active || !active.length) {
                     data.jmx.Database.ActiveBrokersMap = [];

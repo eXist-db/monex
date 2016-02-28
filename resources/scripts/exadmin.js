@@ -162,6 +162,7 @@ JMX.connection = (function() {
     function Instance(config, schedulerActive) {
         this.name = ko.observable(config.name);
         this.url = ko.observable(config.url);
+        this.baseURL = config.url;
         this.token = config.token;
         var status = schedulerActive ? config.status : "Stopped";
         if (status == "Checking" || status == "PING_OK" || status == "Stopped") {
@@ -324,6 +325,11 @@ JMX.connection = (function() {
                                     $("#history-timespan").val(data.jmx.ProcessReport.HistoryTimespan);
                                 } else {
                                     $("#configure-history").hide();
+                                }
+                                if (name == "localhost") {
+                                    viewModel.url = "";
+                                } else {
+                                    viewModel.url = currentInstance.url().replace(/^(.*)\/[^\/]*$/, "$1");
                                 }
                                 ko.applyBindings(viewModel, rootDom);
                             } else {
