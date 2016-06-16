@@ -28,7 +28,7 @@
     </target>
 
     <target name="compile" depends="prepare">
-        <javac srcdir="${java.src}" destdir="${java.classes}" optimize="true" debug="true" target="1.8" source="1.8">
+        <javac srcdir="${java.src}" destdir="${java.classes}" optimize="true" debug="true" target="1.7" source="1.7">
             <classpath>
                 <path refid="classpath"/>
             </classpath>
@@ -58,6 +58,7 @@
                 <exclude name=".git*"/>
                 <exclude name="build.*"/>
                 <exclude name="src/**"/>
+                <exclude name="data/**"/>
             </fileset>
             <zipfileset dir="${build.dir}" includes="exist-monex-${project.version}.jar" prefix="content"/>
         </zip>
