@@ -31,5 +31,11 @@
                 <li>Fix eXist dependency to work with 3.0RC2 and final</li>
             </ul>
         </change>
+        <change version="0.9.4">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Update console logging to match changes in internal eXist API</li>
+                <li>Add hipchat notifications</li>
+            </ul>
+        </change>
     </changelog>
 </meta>

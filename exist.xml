@@ -4,5 +4,5 @@
         <namespace>http://exist-db.org/xquery/console</namespace>
         <class>org.exist.console.xquery.ConsoleModule</class>
     </java>
-    <jar>exist-monex-0.9.2.jar</jar>
+    <jar>exist-monex-0.9.4.jar</jar>
 </package>

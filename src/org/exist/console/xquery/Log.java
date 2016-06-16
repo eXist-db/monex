@@ -146,7 +146,7 @@ public class Log extends BasicFunction {
                 if (parent == null) {
                     ConsoleModule.log(channel, true, msg);
                 } else {
-                    ConsoleModule.log(channel, parent.getSource().getKey(), parent.getLine(), parent.getColumn(), true, msg);
+                    ConsoleModule.log(channel, parent.getSource().getKey().toString(), parent.getLine(), parent.getColumn(), true, msg);
                 }
             } catch (TransformerException e) {
                 e.printStackTrace();
@@ -168,7 +168,7 @@ public class Log extends BasicFunction {
                 if (parent == null) {
                     ConsoleModule.log(channel, msg);
                 } else {
-                    ConsoleModule.log(channel, parent.getSource().getKey(), parent.getLine(), parent.getColumn(), msg);
+                    ConsoleModule.log(channel, parent.getSource().getKey().toString(), parent.getLine(), parent.getColumn(), msg);
                 }
             }
         }
