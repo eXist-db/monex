@@ -8,6 +8,8 @@ declare namespace jmx="http://exist-db.org/jmx";
 declare namespace output="http://www.w3.org/2010/xslt-xquery-serialization";
 declare namespace json="http://www.json.org";
 
+
+import module namespace console="http://exist-db.org/xquery/console" at "java:org.exist.console.xquery.ConsoleModule";
 import module namespace scheduler="http://exist-db.org/xquery/scheduler" at "java:org.exist.xquery.modules.scheduler.SchedulerModule";
 import module namespace templates="http://exist-db.org/xquery/templates" ;
 import module namespace config="http://exist-db.org/apps/admin/config" at "config.xqm";
@@ -131,6 +133,17 @@ declare function app:btn-profiling($node as node(), $model as map(*)) {
         </a>
 };
 
+declare function app:btn-tare($node as node(), $model as map(*)) {
+    if (session:get-attribute("tare")) then
+        <a href="?action=clear-tare" class="btn btn-default">
+            <span class="glyphicon glyphicon-remove"/> Clear Tare
+        </a>
+    else
+        <a href="?action=tare" class="btn btn-default">
+            <span class="glyphicon glyphicon-record"/> Tare
+        </a>
+};
+
 declare 
     %templates:default("instance", "localhost")
 function app:active-panel($node as node(), $model as map(*), $instance as xs:string) {
@@ -169,11 +182,115 @@ function app:profile($node as node(), $model as map(*), $action as xs:string?) {
             system:enable-tracing(true())
         case "disable" return
             system:enable-tracing(false())
+        case "tare" return
+            (
+                session:set-attribute("tare", system:trace()),
+                system:clear-trace()
+            )
+        case "clear-tare" return
+            (
+                session:remove-attribute("tare"),
+                system:clear-trace()
+            )
         default return
             (),
-    map {
-        "trace" := system:trace()
-    }
+    let $tare := session:get-attribute("tare")
+    let $trace := system:trace()
+    let $adjusted-trace := 
+        if (exists($tare)) then 
+            (
+                app:adjust-trace($trace, $tare),
+                system:clear-trace()
+            )
+        else 
+            $trace
+    return
+        (
+            map {
+                "trace" := $adjusted-trace
+            }
+            ,
+            if (exists($tare)) then console:log(<log><raw-trace>{$trace}</raw-trace><adjusted>{$adjusted-trace}</adjusted><tare>{$tare}</tare></log>) else ()
+        )
+};
+
+declare function app:adjust-trace($trace, $tare) {
+    let $trace-queries := $trace//prof:query
+    let $tare-queries := $tare//prof:query
+    let $adjusted-queries := 
+        for $query in $trace-queries
+        let $match := $tare-queries[@source = $query/@source]
+        let $matches-to-suppress := ()
+        return
+            (: remove this "match" comparison from results :)
+            if ($query/@source = $matches-to-suppress) then 
+                ()
+            else if ($match) then
+                let $adjusted-calls := ($query/@calls - $match/@calls)
+                let $adjusted-elapsed := $query/@elapsed - $match/@elapsed
+                return
+                    if ($adjusted-calls gt 0) then 
+                        <prof:query source="{$query/@source}" calls="{$adjusted-calls}" elapsed="{$adjusted-elapsed}"/>
+                    else
+                        ()
+            else
+                $query
+    let $trace-functions := $trace//prof:function
+    let $tare-functions := $tare//prof:function
+    let $adjusted-functions := 
+        for $function in $trace-functions
+        let $match := $tare-functions[@source = $function/@source][@name = $function/@name]
+        let $matches-to-suppress := ("app:adjust-trace", "system:clear-trace")
+        return
+            (: remove this "match" comparison from results :)
+            if ($function/@name = $matches-to-suppress) then 
+                ()
+            else if ($match) then
+                let $adjusted-calls := ($function/@calls - $match/@calls)
+                let $adjusted-elapsed := $function/@elapsed - $match/@elapsed
+                return
+                    if ($adjusted-calls gt 0) then 
+                        <prof:function name="{$function/@name}" source="{$function/@source}" calls="{$adjusted-calls}" elapsed="{$adjusted-elapsed}"/>
+                    else
+                        ()
+            else
+                $function
+    let $trace-indexes := $trace//prof:index
+    let $tare-indexes := $tare//prof:index
+    let $adjusted-indexes :=
+        for $index in $trace-indexes
+        let $match := $tare-indexes[@source = $index/@source]
+        let $matches-to-suppress := 
+            (
+            (: the entries below are brittle! as locations & line/column numbers change this has to be updated! :)
+            (: the queries and functions checks above :)
+            "/db/apps/monex/modules/app.xql [222:45]", "/db/apps/monex/modules/app.xql [226:32]", "/db/apps/monex/modules/app.xql [242:47]", "/db/apps/monex/modules/app.xql [242:47]", "/db/apps/monex/modules/app.xql [242:74]", "/db/apps/monex/modules/app.xql [246:33]", 
+            (: this indexes check :)
+            "/db/apps/monex/modules/app.xql [262:45]", "/db/apps/monex/modules/app.xql [279:32]",
+            (: matches below :)
+            "/db/apps/monex/modules/app.xql [358:56]",
+            (: login-related comparisons :)
+            "/db/apps/eXide/controller.xql [67:55]",
+            "/db/apps/eXide/controller.xql [94:26]",
+            "jar:file:/Applications/eXist-db.app/Contents/Resources/eXist-db/lib/extensions/exist-modules.jar!/org/exist/xquery/modules/persistentlogin/login.xql [63:46]"
+            )
+        return
+            (: remove this "match" comparison from results :)
+            if ($index/@source = $matches-to-suppress) then 
+                ()
+            else if ($match) then
+                let $adjusted-calls := ($index/@calls - $match/@calls)
+                let $adjusted-elapsed := $index/@elapsed - $match/@elapsed
+                return
+                    if ($adjusted-calls gt 0) then 
+                        <prof:index source="{$index/@source}" type="{$index/@type}" calls="{$adjusted-calls}" elapsed="{$adjusted-elapsed}" optimization="{$index/@optimization}"/>
+                    else
+                        ()
+            else
+                $index
+    return
+        <prof:calls>{$adjusted-queries, $adjusted-functions, $adjusted-indexes}</prof:calls>
+        
 };
 
 declare
