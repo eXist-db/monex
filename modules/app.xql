@@ -310,7 +310,7 @@ function app:query-stats($node as node(), $model as map(*), $sort as xs:string) 
         for $query in subsequence($queries, 1, 20)
         return
             <tr>
-                <td>{app:truncate-source(replace($query/@source, "^.*/([^/]+)$", "$1"))}</td>
+                <td>{app:truncate-source($query/@source)}</td>
                 <td class="trace-calls">{$query/@calls/string()}</td>
                 <td class="trace-elapsed">{$query/@elapsed/string()}</td>
             </tr>
@@ -334,7 +334,7 @@ function app:function-stats($node as node(), $model as map(*), $sort as xs:strin
         return
             <tr>
                 <td>{$func/@name/string()}</td>
-                <td>{app:truncate-source(replace($func/@source, "^.*/([^/]+)$", "$1"))}</td>
+                <td>{app:truncate-source($func/@source)}</td>
                 <td class="trace-calls">{$func/@calls/string()}</td>
                 <td class="trace-elapsed">{$func/@elapsed/string()}</td>
             </tr>
@@ -358,7 +358,7 @@ function app:index-stats($node as node(), $model as map(*), $sort as xs:string) 
         let $optimization := $app:OPTIMIZATIONS/opt[@n = $index/@optimization]/string()
         return
             <tr>
-                <td>{app:truncate-source(replace($index/@source, "^.*/([^/]+)$", "$1"))}</td>
+                <td>{app:truncate-source($index/@source)}</td>
                 <td class="trace-calls">{$index/@type/string()}</td>
                 <td class="trace-calls">
                 {
