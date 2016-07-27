@@ -215,17 +215,27 @@ function app:profile($node as node(), $model as map(*), $action as xs:string?) {
 };
 
 declare function app:adjust-trace($trace, $tare) {
-    let $trace-queries := $trace//prof:query
+    (: the following modules generate side effects that are not necessarily caught by the "tare", 
+       so we will filter them out from the trace :)
+    let $sources-to-suppress := 
+        (
+            (: this module :)
+            "/db/apps/monex/modules/app.xql",
+            (: login-related comparisons :)
+            "/db/apps/eXide/controller.xql",
+            "jar:file:/Applications/eXist-db.app/Contents/Resources/eXist-db/lib/extensions/exist-modules.jar!/org/exist/xquery/modules/persistentlogin/login.xql"
+        )
+    
+    (: begin adjusting trace :)
+    
+    (: 1. queries :)
+    let $trace-queries := $trace//prof:query[not(starts-with(@source, $sources-to-suppress))]
     let $tare-queries := $tare//prof:query
     let $adjusted-queries := 
         for $query in $trace-queries
         let $match := $tare-queries[@source = $query/@source]
-        let $matches-to-suppress := ()
         return
-            (: remove this "match" comparison from results :)
-            if ($query/@source = $matches-to-suppress) then 
-                ()
-            else if ($match) then
+            if ($match) then
                 let $adjusted-calls := ($query/@calls - $match/@calls)
                 let $adjusted-elapsed := $query/@elapsed - $match/@elapsed
                 return
@@ -235,17 +245,15 @@ declare function app:adjust-trace($trace, $tare) {
                         ()
             else
                 $query
-    let $trace-functions := $trace//prof:function
+
+    (: 2. functions :)
+    let $trace-functions := $trace//prof:function[not(starts-with(@source, $sources-to-suppress))]
     let $tare-functions := $tare//prof:function
     let $adjusted-functions := 
         for $function in $trace-functions
         let $match := $tare-functions[@source = $function/@source][@name = $function/@name]
-        let $matches-to-suppress := ("app:adjust-trace", "system:clear-trace")
         return
-            (: remove this "match" comparison from results :)
-            if ($function/@name = $matches-to-suppress) then 
-                ()
-            else if ($match) then
+            if ($match) then
                 let $adjusted-calls := ($function/@calls - $match/@calls)
                 let $adjusted-elapsed := $function/@elapsed - $match/@elapsed
                 return
@@ -255,30 +263,15 @@ declare function app:adjust-trace($trace, $tare) {
                         ()
             else
                 $function
-    let $trace-indexes := $trace//prof:index
+
+    (: 3. indexes :)
+    let $trace-indexes := $trace//prof:index[not(starts-with(@source, $sources-to-suppress))]
     let $tare-indexes := $tare//prof:index
     let $adjusted-indexes :=
         for $index in $trace-indexes
         let $match := $tare-indexes[@source = $index/@source]
-        let $matches-to-suppress := 
-            (
-            (: the entries below are brittle! as locations & line/column numbers change this has to be updated! :)
-            (: the queries and functions checks above :)
-            "/db/apps/monex/modules/app.xql [222:45]", "/db/apps/monex/modules/app.xql [226:32]", "/db/apps/monex/modules/app.xql [242:47]", "/db/apps/monex/modules/app.xql [242:47]", "/db/apps/monex/modules/app.xql [242:74]", "/db/apps/monex/modules/app.xql [246:33]", 
-            (: this indexes check :)
-            "/db/apps/monex/modules/app.xql [262:45]", "/db/apps/monex/modules/app.xql [279:32]",
-            (: matches below :)
-            "/db/apps/monex/modules/app.xql [358:56]",
-            (: login-related comparisons :)
-            "/db/apps/eXide/controller.xql [67:55]",
-            "/db/apps/eXide/controller.xql [94:26]",
-            "jar:file:/Applications/eXist-db.app/Contents/Resources/eXist-db/lib/extensions/exist-modules.jar!/org/exist/xquery/modules/persistentlogin/login.xql [63:46]"
-            )
         return
-            (: remove this "match" comparison from results :)
-            if ($index/@source = $matches-to-suppress) then 
-                ()
-            else if ($match) then
+            if ($match) then
                 let $adjusted-calls := ($index/@calls - $match/@calls)
                 let $adjusted-elapsed := $index/@elapsed - $match/@elapsed
                 return
