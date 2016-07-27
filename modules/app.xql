@@ -9,7 +9,7 @@ declare namespace output="http://www.w3.org/2010/xslt-xquery-serialization";
 declare namespace json="http://www.json.org";
 
 
-import module namespace console="http://exist-db.org/xquery/console" at "java:org.exist.console.xquery.ConsoleModule";
+(: import module namespace console="http://exist-db.org/xquery/console" at "java:org.exist.console.xquery.ConsoleModule"; :)
 import module namespace scheduler="http://exist-db.org/xquery/scheduler" at "java:org.exist.xquery.modules.scheduler.SchedulerModule";
 import module namespace templates="http://exist-db.org/xquery/templates" ;
 import module namespace config="http://exist-db.org/apps/admin/config" at "config.xqm";
@@ -209,8 +209,8 @@ function app:profile($node as node(), $model as map(*), $action as xs:string?) {
             map {
                 "trace" := $adjusted-trace
             }
-            ,
-            if (exists($tare)) then console:log(<log><raw-trace>{$trace}</raw-trace><adjusted>{$adjusted-trace}</adjusted><tare>{$tare}</tare></log>) else ()
+            (:,
+            if (exists($tare)) then console:log(<log><raw-trace>{$trace}</raw-trace><adjusted>{$adjusted-trace}</adjusted><tare>{$tare}</tare></log>) else () :)
         )
 };
 
