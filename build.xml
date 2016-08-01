@@ -6,8 +6,15 @@
     <property name="build.dir" value="build"/>
     <property name="java.src" value="src"/>
     <property name="java.classes" value="${build.dir}/classes"/>
+    <property name="libs" value="./lib"/>
+    <property name="content" value="./content"/>
+
+    <available file="${libs}/ivy-${ivy.version}.jar" property="ivy.available"/>
 
     <path id="classpath">
+        <fileset dir="${libs}">
+            <include name="*.jar"/>
+        </fileset>
         <fileset dir="${exist.dir}">
             <include name="*.jar"/>
         </fileset>
@@ -25,10 +32,11 @@
     <target name="prepare">
         <mkdir dir="${build.dir}"/>
         <mkdir dir="${java.classes}"/>
+        <mkdir dir="${libs}"/>
     </target>
 
-    <target name="compile" depends="prepare">
-        <javac srcdir="${java.src}" destdir="${java.classes}" optimize="true" debug="true" target="1.7" source="1.7">
+    <target name="compile" depends="ivy.download,prepare">
+        <javac srcdir="${java.src}" destdir="${java.classes}" optimize="true" debug="true" target="1.8" source="1.8">
             <classpath>
                 <path refid="classpath"/>
             </classpath>
@@ -60,11 +68,29 @@
                 <exclude name="src/**"/>
                 <exclude name="data/**"/>
             </fileset>
-            <zipfileset dir="${build.dir}" includes="exist-monex-${project.version}.jar" prefix="content"/>
+            <zipfileset dir="${build.dir}" includes="exist-monex-${project.version}.jar"
+                        prefix="content"/>
+            <zipfileset dir="${libs}" includes="*.jar"
+                        prefix="content"/>
         </zip>
     </target>
 
     <target name="clean">
     	<delete failonerror="false" dir="${build.dir}"/>
+    </target>
+
+    <target name="ivy.setup" description="Download the Ivy dependency manager" unless="ivy.available">
+        <echo>${ivy_url}</echo>
+        <get src="${ivy_url}" dest="${libs}"/>
+    </target>
+
+    <target name="ivy.download" depends="prepare,ivy.setup"
+            description="Download eXist JAR files required for deployment" xmlns:ivy="antlib:org.apache.ivy.ant">
+        <!-- Setup IVY download manager -->
+        <path id="ivy.lib.path">
+            <fileset dir="${libs}" includes="ivy*.jar" erroronmissingdir="false"/>
+        </path>
+        <taskdef resource="org/apache/ivy/ant/antlib.xml" uri="antlib:org.apache.ivy.ant" classpathref="ivy.lib.path"/>
+        <ivy:retrieve type="jar" sync="true" pattern="${libs}/[artifact]-[revision](-[classifier]).[ext]"/>
     </target>
 </project>

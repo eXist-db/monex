@@ -1,16 +1,18 @@
 package org.exist.remoteconsole;
 
+import org.eclipse.jetty.util.ajax.JSON;
+import org.eclipse.jetty.websocket.api.Session;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
+import org.eclipse.jetty.websocket.api.annotations.WebSocket;
+import org.eclipse.jetty.websocket.servlet.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.eclipse.jetty.util.ajax.JSON;
-import org.eclipse.jetty.websocket.WebSocket;
-import org.eclipse.jetty.websocket.WebSocketServlet;
 import org.exist.console.xquery.ConsoleModule;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
@@ -25,31 +27,17 @@ public class RemoteConsoleServlet extends WebSocketServlet {
     protected Set<RemoteConsoleSocket> sockets = new CopyOnWriteArraySet<RemoteConsoleSocket>();
 
     @Override
-    public void init() throws ServletException {
+    public void configure(WebSocketServletFactory factory) {
         if (started)
-            throw new ServletException("RemoteConsoleServlet already started");
+            return;
         started = true;
-        super.init();
+
+        factory.setCreator((req, resp) -> new RemoteConsoleSocket());
+
         System.out.println("Initializing RemoteConsole...");
         ConsoleModule.setAdapter(new RemoteConsoleAdapter(this));
         ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
-        service.scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-                RemoteConsoleServlet.this.send(null, "ping");
-            }
-        }, 5, 5, TimeUnit.SECONDS);
-    }
-
-
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        getServletContext().getNamedDispatcher("default").forward(req, resp);
-    }
-
-    @Override
-    public WebSocket doWebSocketConnect(HttpServletRequest httpServletRequest, String s) {
-        return new RemoteConsoleSocket();
+        service.scheduleAtFixedRate(() -> RemoteConsoleServlet.this.send(null, "ping"), 5, 5, TimeUnit.SECONDS);
     }
 
     public void send(String channel, Map data) {
@@ -67,19 +55,20 @@ public class RemoteConsoleServlet extends WebSocketServlet {
         }
     }
 
-    class RemoteConsoleSocket implements WebSocket.OnTextMessage {
+    @WebSocket
+    protected class RemoteConsoleSocket {
 
-        private Connection connection;
+        private Session session;
         private String channel = null;
 
         public void sendMessage(String toChannel, String data) throws IOException {
             if (toChannel == null || (channel != null && toChannel.equals(channel))) {
-                connection.sendMessage(data);
+                session.getRemote().sendString(data);
             }
         }
 
-        @Override
-        public void onMessage(String message) {
+        @OnWebSocketMessage
+        public void onMessage(Session session, String message) {
             Map data = (Map) JSON.parse(message);
             String channel = (String) data.get("channel");
             if (channel != null) {
@@ -87,15 +76,15 @@ public class RemoteConsoleServlet extends WebSocketServlet {
             }
         }
 
-        @Override
-        public void onOpen(Connection connection) {
+        @OnWebSocketConnect
+        public void onOpen(Session session) {
             sockets.add(this);
-            connection.setMaxIdleTime(10000);
-            this.connection = connection;
+            session.setIdleTimeout(10000);
+            this.session = session;
         }
 
-        @Override
-        public void onClose(int code, String message) {
+        @OnWebSocketClose
+        public void onClose(Session session, int code, String reason) {
             sockets.remove(this);
         }
     }
