@@ -8,6 +8,8 @@ declare namespace jmx="http://exist-db.org/jmx";
 declare namespace output="http://www.w3.org/2010/xslt-xquery-serialization";
 declare namespace json="http://www.json.org";
 
+
+(: import module namespace console="http://exist-db.org/xquery/console" at "java:org.exist.console.xquery.ConsoleModule"; :)
 import module namespace scheduler="http://exist-db.org/xquery/scheduler" at "java:org.exist.xquery.modules.scheduler.SchedulerModule";
 import module namespace templates="http://exist-db.org/xquery/templates" ;
 import module namespace config="http://exist-db.org/apps/admin/config" at "config.xqm";
@@ -131,6 +133,17 @@ declare function app:btn-profiling($node as node(), $model as map(*)) {
         </a>
 };
 
+declare function app:btn-tare($node as node(), $model as map(*)) {
+    if (session:get-attribute("tare")) then
+        <a href="?action=clear-tare" class="btn btn-default">
+            <span class="glyphicon glyphicon-remove"/> Clear Tare
+        </a>
+    else
+        <a href="?action=tare" class="btn btn-default">
+            <span class="glyphicon glyphicon-record"/> Tare
+        </a>
+};
+
 declare 
     %templates:default("instance", "localhost")
 function app:active-panel($node as node(), $model as map(*), $instance as xs:string) {
@@ -169,11 +182,108 @@ function app:profile($node as node(), $model as map(*), $action as xs:string?) {
             system:enable-tracing(true())
         case "disable" return
             system:enable-tracing(false())
+        case "tare" return
+            (
+                session:set-attribute("tare", system:trace()),
+                system:clear-trace()
+            )
+        case "clear-tare" return
+            (
+                session:remove-attribute("tare"),
+                system:clear-trace()
+            )
         default return
             (),
-    map {
-        "trace" := system:trace()
-    }
+    let $tare := session:get-attribute("tare")
+    let $trace := system:trace()
+    let $adjusted-trace := 
+        if (exists($tare)) then 
+            (
+                app:adjust-trace($trace, $tare),
+                system:clear-trace()
+            )
+        else 
+            $trace
+    return
+        (
+            map {
+                "trace" := $adjusted-trace
+            }
+            (:,
+            if (exists($tare)) then console:log(<log><raw-trace>{$trace}</raw-trace><adjusted>{$adjusted-trace}</adjusted><tare>{$tare}</tare></log>) else () :)
+        )
+};
+
+declare function app:adjust-trace($trace, $tare) {
+    (: the following modules generate side effects that are not necessarily caught by the "tare", 
+       so we will filter them out from the trace :)
+    let $sources-to-suppress := 
+        (
+            (: this module :)
+            "/db/apps/monex/modules/app.xql",
+            (: login-related comparisons :)
+            "/db/apps/eXide/controller.xql",
+            "jar:file:/Applications/eXist-db.app/Contents/Resources/eXist-db/lib/extensions/exist-modules.jar!/org/exist/xquery/modules/persistentlogin/login.xql"
+        )
+    
+    (: begin adjusting trace :)
+    
+    (: 1. queries :)
+    let $trace-queries := $trace//prof:query[not(starts-with(@source, $sources-to-suppress))]
+    let $tare-queries := $tare//prof:query
+    let $adjusted-queries := 
+        for $query in $trace-queries
+        let $match := $tare-queries[@source = $query/@source]
+        return
+            if ($match) then
+                let $adjusted-calls := ($query/@calls - $match/@calls)
+                let $adjusted-elapsed := $query/@elapsed - $match/@elapsed
+                return
+                    if ($adjusted-calls gt 0) then 
+                        <prof:query source="{$query/@source}" calls="{$adjusted-calls}" elapsed="{$adjusted-elapsed}"/>
+                    else
+                        ()
+            else
+                $query
+
+    (: 2. functions :)
+    let $trace-functions := $trace//prof:function[not(starts-with(@source, $sources-to-suppress))]
+    let $tare-functions := $tare//prof:function
+    let $adjusted-functions := 
+        for $function in $trace-functions
+        let $match := $tare-functions[@source = $function/@source][@name = $function/@name]
+        return
+            if ($match) then
+                let $adjusted-calls := ($function/@calls - $match/@calls)
+                let $adjusted-elapsed := $function/@elapsed - $match/@elapsed
+                return
+                    if ($adjusted-calls gt 0) then 
+                        <prof:function name="{$function/@name}" source="{$function/@source}" calls="{$adjusted-calls}" elapsed="{$adjusted-elapsed}"/>
+                    else
+                        ()
+            else
+                $function
+
+    (: 3. indexes :)
+    let $trace-indexes := $trace//prof:index[not(starts-with(@source, $sources-to-suppress))]
+    let $tare-indexes := $tare//prof:index
+    let $adjusted-indexes :=
+        for $index in $trace-indexes
+        let $match := $tare-indexes[@source = $index/@source]
+        return
+            if ($match) then
+                let $adjusted-calls := ($index/@calls - $match/@calls)
+                let $adjusted-elapsed := $index/@elapsed - $match/@elapsed
+                return
+                    if ($adjusted-calls gt 0) then 
+                        <prof:index source="{$index/@source}" type="{$index/@type}" calls="{$adjusted-calls}" elapsed="{$adjusted-elapsed}" optimization="{$index/@optimization}"/>
+                    else
+                        ()
+            else
+                $index
+    return
+        <prof:calls>{$adjusted-queries, $adjusted-functions, $adjusted-indexes}</prof:calls>
+        
 };
 
 declare
@@ -193,7 +303,7 @@ function app:query-stats($node as node(), $model as map(*), $sort as xs:string) 
         for $query in subsequence($queries, 1, 20)
         return
             <tr>
-                <td>{app:truncate-source(replace($query/@source, "^.*/([^/]+)$", "$1"))}</td>
+                <td>{app:truncate-source($query/@source)}</td>
                 <td class="trace-calls">{$query/@calls/string()}</td>
                 <td class="trace-elapsed">{$query/@elapsed/string()}</td>
             </tr>
@@ -217,7 +327,7 @@ function app:function-stats($node as node(), $model as map(*), $sort as xs:strin
         return
             <tr>
                 <td>{$func/@name/string()}</td>
-                <td>{app:truncate-source(replace($func/@source, "^.*/([^/]+)$", "$1"))}</td>
+                <td>{app:truncate-source($func/@source)}</td>
                 <td class="trace-calls">{$func/@calls/string()}</td>
                 <td class="trace-elapsed">{$func/@elapsed/string()}</td>
             </tr>
@@ -241,7 +351,7 @@ function app:index-stats($node as node(), $model as map(*), $sort as xs:string) 
         let $optimization := $app:OPTIMIZATIONS/opt[@n = $index/@optimization]/string()
         return
             <tr>
-                <td>{app:truncate-source(replace($index/@source, "^.*/([^/]+)$", "$1"))}</td>
+                <td>{app:truncate-source($index/@source)}</td>
                 <td class="trace-calls">{$index/@type/string()}</td>
                 <td class="trace-calls">
                 {
@@ -296,9 +406,13 @@ declare %private function app:sort($function as element(), $sort as xs:string) {
         xs:double($function/@elapsed)
 };
 
-declare %private function app:truncate-source($source as xs:string) as xs:string {
+declare %private function app:truncate-source($source as xs:string) {
     if (string-length($source) gt 60) then
-        substring($source, 1, 60)
+        let $analyze := analyze-string($source, "^(.*/)([^/]+)$")
+        let $path := $analyze//fn:group[1]
+        let $filename := $analyze//fn:group[2]
+        return
+            <span title="{$source}">{substring($path, 1, 60 - string-length($filename)) || '[...]' || $filename}</span>
     else
         $source
 };
