@@ -279,7 +279,7 @@ declare function app:user-info($node as node(), $model as map(*)) {
 };
 
 declare function app:form-action-to-current-url($node as node(), $model as map(*)) {
-    <form action="{request:get-url()}">{
+    <form action="{request:get-uri()}">{
         $node/attribute()[not(name(.) = 'action')],
         $node/node()
     }</form>
