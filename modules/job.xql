@@ -3,6 +3,7 @@ xquery version "3.0";
 import module namespace config="http://exist-db.org/apps/admin/config" at "config.xqm";
 import module namespace http="http://expath.org/ns/http-client" at "java:org.exist.xquery.modules.httpclient.HTTPClientModule";
 import module namespace console="http://exist-db.org/xquery/console";
+import module namespace functx = "http://www.functx.com";
 
 declare namespace job="http://exist-db.org/apps/monex/job";
 declare namespace jmx="http://exist-db.org/jmx";
@@ -148,8 +149,13 @@ declare function job:check-response($instance as element(), $status as xs:string
 (:~
  : Send notifications to receivers (if status changed)
  :)
-declare function job:notify($error as xs:boolean, $instance as element()?, $status as xs:string, $response as element(),
-    $attachment as element()?) {
+declare function job:notify(
+    $error as xs:boolean,
+    $instance as element()?,
+    $status as xs:string,
+    $response as element(),
+    $attachment as element()?
+) {
     let $statusRoot := collection($config:data-root)/jmx:jmx[jmx:instance = $instance/@name]
     return
         if ((empty($statusRoot) and $error) or ($statusRoot/jmx:status != $response/jmx:status)) then
@@ -164,8 +170,8 @@ declare function job:notify($error as xs:boolean, $instance as element()?, $stat
 
 declare function job:ping($instance as element(instance)) as xs:boolean {
     let $start := util:system-time()
-	let $url :=
-        if ($local:operation and $local:operation != "") then
+    let $url :=
+        if ($local:operation and $local:operation != "jmx") then
             $instance/@url || "/status?operation=" || $local:operation || "&amp;token=" || $instance/@token
         else
             $instance/@url ||
@@ -174,7 +180,7 @@ declare function job:ping($instance as element(instance)) as xs:boolean {
     let $request :=
         <http:request method="GET" href="{$url}" timeout="30"/>
     return
-(:        try {:)
+        try {
             let $response := http:send-request($request)
             return
                 if ($response[1]/@status = "200") then (
@@ -187,10 +193,23 @@ declare function job:ping($instance as element(instance)) as xs:boolean {
                     console:send($job:CHANNEL, job:check-response($instance, $response[1]/@message/string(), (), util:system-time() - $start)),
                     false()
                 )
-(:        } catch * {:)
-(:            console:send($job:CHANNEL, job:check-response($instance, $err:description, (), ())),:)
-(:            false():)
-(:        }:)
+        } catch java:org.expath.httpclient.HttpClientException {
+            let $status := <jmx:jmx>{
+                job:status("code: " || $err:code || " description:" ||  $err:description || " value: " || $err:value,   ())
+            }</jmx:jmx>
+            return
+                job:notify(true(), $instance, "alert: " || $instance/@name, $status, ())
+        } catch * {
+            job:notify(
+                true(), (), "alert: " || $err:description,
+                <jmx:jmx>
+                    <jmx:instance>local</jmx:instance>
+                    <jmx:timestamp>{current-dateTime()}</jmx:timestamp>
+                    <jmx:status>monex error: {$err:code} - {$err:description}</jmx:status>
+                </jmx:jmx>,
+                ()
+            )
+        }
 };
 
 declare function job:alerts($instance as element(instance), $jmx as element(jmx:jmx)) {
@@ -216,25 +235,67 @@ declare function job:alerts($instance as element(instance), $jmx as element(jmx:
             ()
 };
 
-if ($local:operation and $local:operation != "") then
-    console:send($job:CHANNEL, job:response("pending", (), ()))
-else
-    (),
+
+(:: test URL status ::)
+declare function job:test-url-status($instance as element(instance)) {
+    for $test in $instance/test[@status]
+        let $response := httpclient:head(xs:anyURI($test/@url), true(), <Header/>)
+        let $status := functx:is-value-in-sequence(data($response//@statusCode), tokenize($test/@status, ","))
+        let $message :=
+              <jmx:jmx>
+                  <jmx:instance>local</jmx:instance>
+                  <jmx:timestamp>{current-dateTime()}</jmx:timestamp>
+                  <jmx:status>HTTP status for {data($test/@url)}: {$status}</jmx:status>
+              </jmx:jmx>
+        return
+            job:notify(
+                $status,
+                $instance,
+                "alert: " || $instance/@name,
+                $message,
+                ()
+            )
+};
+
+declare function job:test-url-xpath($instance as element(instance)) {
+    for $test in $instance/test[@xpath]
+        let $response := httpclient:get(xs:anyURI($test/@url), true(), ())//httpclient:body/*//body
+        let $expression := data($test/@xpath)
+        let $status := exists(util:eval-inline($response, ("$response" || $expression)))
+        let $message :=
+              <jmx:jmx>
+                  <jmx:instance>local</jmx:instance>
+                  <jmx:timestamp>{current-dateTime()}</jmx:timestamp>
+                  <jmx:status>HTTP status for {$expression} in {data($test/@url)}: {$status}</jmx:status>
+              </jmx:jmx>
+        return
+            job:notify(
+                $status,
+                $instance,
+                "alert: " || $instance/@name,
+                $message,
+                ()
+            )
+};
+
+
+if ($local:operation and $local:operation = "ping") then
+    console:send($job:CHANNEL,
+                    job:response("pending", (), ())
+                )
+else (),
 let $instances := collection($local:app-root)//instance
 let $instance := $instances[@name = $local:name]
 return
-    try {
+    if (contains($local:operation, "test")) then (
+        job:test-url-status($instance),
+        job:test-url-xpath($instance),
+        if (contains ($local:operation, "ping")) then
+            job:ping($instance)
+        else
+            ()
+    )
+    else if ($local:operation = "ping") then
         job:ping($instance)
-    } catch java:org.expath.httpclient.HttpClientException {
-        let $status := <jmx:jmx>{ job:status("code: " || $err:code || " description:" ||  $err:description || " value: " || $err:value, ()) }</jmx:jmx>
-        return
-            job:notify(true(), $instance, "alert: " || $instance/@name, $status, ())
-    } catch * {
-        job:notify(true(), (), "alert: " || $err:description,
-            <jmx:jmx>
-                <jmx:instance>local</jmx:instance>
-                <jmx:timestamp>{current-dateTime()}</jmx:timestamp>
-                <jmx:status>monex error: {$err:code} - {$err:description}</jmx:status>
-            </jmx:jmx>,
-            ())
-    }
+    else
+        ()

@@ -17,4 +17,8 @@
             <alert name="More than 30 threads waiting for locks to be released" condition="count($jmx//LockManager/WaitingThreads/row) > 30"/>
         </poll>
     </instance-->
+    <!--instance name="example.com" url="https://example.com" cron="0 * * * * ?" store="yes">
+        <test url="https://example.com" status="200,304"/>
+        <test url="https://example.com" xpath="/html/body/div[1]/p[2]/a"/>
+    </instance-->
 </instances>
