@@ -69,7 +69,8 @@ function app:get-instance($node as node(), $model as map(*), $instance as xs:str
 declare
     %templates:default("instance", "localhost")
 function app:instances($node as node(), $model as map(*), $instance as xs:string) {
-    for $current in collection($config:app-root)//instance
+    let $instances := collection($config:app-root)//instance
+    for $current in $instances[ not(@ping = "no") and not(@ping = "0") and not(@ping = "false") ]
     return
         <li class="{if ($instance = $current/@name) then 'active' else ''}">
             <a href="index.html?instance={$current/@name}">
