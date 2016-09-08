@@ -42,7 +42,7 @@ declare variable $app:default-timeline-xpaths := map {
 };
 
 declare variable $app:default-timeline-labels := map {
-    "brokers-graph" := ("Active brokers", "Rstageunning queries"),
+    "brokers-graph" := ("Active brokers", "Running queries"),
     "threads-graph" := ("Waiting Threads"),
     "cpu-graph" := ("Process CPU Load", "System CPU Load"), 
     "memory-graph" := ("Used Memory", "Committed Memory"), 
