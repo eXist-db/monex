@@ -248,13 +248,17 @@ declare function job:test-url-status($instance as element(instance)) {
                   <jmx:status>HTTP status for {data($test/@url)}: {$status}</jmx:status>
               </jmx:jmx>
         return
-            job:notify(
-                $status,
-                $instance,
-                "alert: " || $instance/@name,
-                $message,
-                ()
+            if ($status = false()) then (
+                job:notify(
+                    $status,
+                    $instance,
+                    "alert: " || $instance/@name,
+                    $message,
+                    ()
+                )
             )
+            else
+                ((:console:log($message):))
 };
 
 declare function job:test-url-xpath($instance as element(instance)) {
@@ -269,13 +273,17 @@ declare function job:test-url-xpath($instance as element(instance)) {
                   <jmx:status>HTTP status for {$expression} in {data($test/@url)}: {$status}</jmx:status>
               </jmx:jmx>
         return
-            job:notify(
-                $status,
-                $instance,
-                "alert: " || $instance/@name,
-                $message,
-                ()
+            if ($status = false()) then (
+                job:notify(
+                    $status,
+                    $instance,
+                    "alert: " || $instance/@name,
+                    $message,
+                    ()
+                )
             )
+            else
+                ((:console:log($message):))
 };
 
 
