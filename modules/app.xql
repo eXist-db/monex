@@ -42,7 +42,7 @@ declare variable $app:default-timeline-xpaths := map {
 };
 
 declare variable $app:default-timeline-labels := map {
-    "brokers-graph" := ("Active brokers", "Running queries"),
+    "brokers-graph" := ("Active brokers", "Rstageunning queries"),
     "threads-graph" := ("Waiting Threads"),
     "cpu-graph" := ("Process CPU Load", "System CPU Load"), 
     "memory-graph" := ("Used Memory", "Committed Memory"), 
@@ -70,7 +70,7 @@ declare
     %templates:default("instance", "localhost")
 function app:instances($node as node(), $model as map(*), $instance as xs:string) {
     let $instances := collection($config:app-root)//instance
-    for $current in $instances[ not(@ping = "no") and not(@ping = "0") and not(@ping = "false") ]
+    for $current in $instances[ not(@ping = ("no", "0", "false")) ]
     return
         <li class="{if ($instance = $current/@name) then 'active' else ''}">
             <a href="index.html?instance={$current/@name}">
