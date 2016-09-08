@@ -237,53 +237,65 @@ declare function job:alerts($instance as element(instance), $jmx as element(jmx:
 
 
 (:: test URL status ::)
-declare function job:test-url-status($instance as element(instance)) {
-    for $test in $instance/test[@status]
-        let $response := httpclient:head(xs:anyURI($test/@url), true(), <Header/>)
-        let $status := functx:is-value-in-sequence(data($response//@statusCode), tokenize($test/@status, ","))
-        let $message :=
-              <jmx:jmx>
-                  <jmx:instance>local</jmx:instance>
-                  <jmx:timestamp>{current-dateTime()}</jmx:timestamp>
-                  <jmx:status>HTTP status for {data($test/@url)}: {$status}</jmx:status>
-              </jmx:jmx>
-        return
-            if ($status = false()) then (
-                job:notify(
-                    $status,
-                    $instance,
-                    "alert: " || $instance/@name,
-                    $message,
-                    ()
-                )
-            )
-            else
-                ((:console:log($message):))
-};
-
-declare function job:test-url-xpath($instance as element(instance)) {
-    for $test in $instance/test[@xpath]
-        let $response := httpclient:get(xs:anyURI($test/@url), true(), ())//httpclient:body/*//body
-        let $expression := data($test/@xpath)
-        let $status := exists(util:eval-inline($response, ("$response" || $expression)))
-        let $message :=
-              <jmx:jmx>
-                  <jmx:instance>local</jmx:instance>
-                  <jmx:timestamp>{current-dateTime()}</jmx:timestamp>
-                  <jmx:status>HTTP status for {$expression} in {data($test/@url)}: {$status}</jmx:status>
-              </jmx:jmx>
-        return
-            if ($status = false()) then (
-                job:notify(
-                    $status,
-                    $instance,
-                    "alert: " || $instance/@name,
-                    $message,
-                    ()
-                )
-            )
-            else
-                ((:console:log($message):))
+declare function job:url-test($instances as element(instance)) {
+    for $instance in $instances
+        let $instanceURL :=
+            if ($instance/@url) then (data($instance/@url)) else ("")
+            return
+                for $test in $instance//test
+                    let $testURL :=
+                        if ($test/@url) then (data($test/@url)) else ("")
+                    let $url := xs:anyURI(
+                        if (matches($testURL, "^(http|https)://")) then (
+                            $testURL
+                        ) else ($instanceURL || $testURL)
+                    )
+                    return
+                        if ($test[@status]) then (
+                            let $response := httpclient:head($url, true(), <Header/>)
+                            let $status := functx:is-value-in-sequence(data($response//@statusCode), tokenize($test/@status, ","))
+                            let $message :=
+                                  <jmx:jmx>
+                                      <jmx:instance>local</jmx:instance>
+                                      <jmx:timestamp>{current-dateTime()}</jmx:timestamp>
+                                      <jmx:status>HTTP status for {data($url)}: {$status}</jmx:status>
+                                  </jmx:jmx>
+                            return
+                                if ($status = false()) then (
+                                    job:notify(
+                                        $status,
+                                        $instance,
+                                        "alert: " || $instance/@name,
+                                        $message,
+                                        ()
+                                    )
+                                )
+                                else
+                                    (console:log($message))
+                        ) else if ($test[@xpath]) then (
+                            let $response := httpclient:get($url, true(), ())//httpclient:body/*//body
+                            let $expression := data($test/@xpath)
+                            let $status := exists(util:eval-inline($response, ("$response" || $expression)))
+                            let $message :=
+                                  <jmx:jmx>
+                                      <jmx:instance>local</jmx:instance>
+                                      <jmx:timestamp>{current-dateTime()}</jmx:timestamp>
+                                      <jmx:status>HTTP status for {$expression} in {data($url)}: {$status}</jmx:status>
+                                  </jmx:jmx>
+                            return
+                                if ($status = false()) then (
+                                    job:notify(
+                                        $status,
+                                        $instance,
+                                        "alert: " || $instance/@name,
+                                        $message,
+                                        ()
+                                    )
+                                )
+                                else
+                                    (console:log($message))
+                        ) else
+                            ()
 };
 
 
@@ -296,8 +308,7 @@ let $instances := collection($local:app-root)//instance
 let $instance := $instances[@name = $local:name]
 return
     if (contains($local:operation, "test")) then (
-        job:test-url-status($instance),
-        job:test-url-xpath($instance),
+        job:url-test($instance),
         if (contains ($local:operation, "ping")) then
             job:ping($instance)
         else
