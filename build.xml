@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project default="xar" name="monex">
-	<property file="build.properties"/>
-    <property name="project.version" value="0.1"/>
-    <property name="project.app" value="monex"/>
+    <property file="build.properties"/>
     <property name="build.dir" value="build"/>
     <property name="java.src" value="src"/>
     <property name="java.classes" value="${build.dir}/classes"/>
