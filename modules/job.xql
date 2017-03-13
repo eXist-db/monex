@@ -216,6 +216,13 @@ declare function job:alerts($instance as element(instance), $jmx as element(jmx:
             ()
 };
 
+(: declare function job:tests($instance as element(instance)) {
+    for $test in $instance/test
+    let $request := 
+        <http:request method="GET" href="{$test/@url}" timeout="30"/>
+    
+}; :)
+
 if ($local:operation and $local:operation != "") then
     console:send($job:CHANNEL, job:response("pending", (), ()))
 else

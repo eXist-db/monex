@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project default="xar" name="monex">
-	<property file="build.properties"/>
-    <property name="project.version" value="0.1"/>
-    <property name="project.app" value="monex"/>
-    <property name="build.dir" value="build"/>
+    <property file="local.build.properties"/>
+    <property file="build.properties"/>
+    <property name="build" value="build"/>
     <property name="java.src" value="src"/>
-    <property name="java.classes" value="${build.dir}/classes"/>
+    <property name="java.classes" value="${build}/classes"/>
     <property name="libs" value="./lib"/>
     <property name="content" value="./content"/>
 
@@ -30,7 +29,7 @@
     </path>
 
     <target name="prepare">
-        <mkdir dir="${build.dir}"/>
+        <mkdir dir="${build}"/>
         <mkdir dir="${java.classes}"/>
         <mkdir dir="${libs}"/>
     </target>
@@ -44,7 +43,7 @@
     </target>
 
     <target name="jar" depends="compile">
-        <jar basedir="${java.classes}" jarfile="${build.dir}/exist-monex-${project.version}.jar">
+        <jar basedir="${java.classes}" jarfile="${build}/exist-monex-${project.version}.jar">
             <manifest>
                 <attribute name="Project-Name" value="${project.name}"/>
                 <attribute name="Project-Version" value="${project.version}"/>
@@ -54,8 +53,14 @@
     </target>
 
     <target name="xar" depends="jar">
-        <mkdir dir="${build.dir}"/>
-        <zip destfile="${build.dir}/${project.name}-${project.version}.xar">
+        <mkdir dir="${build}"/>
+        <copy file="expath-pkg.xml.tmpl" tofile="expath-pkg.xml" filtering="true" overwrite="true">
+            <filterset>
+                <filter token="project.version" value="${project.version}"/>
+                <filter token="project.name" value="${project.name}"/>
+            </filterset>
+        </copy>
+        <zip destfile="${build}/${project.name}-${project.version}.xar">
             <fileset dir=".">
                 <include name="*.*"/>
                 <include name="data/**"/>
@@ -68,7 +73,7 @@
                 <exclude name="src/**"/>
                 <exclude name="data/**"/>
             </fileset>
-            <zipfileset dir="${build.dir}" includes="exist-monex-${project.version}.jar"
+            <zipfileset dir="${build}" includes="exist-monex-${project.version}.jar"
                         prefix="content"/>
             <zipfileset dir="${libs}" includes="*.jar"
                         prefix="content"/>
@@ -76,7 +81,8 @@
     </target>
 
     <target name="clean">
-    	<delete failonerror="false" dir="${build.dir}"/>
+        <delete failonerror="false" dir="${build}"/>
+        <delete file="expath-pkg.xml"/>
     </target>
 
     <target name="ivy.setup" description="Download the Ivy dependency manager" unless="ivy.available">

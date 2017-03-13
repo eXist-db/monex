@@ -2,3 +2,6 @@
 *.class
 .idea/*
 build
+lib
+expath-pkg.xml
+local.build.properties
