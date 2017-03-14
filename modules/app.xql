@@ -23,6 +23,8 @@ declare variable $app:OPTIMIZATIONS :=
 
 declare variable $app:get-scheduled-jobs := function-lookup(xs:QName("scheduler:get-scheduled-jobs"), 0);
 
+declare variable $app:get-java-version := util:system-property("java.version");
+
 declare variable $app:jmx-token :=
     try {
         util:import-module(xs:anyURI("http://exist-db.org/xquery/console"), "console", xs:anyURI("java:org.exist.console.xquery.ConsoleModule")),
@@ -57,6 +59,12 @@ declare function app:scheduler-enabled($node as node(), $model as map(*)) {
         ()
     else
         $node
+};
+
+declare 
+    %templates:warp
+function app:java-version ($version as xs:string?, $model as map(*)) as node()? {
+  <td>{$app:get-java-version}</td>  
 };
 
 declare
@@ -594,7 +602,7 @@ declare function app:time-navigation-forward($node as node(), $model as map(*), 
         }
 };
 
-declare  function app:time-to-milliseconds($dateTime as xs:dateTime) {
+declare function app:time-to-milliseconds($dateTime as xs:dateTime) {
     let $diff := $dateTime - xs:dateTime("1970-01-01T00:00:00Z")
     return
         (days-from-duration($diff) * 60 * 60 * 24 +

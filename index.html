@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content"><!-- Content Header (Page header) -->
     <section class="content-header">
         <h1>
@@ -228,6 +227,10 @@
                                 <tr>
                                     <td>Operating System:</td>
                                     <td data-bind="text: jmx.SystemInfo.OperatingSystem"/>
+                                </tr>
+                                <tr>
+                                    <td>Java Version:</td>
+                                    <td data-template="app:java-version"/>
                                 </tr>
                                 <tr>
                                     <td>Default Encoding:</td>
