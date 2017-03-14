@@ -59,7 +59,7 @@ declare function app:scheduler-enabled($node as node(), $model as map(*)) {
         $node
 };
 
-declare function app:java-version ($version as xs:string?, $model as map(*)) as node()? {
+declare function app:java-version ($node as node(), $model as map(*)) as node()? {
 let $version := util:system-property("java.version")
 return
   <td>{$version}</td>  
