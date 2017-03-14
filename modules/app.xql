@@ -23,8 +23,6 @@ declare variable $app:OPTIMIZATIONS :=
 
 declare variable $app:get-scheduled-jobs := function-lookup(xs:QName("scheduler:get-scheduled-jobs"), 0);
 
-declare variable $app:get-java-version := util:system-property("java.version");
-
 declare variable $app:jmx-token :=
     try {
         util:import-module(xs:anyURI("http://exist-db.org/xquery/console"), "console", xs:anyURI("java:org.exist.console.xquery.ConsoleModule")),
@@ -61,10 +59,10 @@ declare function app:scheduler-enabled($node as node(), $model as map(*)) {
         $node
 };
 
-declare 
-    %templates:warp
-function app:java-version ($version as xs:string?, $model as map(*)) as node()? {
-  <td>{$app:get-java-version}</td>  
+declare function app:java-version ($version as xs:string?, $model as map(*)) as node()? {
+let $version := util:system-property("java.version")
+return
+  <td>{$version}</td>  
 };
 
 declare
