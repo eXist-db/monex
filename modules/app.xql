@@ -59,6 +59,12 @@ declare function app:scheduler-enabled($node as node(), $model as map(*)) {
         $node
 };
 
+declare function app:java-version ($node as node(), $model as map(*)) as node()? {
+let $version := util:system-property("java.version")
+return
+  <td>{$version}</td>  
+};
+
 declare
     %templates:wrap
     %templates:default("instance", "localhost")
@@ -594,7 +600,7 @@ declare function app:time-navigation-forward($node as node(), $model as map(*), 
         }
 };
 
-declare  function app:time-to-milliseconds($dateTime as xs:dateTime) {
+declare function app:time-to-milliseconds($dateTime as xs:dateTime) {
     let $diff := $dateTime - xs:dateTime("1970-01-01T00:00:00Z")
     return
         (days-from-duration($diff) * 60 * 60 * 24 +
