@@ -575,8 +575,11 @@ declare function app:time-navigation-back($node as node(), $model as map(*), $in
     return
         element { node-name($node) } {
             $node/@*,
-            attribute href { "?timestamp=" || app:time-to-milliseconds(xs:dateTime($jmx/jmx:timestamp)) || 
-                "&amp;instance=" || $instance },
+            if ($jmx) then
+                attribute href { "?timestamp=" || app:time-to-milliseconds(xs:dateTime($jmx/jmx:timestamp)) || 
+                    "&amp;instance=" || $instance }
+            else
+                attribute disabled {'disabled'},
             templates:process($node/*, $model)
         }
 };
@@ -594,8 +597,11 @@ declare function app:time-navigation-forward($node as node(), $model as map(*), 
     return
         element { node-name($node) } {
             $node/@*,
-            attribute href { "?timestamp=" || app:time-to-milliseconds(xs:dateTime($jmx/jmx:timestamp)) || 
-                "&amp;instance=" || $instance },
+            if ($jmx) then
+                attribute href { "?timestamp=" || app:time-to-milliseconds(xs:dateTime($jmx/jmx:timestamp)) || 
+                    "&amp;instance=" || $instance }
+            else
+                attribute disabled {'disabled'},
             templates:process($node/*, $model)
         }
 };
