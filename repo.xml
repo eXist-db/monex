@@ -47,5 +47,11 @@
                 <li>Sync source with GitHub repository</li>
             </ul>
         </change>
+        <change version="0.9.8">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Show version of Java in the Monitoring > System Information pane</li>
+                <li>Removed package's semver-max to ensure compatibility with all eXist 3.x releases</li>
+            </ul>
+        </change>
     </changelog>
 </meta>
