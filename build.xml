@@ -73,6 +73,7 @@
                 <exclude name="src/**"/>
                 <exclude name="data/**"/>
             </fileset>
+            <zipfileset dir="." includes="instances.xml.tmpl" fullpath="instances.xml"/>
             <zipfileset dir="${build}" includes="exist-monex-${project.version}.jar"
                         prefix="content"/>
             <zipfileset dir="${libs}" includes="*.jar"
