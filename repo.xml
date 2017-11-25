@@ -4,7 +4,7 @@
     <author>Wolfgang Meier</author>
     <author>Joe Wicentowski</author>
     <author>Lars Windauer</author>
-    <website>https://github.com/wolfgangmm/monex</website>
+    <website>https://github.com/eXist-db/monex</website>
     <status>alpha</status>
     <license>GNU-LGPL</license>
     <copyright>true</copyright>
@@ -51,6 +51,22 @@
             <ul xmlns="http://www.w3.org/1999/xhtml">
                 <li>Show version of Java in the Monitoring > System Information pane</li>
                 <li>Removed package's semver-max to ensure compatibility with all eXist 3.x releases</li>
+            </ul>
+        </change>
+        <change version="0.9.9">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Upgraded included jetty jars to 9.4.6</li>
+                <li>Updated eXist dependency to require v3.5.0</li>
+            </ul>
+        </change>
+        <change version="0.9.10">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Improved build process</li>
+            </ul>
+        </change>
+        <change version="0.9.11">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Updated: Links to monex's GitHub repository - <a href="https://github.com/eXist-db/monex/issues/39">#39</a></li>
             </ul>
         </change>
     </changelog>
