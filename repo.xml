@@ -69,5 +69,10 @@
                 <li>Updated: Links to monex's GitHub repository - <a href="https://github.com/eXist-db/monex/issues/39">#39</a></li>
             </ul>
         </change>
+        <change version="0.9.12">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Move jetty jars to eXist-db to prevent version conflicts</li>
+            </ul>
+        </change>
     </changelog>
 </meta>
