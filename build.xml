@@ -8,6 +8,14 @@
     <property name="libs" value="./lib"/>
     <property name="content" value="./content"/>
 
+    <property name="ivy.jar" value="ivy-${ivy.version}.jar"/>
+    <property name="ivy.dir" value="${build}/.ivy"/>
+    <property name="ivy.lib" value="${ivy.dir}/lib"/>
+    
+    <path id="ivy.classpath">
+        <fileset dir="${ivy.lib}" includes="*.jar"/>
+    </path>
+
     <path id="classpath">
         <fileset dir="${libs}">
             <include name="*.jar"/>
@@ -26,16 +34,33 @@
         </fileset>
     </path>
 
+    <available file="${ivy.lib}/${ivy.jar}" property="ivy.exists"/>
+    
+    <target name="bootstrap" description="Install ivy" unless="ivy.exists">
+        <mkdir dir="${ivy.lib}"/>
+        <get dest="${ivy.lib}/${ivy.jar}" src="http://search.maven.org/remotecontent?filepath=org/apache/ivy/ivy/${ivy.version}/${ivy.jar}"/>
+    </target>
+    
+    <target name="resolve" description="Use ivy to resolve classpaths" depends="bootstrap">
+        <taskdef resource="org/apache/ivy/ant/antlib.xml" uri="antlib:org.apache.ivy.ant" classpathref="ivy.classpath"/>
+        <ivy:resolve xmlns:ivy="antlib:org.apache.ivy.ant"/>
+        
+        <ivy:report xmlns:ivy="antlib:org.apache.ivy.ant" todir="${build}/ivy/reports" graph='false' xml='false'/>
+        
+        <ivy:cachepath xmlns:ivy="antlib:org.apache.ivy.ant" pathid="ivy.deps.path"/>
+    </target>
+
     <target name="prepare">
         <mkdir dir="${build}"/>
         <mkdir dir="${java.classes}"/>
         <mkdir dir="${libs}"/>
     </target>
 
-    <target name="compile" depends="prepare">
+    <target name="compile" depends="prepare, resolve">
         <javac srcdir="${java.src}" destdir="${java.classes}" optimize="true" debug="true" target="1.8" source="1.8">
             <classpath>
                 <path refid="classpath"/>
+                <path refid="ivy.deps.path"/>
             </classpath>
         </javac>
     </target>

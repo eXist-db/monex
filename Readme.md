@@ -63,10 +63,30 @@ Each eXistdb installation to monitor is added as an instance entry at */db/apps/
 In the Monex Remote Monitoring tab click "Run" to start all remote monitoring jobs. You should now see an entry "localhost" beneath "Remote Monitoring" and beneath that an entry "Timelines".
 
 
+Building
+--------
+If you wish to build Monex from source code you should follow these steps:
 
- 
+1. Clone it from *wolfgangmm* (or from your own fork) `git clone https://github.com/eXist-db/monex.git`.
 
+2. Ensure you have Apache Ant installed and available:
+```
+$ ant -version
+Apache Ant(TM) version 1.9.4 compiled on April 29 2014
+```
 
+3. Ensure that you have JDK 7 or newer installed and available:
+```
+$ javac -version
+javac 1.8.0_40
+```
 
+4. Copy `build.properties` to `local.build.properties`.
 
+5. Set the path to your eXist installation as the property `exist.dir` in  `local.build.properties`:
+```
+exist.dir=/opt/exist
+```
+
+6. Compile and build an EXPath package by running `ant xar`. The resultant XAR will be in the `build/` folder.
 
