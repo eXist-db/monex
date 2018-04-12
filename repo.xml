@@ -14,16 +14,16 @@
     <finish>post-install.xql</finish>
     <permissions xmlns:repo="http://exist-db.org/xquery/repo" password="monex" user="monex" group="monex" mode="rw-rw-r--"/>
     <changelog>
-        <change version="0.5">
-            <ul xmlns="http://www.w3.org/1999/xhtml">
-                <li>New function console:dump prints all variables in the local variable stack, which are visible at the point the statement appears in the code.</li>
-                <li>Info popup in remote console causes browser display issues.</li>
-            </ul>
-        </change>
         <change version="0.4">
             <ul xmlns="http://www.w3.org/1999/xhtml">
                 <li>Send alerts only to receivers watching the affected instance</li>
                 <li>Store last ping status in db; send alerts only if status changed</li>
+            </ul>
+        </change>
+        <change version="0.5">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>New function console:dump prints all variables in the local variable stack, which are visible at the point the statement appears in the code.</li>
+                <li>Info popup in remote console causes browser display issues.</li>
             </ul>
         </change>
         <change version="0.9.1">
@@ -72,6 +72,13 @@
         <change version="0.9.12">
             <ul xmlns="http://www.w3.org/1999/xhtml">
                 <li>Move jetty jars to eXist-db to prevent version conflicts</li>
+            </ul>
+        </change>
+        <change version="0.9.13">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Improved compatibility with Tomcat 7 - <a href="https://github.com/eXist-db/monex/issues/9">#9</a></li>
+                <li>Improved resolution of dependencies during build and build documentation - <a href="https://github.com/eXist-db/monex/pull/16">#16</a></li>
+                <li>Removed old version warnings <a href="https://github.com/eXist-db/monex/issues/51">#51</a></li>
             </ul>
         </change>
     </changelog>
