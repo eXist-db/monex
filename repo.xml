@@ -81,5 +81,10 @@
                 <li>Removed old version warnings <a href="https://github.com/eXist-db/monex/issues/51">#51</a></li>
             </ul>
         </change>
+        <change version="0.9.14">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Hotfix - <a href="https://github.com/eXist-db/monex/issues/57">#57</a></li>
+            </ul>
+        </change>
     </changelog>
 </meta>
