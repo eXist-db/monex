@@ -37,7 +37,7 @@ public class RemoteConsoleServlet extends WebSocketServlet {
         System.out.println("Initializing RemoteConsole...");
         ConsoleModule.setAdapter(new RemoteConsoleAdapter(this));
         ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
-        service.scheduleAtFixedRate(() -> RemoteConsoleServlet.this.send(null, "ping"), 5, 5, TimeUnit.SECONDS);
+        service.scheduleAtFixedRate(() -> RemoteConsoleServlet.this.send(null, "ping"), 500, 500, TimeUnit.MILLISECONDS);
     }
 
     public void send(String channel, Map data) {
