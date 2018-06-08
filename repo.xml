@@ -86,5 +86,15 @@
                 <li>Hotfix - <a href="https://github.com/eXist-db/monex/issues/57">#57</a></li>
             </ul>
         </change>
+        <change version="0.9.15">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Choose shorter period for ping to keep the websocket connection open in Remote Console (was 5s, now .5s)</li>
+            </ul>
+        </change>
+        <change version="0.9.16">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Fix release</li>
+            </ul>
+        </change>
     </changelog>
 </meta>
