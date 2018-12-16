@@ -63,9 +63,9 @@ JMX.util = (function() {
                 }
             }
             if (data.jmx.LockManager) {
-                var waiting = data.jmx.LockManager.WaitingThreads;
+                var waiting = data.jmx.LockTable.Attempting;
                 if (!waiting || !waiting.length) {
-                    data.jmx.LockManager.WaitingThreads = [];
+                    data.jmx.LockTable.Attempting = [];
                 }
             }
             if (data.jmx.Database) {

@@ -34,7 +34,7 @@
                             Active DB Processes
                         </div>
                         <div class="info-box-number" id="jmx-brokers">
-                            <span data-bind="text: jmx.Database.ActiveBrokers">?</span> of 
+                            <span data-bind="text: jmx.Database.ActiveBrokers">?</span> of
                             <span data-bind="text: jmx.Database.TotalBrokers">?</span>
                         </div>
                     </div>
@@ -77,7 +77,7 @@
                         <span class="info-box-text">
                             Waiting Threads
                         </span>
-                        <span class="info-box-number" data-bind="text: $data.jmx.LockManager.WaitingThreads().length || 0">?</span>
+                        <span class="info-box-number" data-bind="text: $data.jmx.LockTable.Attempting.length || 0">?</span>
                     </div>
                 </div>
             </div><!-- ./col -->
@@ -294,7 +294,7 @@
                             </button>
                         </div>
                     </div><!-- /.box-header -->
-                    <div class="box-body jmx-cache-manager" data-bind="with: findByName($data.jmx.CacheManager(), 'org.exist.management.exist:type=CacheManager')">
+                    <div class="box-body jmx-cache-manager" data-bind="with: findByName($data.jmx.CacheManager, 'org.exist.management.exist:type=CacheManager')">
                         <div class="clearfix">
                             <span class="pull-left">Cache Manager</span>
                             <small class="pull-right">
@@ -304,7 +304,7 @@
                             <div class="progress-bar progress-bar-success progress-cache" data-bind="style: {width: Math.round($data.CurrentSize() / ($data.MaxTotal() / 100)) + '%'}"/>
                         </div>
                     </div>
-                    <div class="box-body jmx-cache-manager" data-bind="with: findByName($data.jmx.CacheManager(), 'org.exist.management.exist:type=CollectionCacheManager')">
+                    <div class="box-body jmx-cache-manager" data-bind="with: findByName($data.jmx.CacheManager, 'org.exist.management.exist:type=CollectionCacheManager')">
                         <div class="clearfix">
                             <span class="pull-left">Collection Cache Manager</span>
                             <small class="pull-right">
@@ -519,25 +519,24 @@
                         <table class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th>Thread</th>
-                                    <th>Waiting for</th>
                                     <th>Resource</th>
-                                    <th>Lock mode</th>
-                                    <th>Lock type</th>
+                                    <th>Waiting for</th>
                                 </tr>
                             </thead>
-                            <tbody data-bind="visible: $data.jmx.LockManager.WaitingThreads().length == 0">
+                            <tbody data-bind="visible: !$data.jmx.LockTable.Acquired() || $data.jmx.LockTable.Acquired().length == 0">
                                 <tr>
                                     <td colspan="5">No waiting threads</td>
                                 </tr>
                             </tbody>
-                            <tbody data-bind="foreach: jmx.LockManager.WaitingThreads">
+                            <tbody data-bind="foreach: jmx.LockTable.Acquired">
                                 <tr>
-                                    <td data-bind="text: waitingThread"/>
-                                    <td data-bind="text: owner"/>
-                                    <td data-bind="text: id"/>
-                                    <td data-bind="text: lockMode"/>
-                                    <td data-bind="text: lockType"/>
+                                    <td data-bind="text: key"/>
+                                    <td data-bind="foreach: value">
+                                        <span data-bind="text: key"/>
+                                        (<span data-bind="foreach: value">
+                                            <span data-bind="text: key"/>
+                                        </span>)
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
