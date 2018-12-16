@@ -96,5 +96,10 @@
                 <li>Fix release</li>
             </ul>
         </change>
+        <change version="0.9.17">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Repair for eXist 5.0.0 release</li>
+            </ul>
+        </change>
     </changelog>
 </meta>
