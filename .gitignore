@@ -1,7 +1,3 @@
-# Created by .gitignore support plugin (hsz.mobi)
-*.class
-.idea/*
-build/
-lib/
-expath-pkg.xml
-local.build.properties
+*.iml
+.idea/
+target/

@@ -1,0 +1,7 @@
+language: java
+
+dist: xenial
+
+cache:
+  directories:
+  - $HOME/.m2

@@ -1,6 +1,9 @@
 # Monex (Monitoring for eXist)
 
-![Image](resources/img/screenshot.png?raw=true)
+[![Build Status](https://travis-ci.com/eXist-db/monex.svg?branch=master)](https://travis-ci.com/eXist-db/monex)
+
+
+![Image](src/main/xar-resources/resources/img/screenshot.png?raw=true)
 
 An application for monitoring, profiling and inspecting a running eXist-db instance. 
 
@@ -67,26 +70,25 @@ Building
 --------
 If you wish to build Monex from source code you should follow these steps:
 
-1. Clone it from *wolfgangmm* (or from your own fork) `git clone https://github.com/eXist-db/monex.git`.
+1. Ensure you have Git, Apache Maven 3.3+, and Java JDK 8 installed and available:
+```bash
+$ git --version
+git version 2.20.0
 
-2. Ensure you have Apache Ant installed and available:
-```
-$ ant -version
-Apache Ant(TM) version 1.9.4 compiled on April 29 2014
-```
+$ mvn --version
 
-3. Ensure that you have JDK 7 or newer installed and available:
-```
-$ javac -version
-javac 1.8.0_40
-```
-
-4. Copy `build.properties` to `local.build.properties`.
-
-5. Set the path to your eXist installation as the property `exist.dir` in  `local.build.properties`:
-```
-exist.dir=/opt/exist
+Apache Maven 3.5.4 (1edded0938998edf8bf061f1ceb3cfdeccf443fe; 2018-06-18T02:33:14+08:00)
+Maven home: /usr/local/maven
+Java version: 1.8.0_192, vendor: Azul Systems, Inc., runtime: /Library/Java/JavaVirtualMachines/zulu8.33.0.1-jdk8.0.192-macosx_x64/jre
+Default locale: en_GB, platform encoding: UTF-8
+OS name: "mac os x", version: "10.14.1", arch: "x86_64", family: "mac"
 ```
 
-6. Compile and build an EXPath package by running `ant xar`. The resultant XAR will be in the `build/` folder.
+3. Clone and build an EXPath package by running:
+```bash
+$ git clone https://github.com/eXist-db/monex.git
+$ cd monex
+$ mvn package
+```
 
+The resultant XAR will be in the `target/` folder.
