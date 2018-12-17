@@ -1,6 +1,0 @@
-<ivy-module version="2.0">
-    <info organisation="com.github.exist-db" module="monex"/>
-    <dependencies>
-        <dependency org="org.slf4j" name="slf4j-api" rev="1.7.10"/>
-    </dependencies>
-</ivy-module>
