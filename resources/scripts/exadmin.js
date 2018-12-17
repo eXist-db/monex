@@ -226,7 +226,7 @@ JMX.connection = (function() {
             return;
         }
 
-        var rootcontext = location.pathname.slice(0, location.pathname.indexOf("/apps"));
+        var rootcontext = location.pathname.replace(/^(.*?)\/(apps\/)?monex\/.*$/, "$1");
         var proto = window.location.protocol == "https:" ? "wss" : "ws";
         var url = proto + "://" + location.host + rootcontext + "/rconsole";
         var connection = new WebSocket(url);
@@ -263,7 +263,7 @@ JMX.connection = (function() {
         invoke: function(operation, mbean, args) {
             var url;
             if (currentInstance.name() == "localhost") {
-                url = location.pathname.replace(/^(.*)\/apps\/.*$/, "$1") +
+                url = location.pathname.replace(/^(.*?)\/(apps\/)?monex\/.*$/, "$1") +
                     "/status?operation=" + operation + "&mbean=" + mbean + "&token=" + currentInstance.token;
             } else {
                 url = "modules/remote.xql?operation=" + operation + "&mbean=" + mbean + "&name=" + currentInstance.name();
@@ -293,7 +293,7 @@ JMX.connection = (function() {
             var url;
             var name = currentInstance.name();
             if (name == "localhost") {
-                url = location.pathname.replace(/^(.*)\/apps\/.*$/, "$1") +
+                url = location.pathname.replace(/^(.*?)\/(apps\/)?monex\/.*$/, "$1") +
                     "/status?c=instances&c=processes&c=locking&c=memory&c=caches&c=system&c=operatingsystem&token=" + currentInstance.token;
             } else {
                 url = "modules/remote.xql?name=" + name;
