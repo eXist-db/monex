@@ -1,5 +1,8 @@
 # Monex (Monitoring for eXist)
 
+[![Build Status](https://travis-ci.com/eXist-db/monex.svg?branch=master)](https://travis-ci.com/eXist-db/monex)
+
+
 ![Image](src/main/xar-resources/resources/img/screenshot.png?raw=true)
 
 An application for monitoring, profiling and inspecting a running eXist-db instance. 
