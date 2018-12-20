@@ -1,3 +1,22 @@
+/*
+ * eXist Open Source Native XML Database
+ * Copyright (C) 2001-2018 The eXist Project
+ * http://exist-db.org
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package org.exist.remoteconsole;
 
 import org.exist.console.ConsoleAdapter;
@@ -6,28 +25,32 @@ import org.exist.xquery.value.DateTimeValue;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
 
 public class RemoteConsoleAdapter implements ConsoleAdapter {
 
-    private RemoteConsoleServlet servlet;
+    private final BiConsumer<String, Map> remoteDataWriter;
+    private final BiConsumer<String, String> remoteStringWriter;
 
-    public RemoteConsoleAdapter(RemoteConsoleServlet servlet) {
-        this.servlet = servlet;
+    public RemoteConsoleAdapter(final BiConsumer<String, Map> remoteDataWriter,
+            final BiConsumer<String, String> remoteStringWriter) {
+        this.remoteDataWriter = remoteDataWriter;
+        this.remoteStringWriter = remoteStringWriter;
     }
 
     @Override
-    public void log(String channel, String message) {
+    public void log(final String channel, final String message) {
         log(channel, false, message);
     }
 
     @Override
-    public void log(String channel, boolean json, String message) {
-        final Map<String, Object> data = new HashMap<String, Object>();
+    public void log(final String channel, final boolean json, final String message) {
+        final Map<String, Object> data = new HashMap<>();
         data.put("json", json);
         data.put("message", message);
         data.put("timestamp", new DateTimeValue(new Date()));
 
-        servlet.send(channel, data);
+        remoteDataWriter.accept(channel, data);
     }
 
     @Override
@@ -36,8 +59,9 @@ public class RemoteConsoleAdapter implements ConsoleAdapter {
     }
 
     @Override
-    public void log(String channel, String source, int line, int column, boolean json, String message) {
-        final Map<String, Object> data = new HashMap<String, Object>();
+    public void log(final String channel, final String source, final int line, final int column, final boolean json,
+            final String message) {
+        final Map<String, Object> data = new HashMap<>();
         data.put("source", source);
         data.put("line", line);
         data.put("column", column);
@@ -45,11 +69,11 @@ public class RemoteConsoleAdapter implements ConsoleAdapter {
         data.put("message", message);
         data.put("timestamp", new DateTimeValue(new Date()));
 
-        servlet.send(channel, data);
+        remoteDataWriter.accept(channel, data);
     }
 
     @Override
-    public void send(String channel, String jsonString) {
-        servlet.send(channel, jsonString);
+    public void send(final String channel, final String jsonString) {
+        remoteStringWriter.accept(channel, jsonString);
     }
 }
