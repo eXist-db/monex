@@ -1,4 +1,3 @@
-
 function findByName(nodes, name) {
     if (nodes instanceof Array) {
         for (var i = 0; i < nodes.length; i++) {
@@ -158,7 +157,7 @@ JMX.connection = (function() {
     var onUpdateCb;
     var poll = true;
     var pollPeriod = 1000;
-    
+
     function Instance(config, schedulerActive) {
         this.name = ko.observable(config.name);
         this.url = ko.observable(config.url);
@@ -400,11 +399,11 @@ JMX.connection = (function() {
                     instance.time("?");
             }
         },
-        
+
         setPollPeriod: function(period) {
             pollPeriod = parseFloat(period) * 1000;
         },
-        
+
         togglePolling: function() {
             if (poll) {
                 poll = false;
