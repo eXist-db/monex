@@ -1,0 +1,32 @@
+{
+  "name": "monex",
+  "version": "0.9.18",
+  "description": "Monitoring Application for eXist-db",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eXist-db/monex.git"
+  },
+  "keywords": [
+    "eXist-db",
+    "xquery",
+    "performance",
+    "monitoring",
+    "xar",
+    "expath"
+  ],
+  "author": "exist-db",
+  "license": "LGPL-2.1-only",
+  "bugs": {
+    "url": "https://github.com/eXist-db/monex/issues"
+  },
+  "homepage": "https://github.com/eXist-db/monex#readme",
+  "dependencies": {
+    "admin-lte": "^2.4.10",
+    "d3": "^3.5.17",
+    "jquery": "^1.12.4",
+    "knockout": "^3.5.0"
+  }
+}
