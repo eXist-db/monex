@@ -18,7 +18,7 @@
     <tag>application</tag>
     <category id="apps">Applications</category>
 
-    <dependency processor="http://exist-db.org" semver-min="${exist.version}" />
+    <dependency processor="http://exist-db.org" semver-min="${min.version}" />
     <dependency package="http://exist-db.org/apps/shared"/>
 
     <!-- Collection inside /db/apps where xar-resources will be copied to -->
@@ -145,6 +145,16 @@
         <change version="0.9.17">
             <ul xmlns="http://www.w3.org/1999/xhtml">
                 <li>Repair for eXist 5.0.0 release</li>
+            </ul>
+        </change>
+        <change version="2.0.0">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Version note: Due to changes in JMX output in eXist 5, Monex is now split into a 1.x branch for users of eXist 4.x and the master branch will carry Monex 2.x releases for users of eXist 5+.</li>
+                <li>Improved: Monex is now built with maven</li>
+                <li>Improved: Removed dependency on Jetty. Monex now uses the standard Java WebSocket API.</li>
+                <li>Improved: Declared front end dependencies via npm.</li>
+                <li>Removed: HipChat module</li>
+                <li>Fixed: Javascript errors when loading various pages</li>
             </ul>
         </change>
     </changelog>
