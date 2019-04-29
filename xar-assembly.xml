@@ -157,6 +157,11 @@
                 <li>Fixed: Javascript errors when loading various pages</li>
             </ul>
         </change>
+        <change version="2.0.1">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Fixed: Installation of monex's test collection &amp; instances config files</li>
+            </ul>
+        </change>
     </changelog>
 
 </package>
