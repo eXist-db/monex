@@ -19,10 +19,10 @@
  */
 package org.exist.remoteconsole;
 
-import org.exist.console.ConsoleAdapter;
+import org.exist.xquery.XPathException;
 import org.exist.xquery.value.DateTimeValue;
+import org.exist.console.ConsoleAdapter;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -48,7 +48,7 @@ public class RemoteConsoleAdapter implements ConsoleAdapter {
         final Map<String, Object> data = new HashMap<>();
         data.put("json", json);
         data.put("message", message);
-        data.put("timestamp", new DateTimeValue(new Date()));
+        data.put("timestamp", getTimestamp());
 
         remoteDataWriter.accept(channel, data);
     }
@@ -67,7 +67,7 @@ public class RemoteConsoleAdapter implements ConsoleAdapter {
         data.put("column", column);
         data.put("json", json);
         data.put("message", message);
-        data.put("timestamp", new DateTimeValue(new Date()));
+        data.put("timestamp", getTimestamp());
 
         remoteDataWriter.accept(channel, data);
     }
@@ -75,5 +75,13 @@ public class RemoteConsoleAdapter implements ConsoleAdapter {
     @Override
     public void send(final String channel, final String jsonString) {
         remoteStringWriter.accept(channel, jsonString);
+    }
+
+    private String getTimestamp() {
+        try {
+            return new DateTimeValue().getStringValue();
+        } catch (XPathException e) {
+            return null;
+        }
     }
 }

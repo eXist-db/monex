@@ -65,6 +65,7 @@
 
         <exist.version>5.0.0-SNAPSHOT</exist.version>
         <min.version>5.0.0-RC6</min.version>
+        <jetty.version>9.4.19.v20190610</jetty.version>
 
         <!-- used in the EXPath Package Descriptor -->
         <package-name>http://exist-db.org/apps/monex</package-name>
@@ -98,7 +99,16 @@
             <version>1.1</version>
             <scope>provided</scope>
         </dependency>
-
+        <dependency>
+            <groupId>org.eclipse.jetty.websocket</groupId>
+            <artifactId>javax-websocket-server-impl</artifactId>
+            <version>${jetty.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty.websocket</groupId>
+            <artifactId>websocket-server</artifactId>
+            <version>${jetty.version}</version>
+         </dependency>
         <!-- test dependencies -->
         <dependency>
             <groupId>org.exist-db</groupId>
