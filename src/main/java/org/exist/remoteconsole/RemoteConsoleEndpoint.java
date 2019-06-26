@@ -42,13 +42,14 @@ import java.util.concurrent.TimeUnit;
  */
 @ServerEndpoint("/rconsole")
 public class RemoteConsoleEndpoint {
+    public final static String DEFAULT_CHANNEL = "_default_";
+
     private static final Logger LOG = LoggerFactory.getLogger(RemoteConsoleEndpoint.class);
 
     private final Map<Session, String> sessions = new ConcurrentHashMap();
 
     public RemoteConsoleEndpoint() {
         ConsoleModule.setAdapter(new RemoteConsoleAdapter(this::sendAll, this::sendAll));
-
         final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor(
                 runnable -> ThreadUtils.newGlobalThread("rconsole", runnable));
         service.scheduleAtFixedRate(this::pingAll, 500, 500, TimeUnit.MILLISECONDS);
@@ -57,7 +58,7 @@ public class RemoteConsoleEndpoint {
     @OnOpen
     public void openSession(final Session session) {
         session.setMaxIdleTimeout(10000);
-        sessions.put(session, null);
+        sessions.put(session, DEFAULT_CHANNEL);
     }
 
     @OnClose
@@ -124,7 +125,7 @@ public class RemoteConsoleEndpoint {
                 final Session session = entry.getKey();
                 final String channel = entry.getValue();
 
-                if (toChannel == null || (channel != null && toChannel.equals(channel))) {
+                if (toChannel == null || (!channel.equals(DEFAULT_CHANNEL) && toChannel.equals(channel))) {
                     session.getBasicRemote().sendText(message);
                 }
 

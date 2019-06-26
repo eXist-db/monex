@@ -3,7 +3,7 @@ var RemoteConsole = (function() {
     var connection;
     var bufferSize = 50;
     var currentChannel = "default";
-    
+
     return {
         connect: function() {
             var rootcontext = location.pathname.slice(0, location.pathname.indexOf("/apps"));
@@ -42,12 +42,12 @@ var RemoteConsole = (function() {
                 }
 
                 var smallScreen = Modernizr.mq('(max-width: 767px)');
-                
+
                 var time = data.timestamp.replace(/^.*T([^\+]+).*$/, "$1");
                 var tr = document.createElement("tr");
                 tr.style.display = "none";
                 tr.className = "message";
-                
+
                 var td = document.createElement("td");
                 td.className = "hidden-xs";
                 td.appendChild(document.createTextNode(time));
@@ -99,7 +99,7 @@ var RemoteConsole = (function() {
                 var btn = document.createElement("button");
                 btn.type = "button";
                 btn.className = "btn btn-default";
-                
+
                 var info = document.createElement("span");
                 info.className = "fa fa-info";
                 btn.appendChild(info);
@@ -111,7 +111,7 @@ var RemoteConsole = (function() {
                     trigger: "click"
                 });
                 tr.appendChild(td);
-                
+
                 $("#console").append(tr);
 
                 $(tr).show(200, function() {
