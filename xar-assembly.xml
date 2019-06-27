@@ -177,6 +177,11 @@
                 <li>Fixed: Installation of monex's test collection &amp; instances config files</li>
             </ul>
         </change>
+        <change version="2.0.2">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Fix console for compatibility with eXist 5</li>
+            </ul>
+        </change>
     </changelog>
 
 </package>
