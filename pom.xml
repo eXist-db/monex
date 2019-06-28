@@ -65,7 +65,7 @@
 
         <exist.version>5.0.0-SNAPSHOT</exist.version>
         <min.version>5.0.0-RC8</min.version>
-        <jackson.version>2.9.8</jackson.version>
+        <jackson.version>2.9.9</jackson.version>
         <websocket.api.version>1.1</websocket.api.version>
 
         <!-- used in the EXPath Package Descriptor -->
