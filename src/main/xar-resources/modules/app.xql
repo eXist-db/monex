@@ -32,21 +32,21 @@ declare variable $app:jmx-token :=
     };
 
 declare variable $app:default-timeline-xpaths := map { 
-    "brokers-graph" := ("$jmx//jmx:ActiveBrokers", "count($jmx//jmx:RunningQueries/jmx:row)"),
-    "threads-graph" := ("count($jmx//jmx:WaitingThreads/jmx:row)"),
-    "cpu-graph" := ("$jmx//jmx:ProcessCpuLoad", "$jmx//jmx:SystemCpuLoad"), 
-    "memory-graph" := ("$jmx//jmx:HeapMemoryUsage/jmx:used", "$jmx//jmx:HeapMemoryUsage/jmx:committed"), 
-    "slow-queries-graph" := ("max($jmx//jmx:mostRecentExecutionDuration)",
+    "brokers-graph": ("$jmx//jmx:ActiveBrokers", "count($jmx//jmx:RunningQueries/jmx:row)"),
+    "threads-graph": ("count($jmx//jmx:WaitingThreads/jmx:row)"),
+    "cpu-graph": ("$jmx//jmx:ProcessCpuLoad", "$jmx//jmx:SystemCpuLoad"), 
+    "memory-graph": ("$jmx//jmx:HeapMemoryUsage/jmx:used", "$jmx//jmx:HeapMemoryUsage/jmx:committed"), 
+    "slow-queries-graph": ("max($jmx//jmx:mostRecentExecutionDuration)",
             "avg($jmx//jmx:mostRecentExecutionDuration)")
     (: full path is $jmx/jmx:ProcessReport/jmx:RecentQueryHistory/jmx:row/jmx:mostRecentExecutionDuration :)
 };
 
 declare variable $app:default-timeline-labels := map {
-    "brokers-graph" := ("Active brokers", "Running queries"),
-    "threads-graph" := ("Waiting Threads"),
-    "cpu-graph" := ("Process CPU Load", "System CPU Load"), 
-    "memory-graph" := ("Used Memory", "Committed Memory"), 
-    "slow-queries-graph" := ("Slowest Query", "Average Query")
+    "brokers-graph": ("Active brokers", "Running queries"),
+    "threads-graph": ("Waiting Threads"),
+    "cpu-graph": ("Process CPU Load", "System CPU Load"), 
+    "memory-graph": ("Used Memory", "Committed Memory"), 
+    "slow-queries-graph": ("Slowest Query", "Average Query")
 };
 
 declare variable $app:default-timeline-type := "lines";
@@ -213,7 +213,7 @@ function app:profile($node as node(), $model as map(*), $action as xs:string?) {
     return
         (
             map {
-                "trace" := $adjusted-trace
+                "trace": $adjusted-trace
             }
             (:,
             if (exists($tare)) then console:log(<log><raw-trace>{$trace}</raw-trace><adjusted>{$adjusted-trace}</adjusted><tare>{$tare}</tare></log>) else () :)
