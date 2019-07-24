@@ -182,6 +182,11 @@
                 <li>Fix console for compatibility with eXist 5</li>
             </ul>
         </change>
+        <change version="2.0.3">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Fixed: Removed deprecated draft map constructor for compatibility with forthcoming eXist 5.0.0-RC8</li>
+            </ul>
+        </change>
     </changelog>
 
 </package>
