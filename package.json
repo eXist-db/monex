@@ -3,7 +3,8 @@
   "version": "0.9.18",
   "description": "Monitoring Application for eXist-db",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "cypress": "cypress run"
   },
   "repository": {
     "type": "git",
@@ -28,5 +29,8 @@
     "d3": "^3.5.17",
     "jquery": "^1.12.4",
     "knockout": "^3.5.0"
+  },
+  "devDependencies": {
+    "cypress": "^3.4.1"
   }
 }
