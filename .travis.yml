@@ -1,15 +1,36 @@
-language: java
-
 dist: xenial
+addons:
+  apt:
+    packages:
+    - libgconf-2-4
 
-matrix:
-  include:
-    - jdk: openjdk8
-    - jdk: openjdk9
-    - jdk: openjdk10
-    - jdk: openjdk11
-    - jdk: openjdk12
+language: java
+jdk:
+  - openjdk8
+  - openjdk11
+
+services:
+  - docker
 
 cache:
   directories:
   - $HOME/.m2
+
+env:
+  - img=existdb/existdb:latest
+  # - img=existdb/existdb:release
+
+before_install:
+  - docker pull $img
+  - docker create  --name exist-ci -p 8080:8080 $img
+
+before_script:
+  # DP: changes to registered service might not be immediately available here
+  - docker cp ./target/monex-*.xar exist-ci:exist/autodeploy
+  - docker start exist-ci
+  # exist needs time
+  - sleep 30
+
+script:
+  - npm ci
+  - npm run cypress -- --record

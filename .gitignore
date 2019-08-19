@@ -2,3 +2,6 @@
 .idea/
 target/
 node_modules/
+
+src/test/cypress/videos/*
+src/test/cypress/screenshots/*
