@@ -162,6 +162,21 @@
                 <li>Repair for eXist 5.0.0 release</li>
             </ul>
         </change>
+        <change version="1.0.0">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Version note: Due to changes in JMX output in eXist 5.x, Monex is now split into a 1.x branch for users of eXist 4.x and the develop branch will carry Monex 2.0 releases for users of eXist 5+</li>
+                <li>Improved: Monex is now built with maven</li>
+                <li>Improved: Removed dependency on Jetty. Monex now uses the standard Java WebSocket API.</li>
+                <li>Improved: Declared front end dependencies via npm.</li>
+                <li>Removed: HipChat module</li>
+                <li>Fixed: Javascript errors when loading various pages</li>
+            </ul>
+        </change>
+        <change version="1.0.1">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Fixed: Installation of monex's test collection &amp; instances config files</li>
+            </ul>
+        </change>
         <change version="2.0.0">
             <ul xmlns="http://www.w3.org/1999/xhtml">
                 <li>Version note: Due to changes in JMX output in eXist 5, Monex is now split into a 1.x branch for users of eXist 4.x and the master branch will carry Monex 2.x releases for users of eXist 5+.</li>
@@ -185,6 +200,12 @@
         <change version="2.0.3">
             <ul xmlns="http://www.w3.org/1999/xhtml">
                 <li>Fixed: Removed deprecated draft map constructor for compatibility with forthcoming eXist 5.0.0-RC8</li>
+            </ul>
+        </change>
+        <change version="2.0.4">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Fixed: Moved integration tests into the source repository - <a href="https://github.com/eXist-db/monex/pull/96">#96</a></li>
+                <li>Fixed: Read product details from JMX output - <a href="https://github.com/eXist-db/monex/pull/99">#99</a></li>
             </ul>
         </change>
     </changelog>
