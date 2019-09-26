@@ -63,7 +63,7 @@
         <project.build.source>1.8</project.build.source>
         <project.build.target>1.8</project.build.target>
 
-        <exist.version>5.0.0-SNAPSHOT</exist.version>
+        <exist.version>5.0.0</exist.version>
         <min.version>5.0.0</min.version>
         <jackson.version>2.9.9</jackson.version>
         <websocket.api.version>1.1</websocket.api.version>
@@ -117,12 +117,13 @@
             <version>${websocket.api.version}</version>
         </dependency>
         <!-- test dependencies -->
-        <dependency>
+        <!-- testkit deprecated after 4.7.0 or 5.0.0-RC6 -->
+        <!-- <dependency>
             <groupId>org.exist-db</groupId>
             <artifactId>exist-testkit</artifactId>
             <version>${exist.version}</version>
             <scope>test</scope>
-        </dependency>
+        </dependency> -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
