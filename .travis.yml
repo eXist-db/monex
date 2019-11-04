@@ -18,7 +18,7 @@ cache:
 
 env:
   - img=existdb/existdb:latest
-  # - img=existdb/existdb:release
+  - img=existdb/existdb:release
 
 before_install:
   - docker pull $img
