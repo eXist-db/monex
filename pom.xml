@@ -63,8 +63,9 @@
         <project.build.source>1.8</project.build.source>
         <project.build.target>1.8</project.build.target>
 
-        <exist.version>5.1.0</exist.version>
-        <min.version>5.1.0</min.version>
+        <exist.java-api.version>5.0.0</exist.java-api.version>      <!-- The eXist-db XQuery Java Module API version -->
+        <exist.processor.version>5.1.0</exist.processor.version>    <!-- The version of eXist-db needed by this EXPath Module -->
+
         <jackson.version>2.10.1</jackson.version>
         <websocket.api.version>1.1</websocket.api.version>
 
@@ -79,7 +80,7 @@
         <dependency>
             <groupId>org.exist-db</groupId>
             <artifactId>exist-core</artifactId>
-            <version>${exist.version}</version>
+            <version>${exist.java-api.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -116,14 +117,8 @@
             <artifactId>javax.websocket-api</artifactId>
             <version>${websocket.api.version}</version>
         </dependency>
+
         <!-- test dependencies -->
-        <!-- testkit deprecated after 4.7.0 or 5.0.0-RC6 -->
-        <!-- <dependency>
-            <groupId>org.exist-db</groupId>
-            <artifactId>exist-testkit</artifactId>
-            <version>${exist.version}</version>
-            <scope>test</scope>
-        </dependency> -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
