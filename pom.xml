@@ -63,7 +63,7 @@
         <project.build.source>1.8</project.build.source>
         <project.build.target>1.8</project.build.target>
 
-        <exist.java-api.version>5.0.0</exist.java-api.version>      <!-- The eXist-db XQuery Java Module API version -->
+        <exist.java-api.version>5.1.0</exist.java-api.version>      <!-- The eXist-db XQuery Java Module API version -->
         <exist.processor.version>5.1.0</exist.processor.version>    <!-- The version of eXist-db needed by this EXPath Module -->
 
         <jackson.version>2.10.1</jackson.version>
