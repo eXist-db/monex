@@ -213,6 +213,11 @@
                 <li>Fixed: Dependency conflicts. Now requires eXist 5.1.0.</li>
             </ul>
         </change>
+        <change version="2.1.1">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Updated: Aligned Jackson dependency with eXist 5.2.0.</li>
+            </ul>
+        </change>
     </changelog>
 
 </package>
