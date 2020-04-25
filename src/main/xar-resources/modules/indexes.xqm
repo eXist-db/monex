@@ -1,4 +1,4 @@
-xquery version "3.0";
+xquery version "3.1";
 
 (:
     Module: Browse Indexes: See an overview of .xconf files stored in /db/system/config, 
@@ -27,8 +27,11 @@ declare variable $indexes:sortby := request:get-parameter('sortby', 'term');
 declare variable $indexes:sortorder := request:get-parameter('sortorder', 'ascending');
 declare variable $indexes:node-name := request:get-parameter('node-name', '');
 declare variable $indexes:field := request:get-parameter("field", "");
+declare variable $indexes:fields := request:get-parameter("fields", "");
 declare variable $indexes:match := request:get-parameter('match', '');
 declare variable $indexes:collection := request:get-parameter('collection', '');
+declare variable $indexes:facet := request:get-parameter('facet', '');
+declare variable $indexes:hierarchical := request:get-parameter('hierarchical', '');
 declare variable $indexes:node-set := 
     if ($indexes:node-name ne '' and $indexes:collection ne '') then 
         indexes:get-nodeset-from-qname($indexes:collection, $indexes:node-name) 
@@ -124,6 +127,18 @@ function indexes:current-index($node as node(), $model as map(*)) {
     indexes:index-name-to-label($indexes:index) || " Index on " || ($indexes:node-name, $indexes:match)[1]
 };
 
+declare
+    %templates:wrap
+function indexes:current-facet($node as node(), $model as map(*)) {
+    $indexes:facet || " facet"
+};
+
+declare
+    %templates:wrap
+function indexes:current-field($node as node(), $model as map(*)) {
+    $indexes:field || " field"
+};
+
 (:
     Transforms an index definition into an HTML table.
 :)
@@ -194,7 +209,8 @@ function indexes:show-index-keys($node as node(), $model as map(*)) {
                         if ($indexes:start-value castable as xs:date) then xs:date($indexes:start-value) else xs:date('0001-01-01')                  
                     else 
                         if ($indexes:start-value castable as xs:integer) then xs:integer($indexes:start-value) 
-                    else 0
+                    else 
+                        0
                 return util:index-keys($indexes:node-set, $start-value, $indexes:callback, $indexes:max-number-returned)
         (: all other indexes need to specify the index in the 5th parameter of util:index-keys() :)
         else
@@ -303,6 +319,232 @@ function indexes:show-index-keys($node as node(), $model as map(*)) {
 };
 
 (:
+    Shows facets on a given nodeset or QName
+:)
+declare 
+    %templates:wrap
+function indexes:show-facet($node as node(), $model as map(*)) {
+    let $query-start-time := util:system-time()
+    let $facets-expression := 
+        string-join((
+            if ($indexes:node-name) then
+                indexes:get-namespace-declaration-from-node-name($indexes:node-name, $indexes:collection) => distinct-values()
+            else (: if ($indexes:match) then :)
+                let $node-tests := tokenize($indexes:match, "/+")[. ne ""]
+                let $ns-prefixes := ($node-tests ! substring-before(., ":")) => distinct-values()
+                let $representatives := 
+                    for $ns-prefix in $ns-prefixes
+                    return
+                        $node-tests[matches(., "^" || $ns-prefix || ":")][1]
+                return
+                    $representatives ! indexes:get-namespace-declaration-from-node-name(., $indexes:collection)
+            ,
+            'collection("', $indexes:collection, '")'
+            , 
+            if ($indexes:node-name) then 
+                ('//' || $indexes:node-name) 
+            else 
+                $indexes:match
+            , 
+            '[ft:query(., '
+            ,
+            (
+            if ($indexes:fields ne "") then
+                ('"' || string-join((tokenize($indexes:fields, ",") ! (. || ':*')), " ") || '"')
+            else
+                '()'
+            )
+            ,
+            ', map { "leading-wildcard": "yes", "filter-rewrite": "yes"'
+            ,
+            if ($indexes:fields ne "") then
+                ', "fields": (' || string-join((tokenize($indexes:fields, ",") ! ('"' || . || '"')), ", ") || ')'
+            else
+                ()
+            ,
+            '}'
+            ,
+            ')]'
+            ,
+            ' => ft:facets("', $indexes:facet, '")'
+        ))
+    let $facets := util:eval($facets-expression)
+    let $rows := 
+        map:for-each(
+            $facets, 
+            function($key, $value) { 
+                <tr>
+                    <td>{$key}</td>
+                    <td>{$value}</td>
+                </tr>
+            }
+        )
+    let $sorted-rows := 
+        if ($indexes:sortby eq "label") then 
+            if ($indexes:sortorder eq "ascending") then
+                for $row in $rows
+                order by $row/td[1]
+                return $row
+            else
+                for $row in $rows
+                order by $row/td[1] descending
+                return $row
+        else (: if ($indexes:sortby eq "count") then :)
+            if ($indexes:sortorder eq "ascending") then
+                for $row in $rows
+                order by $row/td[2] cast as xs:integer
+                return $row
+            else
+                for $row in $rows
+                order by $row/td[2] cast as xs:integer descending
+                return $row
+    let $query-end-time := util:system-time()
+    let $query-duration := ($query-end-time - $query-start-time) div xs:dayTimeDuration('PT1S')
+
+    return
+    
+        <div>
+            <p>1-{min((count($sorted-rows), $indexes:max-number-returned))} of {count($sorted-rows)} labels returned in {$query-duration}s</p>
+            <p>Facet "{$indexes:facet}" {if ($indexes:hierarchical eq "yes") then "(hierarchical)" else ()} defined on "{($indexes:node-name, $indexes:match)[. ne ""][1]}" in the <a href="{concat('collection.html?collection=', $indexes:collection)}">{$indexes:collection}</a> collection.</p>
+            <form method="get" class="form-horizontal" action="{indexes:remove-parameter-names('start-value')}" role="form">
+                <div class="form-group">
+                    <label for="max" class="col-sm-2 control-label">Max number returned:</label>
+                    <div class="col-sm-4">
+                        <select id="max" name="max" class="form-control">{
+                            for $number in (10, 100, 1000, 10000)
+                            return
+                                <option value="{$number}">{if ($number eq $indexes:max-number-returned) then attribute selected {'selected'} else ()}{$number}</option>
+                        }</select>
+                    </div>
+                    <span class="input-group-btn">
+                        <button type="submit" class="btn btn-primary" title="Submit">
+                            <span class="glyphicon glyphicon-search"/></button>
+                    </span>
+                    {
+                        for $param in request:get-parameter-names()[not(. = ('max', 'start-value'))]
+                        return 
+                            <input type="hidden" id="{$param}" name="{$param}" value="{request:get-parameter($param, '')}"/>
+                    }
+                </div>
+            </form>
+            <table class="table table-bordered table-striped dataTable">
+                <tr>{
+                    for $column in ('label', 'count')
+                    return
+                        <th><a href="{indexes:set-sortorder($column)}">{$column} {indexes:sort-direction-indicator($column)}</a></th>
+                }</tr>
+                { $sorted-rows }
+            </table>
+        </div>
+};
+
+(:
+    Shows fields on a given nodeset or QName
+:)
+declare 
+    %templates:wrap
+function indexes:show-field($node as node(), $model as map(*)) {
+    let $query-start-time := util:system-time()
+    let $fields-expression := 
+        string-join((
+            if ($indexes:node-name) then
+                indexes:get-namespace-declaration-from-node-name($indexes:node-name, $indexes:collection) => distinct-values()
+            else (: if ($indexes:match) then :)
+                let $node-tests := tokenize($indexes:match, "/+")[. ne ""]
+                let $ns-prefixes := ($node-tests ! substring-before(., ":")) => distinct-values()
+                let $representatives := 
+                    for $ns-prefix in $ns-prefixes
+                    return
+                        $node-tests[matches(., "^" || $ns-prefix || ":")][1]
+                return
+                    $representatives ! indexes:get-namespace-declaration-from-node-name(., $indexes:collection)
+            ,
+            'collection("', $indexes:collection, '")'
+            , 
+            if ($indexes:node-name) then 
+                ('//' || $indexes:node-name) 
+            else 
+                $indexes:match
+            , 
+            '[ft:query(., '
+            ,
+            ('"' || $indexes:field || ':*"')
+            ,
+            ', map { "leading-wildcard": "yes", "filter-rewrite": "yes", "fields": ("', $indexes:field, '") }'
+            ,
+            ')]'
+            ,
+            ' ! ft:field(., "', $indexes:field, '")'
+        ))
+    let $fields := util:eval($fields-expression)
+    let $rows := 
+        for $f in $fields
+        group by $field := $f
+        return
+            <tr>
+                <td>{$field}</td>
+                <td>{count($f)}</td>
+            </tr>
+    let $sorted-rows := 
+        if ($indexes:sortby eq "value") then 
+            if ($indexes:sortorder eq "ascending") then
+                for $row in $rows
+                order by $row/td[1]
+                return $row
+            else
+                for $row in $rows
+                order by $row/td[1] descending
+                return $row
+        else (: if ($indexes:sortby eq "count") then :)
+            if ($indexes:sortorder eq "ascending") then
+                for $row in $rows
+                order by $row/td[2] cast as xs:integer
+                return $row
+            else
+                for $row in $rows
+                order by $row/td[2] cast as xs:integer descending
+                return $row
+    let $query-end-time := util:system-time()
+    let $query-duration := ($query-end-time - $query-start-time) div xs:dayTimeDuration('PT1S')
+
+    return
+    
+        <div>
+            <p>1-{min((count($sorted-rows), $indexes:max-number-returned))} of {count($sorted-rows)} labels returned in {$query-duration}s</p>
+            <p>Facet "{$indexes:field}" defined on "{($indexes:node-name, $indexes:match)[. ne ""][1]}" in the <a href="{concat('collection.html?collection=', $indexes:collection)}">{$indexes:collection}</a> collection.</p>
+            <form method="get" class="form-horizontal" action="{indexes:remove-parameter-names('start-value')}" role="form">
+                <div class="form-group">
+                    <label for="max" class="col-sm-2 control-label">Max number returned:</label>
+                    <div class="col-sm-4">
+                        <select id="max" name="max" class="form-control">{
+                            for $number in (10, 100, 1000, 10000)
+                            return
+                                <option value="{$number}">{if ($number eq $indexes:max-number-returned) then attribute selected {'selected'} else ()}{$number}</option>
+                        }</select>
+                    </div>
+                    <span class="input-group-btn">
+                        <button type="submit" class="btn btn-primary" title="Submit">
+                            <span class="glyphicon glyphicon-search"/></button>
+                    </span>
+                    {
+                        for $param in request:get-parameter-names()[not(. = ('max', 'start-value'))]
+                        return 
+                            <input type="hidden" id="{$param}" name="{$param}" value="{request:get-parameter($param, '')}"/>
+                    }
+                </div>
+            </form>
+            <table class="table table-bordered table-striped dataTable">
+                <tr>{
+                    for $column in ('value', 'frequency')
+                    return
+                        <th><a href="{indexes:set-sortorder($column)}">{$column} {indexes:sort-direction-indicator($column)}</a></th>
+                }</tr>
+                { $sorted-rows => subsequence(1, $indexes:max-number-returned) }
+            </table>
+        </div>
+};
+
+(:
     Helper function: Callback function called used in indexes:show-index-keys() for util:index-keys()
 :)
 declare function indexes:term-callback($term as xs:string, $data as xs:int+) as element() {
@@ -346,14 +588,21 @@ declare function indexes:analyze-lucene-indexes($xconf) {
             let $match := if ($text/@match) then $text/@match/string() else ()
             let $analyzer := if ($text/@analyzer) then $text/@analyzer/string() else ()
             let $collection := substring-after(util:collection-name($text), '/db/system/config')
+            let $no-index := $text/@index eq "no"
+            let $facets-fields := $text/(cc:facet | cc:field)
 (:            let $nodeset := if ($qname) then indexes:get-nodeset-from-qname($collection, $qname) else indexes:get-nodeset-from-match($collection, $match):)
             return
+            (
                 <tr>
                     <td>
-                        {if ($qname) then $qname else $match} 
+                        {if (exists($facets-fields)) then attribute rowspan { count($facets-fields) + 1 } else () }
+                        {if ($qname) then $qname else $match}
+                        {if ($no-index) then " (not indexed)" else ()}
                         {if ($text/@boost) then concat(' (boost: ', $text/@boost/string(), ')') else ()}
                         {if ($text/cc:ignore) then (<br/>, concat('(ignore: ', string-join(for $ignore in $text/cc:ignore return $ignore/@qname/string(), ', '), ')')) else ()}</td>
-                    <td>{$index-label} {if ($qname) then ' QName' else ' Match'} {if ($analyzer) then concat(' (', $analyzer, ')') else ' (default analyzer)' (: TODO: complete report of default/other Lucene analyzers :)}</td>
+                    <td>
+                        {$index-label} {if ($qname) then ' QName' else ' Match'} {if ($analyzer) then concat(' (', $analyzer, ')') else ' (default analyzer)' (: TODO: complete report of default/other Lucene analyzers :)}
+                    </td>
                     <!--td>{count($nodeset)}</td-->
                     <td>{
 (:                        if (empty($nodeset)) then ():)
@@ -382,7 +631,42 @@ declare function indexes:analyze-lucene-indexes($xconf) {
                             ))}">Node</a>
                             )
                     }</td>
-                </tr>
+                </tr>,
+                for $f in $facets-fields
+                return
+                    <tr>
+                        <td>{$f/name()}: "{$f/(@dimension | @name)/string()}"{
+                            if ($f/@hierarchical eq "yes") then " (hierarchical)" else (),
+                            if ($f/@store eq "no") then " (not stored)" else (),
+                            if ($f/@analyzer) then concat(' (', $f/@analyzer, ' analyzer)') else ()
+                        }</td>
+                        <td>{
+                            if ($f instance of element(cc:facet)) then 
+                                <a href="facet.html{indexes:replace-parameters((
+                                    if ($qname) then concat('node-name=', $qname) else concat('match=', $match)
+                                    , 
+                                    concat('collection=', $collection)
+                                    ,
+                                    concat('facet=', $f/@dimension)
+                                    ,
+                                    if ($f/@hierarchical) then concat('hierarchical=', $f/@hierarchical) else ()
+                                    ,
+                                    if ($f/../cc:field) then concat('fields=', string-join($f/../cc:field/@name, ",")) else ()
+                                ))}">facet</a>
+                            else (: if ($f instance of element(cc:field)) then :)
+                                if ($f/@store eq "no") then 
+                                    "(not stored)"
+                                else
+                                    <a href="field.html{indexes:replace-parameters((
+                                        if ($qname) then concat('node-name=', $qname) else concat('match=', $match)
+                                        , 
+                                        concat('collection=', $collection)
+                                        ,
+                                        concat('field=', $f/@name)
+                                    ))}">field</a>
+                        }</td>
+                    </tr>
+                )
             )
         )
 };
@@ -402,12 +686,7 @@ declare function indexes:analyze-legacy-fulltext-indexes($xconf) {
     let $no-fulltext := if ( not($fulltext) or ($default-none and $attributes-none and not($creates)) ) then '(disabled)' else ()
     return 
         if ($no-fulltext) then
-            <tr>
-                <td>-</td>
-                <td>{concat($index-label, ' ', $no-fulltext)}</td>
-                <!--td>-</td-->
-                <td>-</td>
-            </tr>
+            ()
         else if (not($default-none) and not($attributes-none)) then
             <tr>
                 <td>All Elements and Attributes!</td>
