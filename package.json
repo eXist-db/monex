@@ -27,7 +27,7 @@
   "dependencies": {
     "admin-lte": "^2.4.10",
     "d3": "^3.5.17",
-    "jquery": "^1.12.4",
+    "jquery": "^3.5.0",
     "knockout": "^3.5.0"
   },
   "devDependencies": {
