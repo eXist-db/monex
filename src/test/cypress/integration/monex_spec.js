@@ -65,16 +65,6 @@ describe('Monex', function () {
     })
   })
 
-  describe('data visualizer', function () {
-    it ('should load data visualizer', function () {
-      cy.visit('/monex/visualizer.html')
-        .wait(1000)
-        .url().should('include', '/monex/visualizer.html')
-      cy.get('#collection').select('monex')
-      // TODO graph is not properly contained by parent div
-      cy.get('#graph').contains('@src')
-    })
-  })
   describe('remote monitoring', function () {
     it ('should load remote monitoring', function () {
       cy.visit('/monex/remotes.html')
