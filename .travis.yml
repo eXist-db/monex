@@ -26,7 +26,7 @@ before_install:
 
 before_script:
   # DP: changes to registered service might not be immediately available here
-  - docker cp ./target/monex-*.xar exist-ci:exist/autodeploy
+  - docker cp ./target/monex-*.xar exist-ci:exist/autodeploy/111.xar
   - docker start exist-ci
   # exist needs time
   - sleep 30
