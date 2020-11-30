@@ -66,7 +66,7 @@
         <exist.java-api.version>5.3.0-SNAPSHOT</exist.java-api.version>            <!-- The eXist-db XQuery Java Module API version -->
         <exist.processor.version>5.3.0-SNAPSHOT</exist.processor.version>          <!-- The version of eXist-db needed by this EXPath Module -->
 
-        <jackson.version>2.11.3</jackson.version>
+        <jackson.version>2.12.0</jackson.version>
         <websocket.api.version>1.1</websocket.api.version>
 
         <!-- used in the EXPath Package Descriptor -->
