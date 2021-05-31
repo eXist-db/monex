@@ -12,7 +12,7 @@
 
     <groupId>org.exist-db.apps</groupId>
     <artifactId>monex</artifactId>
-    <version>3.0.3-SNAPSHOT</version>
+    <version>3.0.4</version>
 
     <name>Monex</name>
     <description>An application for monitoring, profiling and inspecting a running eXist-db instance.</description>

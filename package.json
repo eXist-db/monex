@@ -25,12 +25,12 @@
   },
   "homepage": "https://github.com/eXist-db/monex#readme",
   "dependencies": {
-    "admin-lte": "^2.4.10",
+    "admin-lte": "^3.1.0",
     "d3": "^3.5.17",
-    "jquery": "^1.12.4",
+    "jquery": "^3.6.0",
     "knockout": "^3.5.0"
   },
   "devDependencies": {
-    "cypress": "^3.4.1"
+    "cypress": "^7.4.0"
   }
 }
