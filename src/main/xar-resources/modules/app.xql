@@ -11,7 +11,7 @@ declare namespace json="http://www.json.org";
 
 (: import module namespace console="http://exist-db.org/xquery/console" at "java:org.exist.console.xquery.ConsoleModule"; :)
 import module namespace scheduler="http://exist-db.org/xquery/scheduler" at "java:org.exist.xquery.modules.scheduler.SchedulerModule";
-import module namespace templates="http://exist-db.org/xquery/templates" ;
+import module namespace templates="http://exist-db.org/xquery/html-templating";
 import module namespace config="http://exist-db.org/apps/admin/config" at "config.xqm";
 
 declare variable $app:OPTIMIZATIONS :=

@@ -13,7 +13,7 @@ declare namespace cc="http://exist-db.org/collection-config/1.0";
 declare namespace range="http://exist-db.org/xquery/range";
 
 (:import module namespace console="http://exist-db.org/xquery/console";:)
-import module namespace templates="http://exist-db.org/xquery/templates";
+import module namespace templates="http://exist-db.org/xquery/html-templating";
 
 (: 
     Global variables - derived from URL parameters

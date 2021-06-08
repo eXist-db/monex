@@ -68,6 +68,8 @@
 
         <jackson.version>2.12.3</jackson.version>
         <websocket.api.version>1.1</websocket.api.version>
+        <templating.version>1.0.2</templating.version>
+        <shared-resources.version>0.9.1</shared-resources.version>
 
         <!-- used in the EXPath Package Descriptor -->
         <package-name>http://exist-db.org/apps/monex</package-name>
