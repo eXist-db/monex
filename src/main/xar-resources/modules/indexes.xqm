@@ -147,7 +147,7 @@ declare function indexes:xconf-to-table($node as node(), $model as map(*)) as it
     let $xconf-collection-name := concat('/db/system/config', $data-collection-name)
     let $xconf := collection('/db/system/config')/cc:collection[util:collection-name(.) = $xconf-collection-name]
     let $resource := $xconf-collection-name || '/' || xmldb:get-child-resources($xconf-collection-name)[ends-with(., '.xconf')]
-    let $link := templates:link-to-app("http://exist-db.org/apps/eXide", "index.html?open=" || $resource)
+    let $link := $model?eXide || "/index.html?open=" || $resource
     return
         <div>
             <p>

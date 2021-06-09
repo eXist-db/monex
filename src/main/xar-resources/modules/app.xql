@@ -626,7 +626,7 @@ declare function app:milliseconds-to-time($timestamp as xs:long) as xs:dateTime 
 declare function app:edit-source($node as node(), $model as map(*), $instance as xs:string, $timestamp as xs:long) as node()* {
     let $date := app:milliseconds-to-time($timestamp)
     let $doc := collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:timestamp = xs:dateTime($date)]
-    let $link := templates:link-to-app("http://exist-db.org/apps/eXide", "index.html?open=" || document-uri(root($doc)))
+    let $link := $model?eXide || "/index.html?open=" || document-uri(root($doc))
     return
         element { node-name($node) } {
             attribute href { $link },
