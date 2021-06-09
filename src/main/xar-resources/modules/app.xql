@@ -11,7 +11,7 @@ declare namespace json="http://www.json.org";
 
 (: import module namespace console="http://exist-db.org/xquery/console" at "java:org.exist.console.xquery.ConsoleModule"; :)
 import module namespace scheduler="http://exist-db.org/xquery/scheduler" at "java:org.exist.xquery.modules.scheduler.SchedulerModule";
-import module namespace templates="http://exist-db.org/xquery/templates" ;
+import module namespace templates="http://exist-db.org/xquery/html-templating";
 import module namespace config="http://exist-db.org/apps/admin/config" at "config.xqm";
 
 declare variable $app:OPTIMIZATIONS :=
@@ -626,7 +626,7 @@ declare function app:milliseconds-to-time($timestamp as xs:long) as xs:dateTime 
 declare function app:edit-source($node as node(), $model as map(*), $instance as xs:string, $timestamp as xs:long) as node()* {
     let $date := app:milliseconds-to-time($timestamp)
     let $doc := collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:timestamp = xs:dateTime($date)]
-    let $link := templates:link-to-app("http://exist-db.org/apps/eXide", "index.html?open=" || document-uri(root($doc)))
+    let $link := $model?eXide || "/index.html?open=" || document-uri(root($doc))
     return
         element { node-name($node) } {
             attribute href { $link },

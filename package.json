@@ -1,6 +1,6 @@
 {
   "name": "monex",
-  "version": "0.9.18",
+  "version": "3.0.3-SNAPSHOT",
   "description": "Monitoring Application for eXist-db",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

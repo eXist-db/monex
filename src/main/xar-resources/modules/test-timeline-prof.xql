@@ -4,7 +4,7 @@ import module namespace app="http://exist-db.org/apps/admin/templates" at "app.x
 
 declare namespace jmx="http://exist-db.org/jmx";
 
-import module namespace templates="http://exist-db.org/xquery/templates" ;
+import module namespace templates="http://exist-db.org/xquery/html-templating";
 import module namespace config="http://exist-db.org/apps/admin/config" at "config.xqm";
 import module namespace console="http://exist-db.org/xquery/console";
 

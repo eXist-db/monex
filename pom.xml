@@ -12,7 +12,7 @@
 
     <groupId>org.exist-db.apps</groupId>
     <artifactId>monex</artifactId>
-    <version>3.0.4</version>
+    <version>3.0.3-SNAPSHOT</version>
 
     <name>Monex</name>
     <description>An application for monitoring, profiling and inspecting a running eXist-db instance.</description>
@@ -35,8 +35,8 @@
         <url>https://github.com/eXist-db/monex.git</url>
         <connection>scm:git:https://github.com/eXist-db/monex.git</connection>
         <developerConnection>scm:git:https://github.com/eXist-db/monex.git</developerConnection>
-      <tag>HEAD</tag>
-  </scm>
+        <tag>HEAD</tag>
+    </scm>
 
     <issueManagement>
         <system>GitHub</system>
@@ -68,6 +68,8 @@
 
         <jackson.version>2.12.3</jackson.version>
         <websocket.api.version>1.1</websocket.api.version>
+        <templating.version>1.0.2</templating.version>
+        <shared-resources.version>0.9.1</shared-resources.version>
 
         <!-- used in the EXPath Package Descriptor -->
         <package-name>http://exist-db.org/apps/monex</package-name>

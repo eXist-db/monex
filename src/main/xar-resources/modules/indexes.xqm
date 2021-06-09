@@ -13,7 +13,7 @@ declare namespace cc="http://exist-db.org/collection-config/1.0";
 declare namespace range="http://exist-db.org/xquery/range";
 
 (:import module namespace console="http://exist-db.org/xquery/console";:)
-import module namespace templates="http://exist-db.org/xquery/templates";
+import module namespace templates="http://exist-db.org/xquery/html-templating";
 
 (: 
     Global variables - derived from URL parameters
@@ -147,7 +147,7 @@ declare function indexes:xconf-to-table($node as node(), $model as map(*)) as it
     let $xconf-collection-name := concat('/db/system/config', $data-collection-name)
     let $xconf := collection('/db/system/config')/cc:collection[util:collection-name(.) = $xconf-collection-name]
     let $resource := $xconf-collection-name || '/' || xmldb:get-child-resources($xconf-collection-name)[ends-with(., '.xconf')]
-    let $link := templates:link-to-app("http://exist-db.org/apps/eXide", "index.html?open=" || $resource)
+    let $link := $model?eXide || "/index.html?open=" || $resource
     return
         <div>
             <p>

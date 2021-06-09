@@ -8,7 +8,7 @@ declare namespace json="http://www.json.org";
 
 import module namespace app="http://exist-db.org/apps/admin/templates" at "app.xql";
 import module namespace scheduler="http://exist-db.org/xquery/scheduler" at "java:org.exist.xquery.modules.scheduler.SchedulerModule";
-import module namespace templates="http://exist-db.org/xquery/templates" ;
+import module namespace templates="http://exist-db.org/xquery/html-templating";
 import module namespace config="http://exist-db.org/apps/admin/config" at "config.xqm";
 
 declare option exist:serialize "method=json media-type=text/javascript";
