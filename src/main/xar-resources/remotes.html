@@ -70,9 +70,9 @@
                     responsiveness of the system. <code>Response Time</code> is the elapsed time
                     until the client received the response. </p>
                 <h3>Configuration</h3>
-                <p>To monitor remote eXist-db instances, edit the XML file <a href="instances.xml" class="templates:load-source">instances.xml</a> in the root collection of
+                <p>To monitor remote eXist-db instances, edit the XML file <a href="instances.xml" target="eXide" class="eXide-open" data-exide-open="/db/apps/monex/instances.xml">instances.xml</a> in the root collection of
                     the monex application. Monex pings each server at configurable times or
-                    intervals. You can also set up email alerts in <a href="notifications.xml" class="templates:load-source">notifications.xml</a>.</p>
+                    intervals. You can also set up email alerts in <a href="notifications.xml" target="eXide" class="eXide-open" data-exide-open="/db/apps/monex/notifications.xml">notifications.xml</a>.</p>
                 <p>The configuration for monitoring a remote instance looks as follows:</p>
                 <pre data-language="xml">&lt;instance name="my.server.com" url="http://my.server.com" token="0ade4ba1-cebb-4085-b12c-0ef87f6f032b" cron="0 0/5 * * * ?"&gt;
     &lt;poll cron="0 0/2 * * * ?" store="true"&gt;
