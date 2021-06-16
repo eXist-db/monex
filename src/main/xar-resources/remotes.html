@@ -74,11 +74,11 @@
                     the monex application. Monex pings each server at configurable times or
                     intervals. You can also set up email alerts in <a href="notifications.xml" target="eXide" class="eXide-open" data-exide-open="/db/apps/monex/notifications.xml">notifications.xml</a>.</p>
                 <p>The configuration for monitoring a remote instance looks as follows:</p>
-                <pre data-language="xml">&lt;instance name="my.server.com" url="http://my.server.com" token="0ade4ba1-cebb-4085-b12c-0ef87f6f032b" cron="0 0/5 * * * ?"&gt;
+                <pre><code class="language-xml">&lt;instance name="my.server.com" url="http://my.server.com" token="0ade4ba1-cebb-4085-b12c-0ef87f6f032b" cron="0 0/5 * * * ?"&gt;
     &lt;poll cron="0 0/2 * * * ?" store="true"&gt;
         &lt;alert name="More than 40 threads waiting for locks to be released" condition="count($jmx//LockManager/WaitingThreads/row) &amp;gt; 40"/&gt;
     &lt;/poll&gt;
-&lt;/instance&gt;</pre>
+&lt;/instance&gt;</code></pre>
                 <p>The attributes of &lt;instance&gt; are:</p>
                 <table class="table">
                     <tr>
@@ -129,20 +129,10 @@
             </div>
         </div>
     </section>
-    <script type="text/javascript" src="resources/scripts/modernizr.custom.js"/>
-    <script type="text/javascript" src="resources/scripts/knockout-3.1.0.js"/>
-    <script type="text/javascript" src="resources/scripts/knockout.mapping-2.4.1.js"/>
-    <script type="text/javascript" src="resources/scripts/util.js"/>
-    <script type="text/javascript" src="resources/scripts/exadmin.js"/>
-    <script type="text/javascript" src="$shared/resources/scripts/ace/ace.js"/>
-    <script type="text/javascript" src="$shared/resources/scripts/ace/mode-text.js"/>
-    <script type="text/javascript" src="$shared/resources/scripts/ace/mode-xml.js"/>
-    <script type="text/javascript" src="$shared/resources/scripts/ace/mode-xquery.js"/>
-    <script type="text/javascript" src="$shared/resources/scripts/ace/theme-clouds.js"/>
-    <script type="text/javascript" src="resources/scripts/highlight.js"/>
-    <script type="text/javascript">
-        $(document).ready(function() {
-            $("pre").highlight();
-        });
-    </script>
+    <script type="text/javascript" src="resources/scripts/modernizr.custom.js"></script>
+    <script type="text/javascript" src="resources/scripts/knockout-latest.js"></script>
+    <script type="text/javascript" src="resources/scripts/knockout.mapping.js"></script>
+    <script type="text/javascript" src="resources/scripts/prism.js"></script>
+    <script type="text/javascript" src="resources/scripts/util.js"></script>
+    <script type="text/javascript" src="resources/scripts/exadmin.js"></script>
 </div>
