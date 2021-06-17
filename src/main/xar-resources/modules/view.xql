@@ -15,7 +15,7 @@ import module namespace config="http://exist-db.org/apps/admin/config" at "confi
 import module namespace app="http://exist-db.org/apps/admin/templates" at "app.xql";
 import module namespace indexes="http://exist-db.org/xquery/admin-interface/indexes" at "indexes.xqm";
 
-declare option exist:serialize "method=html5 media-type=text/html enforce-xhtml=yes";
+declare option exist:serialize "method=html5 media-type=text/html";
 
 let $config := map {
     $templates:CONFIG_APP_ROOT : $config:app-root,
