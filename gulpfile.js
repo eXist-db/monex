@@ -3,7 +3,7 @@
  */
 const { src, dest, series, parallel } = require("gulp");
 const del = require("delete");
-const gulpEsbuild = require("gulp-esbuild");
+// const gulpEsbuild = require("gulp-esbuild");
 
 const paths = {
   input: 'src/main/xar-resources/resources',
@@ -32,7 +32,6 @@ const paths = {
       'node_modules/jquery/dist/jquery.min.*',
       'node_modules/prismjs/prism.js',
       'node_modules/prismjs/components/prism-xquery.min.js',
-      'node_modules/d3/d3.min.js',
       'node_modules/knockout/build/output/knockout-latest.js',
       'node_modules/bootstrap-daterangepicker/daterangepicker.js',
       'node_modules/bootstrap-daterangepicker/moment.min.js',
