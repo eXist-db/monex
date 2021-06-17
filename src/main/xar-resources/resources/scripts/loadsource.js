@@ -28,7 +28,6 @@ $(document).ready(function() {
                 }, 200);
             } else {
                 window.eXide_onload = function() {
-                    console.log("onloaed called");
                     if (snip) {
                         exide.eXide.app.newDocument(snip, "xquery");
                     } else {
