@@ -1,3 +1,4 @@
+// util.js must be loaded first, otherwise JMX is undefined
 function findByName(nodes, name) {
     if (nodes instanceof Array) {
         for (var i = 0; i < nodes.length; i++) {
