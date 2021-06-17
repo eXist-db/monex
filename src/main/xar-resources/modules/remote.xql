@@ -1,4 +1,4 @@
-xquery version "3.0";
+xquery version "3.1";
 
 import module namespace config="http://exist-db.org/apps/admin/config" at "config.xqm";
 import module namespace http="http://expath.org/ns/http-client";

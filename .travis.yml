@@ -32,5 +32,6 @@ before_script:
   - sleep 30
 
 script:
+  - nvm install --lts
   - npm ci
   - npm run cypress -- --record

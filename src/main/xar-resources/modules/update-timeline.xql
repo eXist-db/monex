@@ -1,4 +1,4 @@
-xquery version "3.0";
+xquery version "3.1";
 
 declare namespace html="http://www.w3.org/1999/xhtml";
 declare namespace prof="http://exist-db.org/xquery/profiling";

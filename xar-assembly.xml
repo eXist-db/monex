@@ -19,7 +19,6 @@
     <category id="apps">Applications</category>
 
     <dependency processor="http://exist-db.org" semver-min="${exist.processor.version}" />
-    <dependency package="http://exist-db.org/apps/shared" semver-min="${shared-resources.version}"/>
     <dependency package="http://exist-db.org/html-templating" semver-min="${templating.version}"/>
 
     <!-- Collection inside /db/apps where xar-resources will be copied to -->
@@ -40,7 +39,20 @@
         </fileSet>
         <fileSet>
             <directory>${basedir}/src/main/xar-resources</directory>
-        </fileSet>
+            <excludes>
+              <!--
+                These are not needed from this fileSet,
+                instead they are taken from the fileSet
+                of the Gulp transform output in ${project.build.directory}/generated-resources/frontend/xar-resources
+                see the fileSet below.
+              -->
+              <exclude>**.js</exclude>
+              <exclude>**.css</exclude>
+            </excludes>
+          </fileSet>
+          <fileSet>
+            <directory>${project.build.directory}/generated-resources/frontend/xar-resources</directory>
+          </fileSet>
     </fileSets>
 
     <!-- include the XQuery Library Module written in Java (JAR output) from this project -->

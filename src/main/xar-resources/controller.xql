@@ -1,4 +1,4 @@
-xquery version "3.0";
+xquery version "3.1";
 
 import module namespace login="http://exist-db.org/xquery/login" at "resource:org/exist/xquery/modules/persistentlogin/login.xql";
 
@@ -54,14 +54,7 @@ else if (ends-with($exist:resource, ".html")) then (
     <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
         <cache-control cache="no"/>
     </dispatch>
-    
-(: Resource paths starting with $shared are loaded from the shared-resources app :)
-) else if (contains($exist:path, "/$shared/")) then
-    <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
-        <forward url="/shared-resources/{substring-after($exist:path, '/$shared/')}">
-            <set-header name="Cache-Control" value="max-age=3600, must-revalidate"/>
-        </forward>
-    </dispatch>
+) 
 else
     (: everything else is passed through :)
     <dispatch xmlns="http://exist.sourceforge.net/NS/exist">

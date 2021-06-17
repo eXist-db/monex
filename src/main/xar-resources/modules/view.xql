@@ -3,7 +3,7 @@
  : to process any URI ending with ".html". It receives the HTML from
  : the controller and passes it to the templating system.
  :)
-xquery version "3.0";
+xquery version "3.1";
 
 import module namespace templates="http://exist-db.org/xquery/html-templating";
 import module namespace lib="http://exist-db.org/xquery/html-templating/lib";
@@ -15,7 +15,7 @@ import module namespace config="http://exist-db.org/apps/admin/config" at "confi
 import module namespace app="http://exist-db.org/apps/admin/templates" at "app.xql";
 import module namespace indexes="http://exist-db.org/xquery/admin-interface/indexes" at "indexes.xqm";
 
-declare option exist:serialize "method=html5 media-type=text/html enforce-xhtml=yes";
+declare option exist:serialize "method=html5 media-type=text/html";
 
 let $config := map {
     $templates:CONFIG_APP_ROOT : $config:app-root,
