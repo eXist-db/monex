@@ -91,7 +91,7 @@
             $(document).trigger("chart:zoomIn", [ranges.xaxis.from, ranges.xaxis.to]);
             plot.clearSelection();
         });
-        container.parent().parent().find(".zoom-out").click(function(ev) {
+        container.parent().parent().find(".zoom-out").on("click", function(ev) {
             ev.preventDefault();
             $(document).trigger("chart:zoomIn", [min, max]);
         });

@@ -161,19 +161,18 @@ $(document).ready(function() {
     RemoteConsole.restoreState();
     RemoteConsole.connect();
 
-    $("#clear").click(function(ev) {
+    $("#clear").on("click", function(ev) {
         ev.preventDefault();
 
         RemoteConsole.clear();
     });
 
-    $("#set-channel").click(function(ev) {
+    $("#set-channel").on("click", function(ev) {
         ev.preventDefault();
         var channel = $("input[name='channel']").val();
         RemoteConsole.setChannel(channel);
     });
-
-    $(window).unload(function () {
+    $(window).on("unload", function () {
         RemoteConsole.saveState();
     });
 });

@@ -10,7 +10,7 @@ function findByName(nodes, name) {
 }
 
 function addKillBtn(node, data) {
-    $(node).find(".kill-query").click(function(ev) {
+    $(node).find(".kill-query").on("click", function(ev) {
         ev.preventDefault();
         if (JMX_INSTANCE.version === 0) {
             $.ajax({
@@ -418,7 +418,7 @@ JMX.connection = (function() {
 $(function() {
     JMX.connection.init(JMX_INSTANCES, JMX_ACTIVE);
 
-    $("#configure").click(function(ev) {
+    $("#configure").on("click", function(ev) {
         ev.preventDefault();
         var threshold = $("#threshold").val();
         var historyTimespan = $("#history-timespan").val();
@@ -449,7 +449,7 @@ $(function() {
                 JMX.connection.setPollPeriod(data.from);
             }
         });
-        $("#pause-btn").click(function(ev) {
+        $("#pause-btn").on("click", function(ev) {
             JMX.connection.togglePolling();
         });
         JMX.connection.poll(function(data) {
