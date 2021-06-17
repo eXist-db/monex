@@ -1,4 +1,4 @@
-xquery version "3.0";
+xquery version "3.1";
 
 declare namespace repo="http://exist-db.org/xquery/repo";
 
