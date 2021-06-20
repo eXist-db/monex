@@ -231,6 +231,15 @@
                 <li>Updated: Aligned Jackson dependency with eXist 5.2.0.</li>
             </ul>
         </change>
+        <change version="3.0.3">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Important: Due to an internal API change this version is compatible with exist db versions 5.3.0-SNAPSHOT and latter</li>
+                <li>Fix yank on collapsing opening sidebar</li>
+                <li>Update AdminLTE theme to version 2.4.18</li>
+                <li>Replace ACE edior with prismjs for highlighting code</li>
+                <li>Replace dependency on shared-resources package with new templating only library</li>
+            </ul>
+        </change>
     </changelog>
 
 </package>
