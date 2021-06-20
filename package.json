@@ -19,7 +19,7 @@
     "expath"
   ],
   "author": "exist-db",
-  "license": "LGPL-2.1-only",
+  "license": "LGPL-2.1",
   "bugs": {
     "url": "https://github.com/eXist-db/monex/issues"
   },
