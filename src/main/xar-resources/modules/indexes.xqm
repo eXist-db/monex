@@ -641,7 +641,7 @@ declare function indexes:analyze-lucene-indexes($xconf) {
                             if ($f/@analyzer) then concat(' (', $f/@analyzer, ' analyzer)') else ()
                         }</td>
                         <td>{
-                            if ($f instance of element(cc:facet)) then 
+                            if ($f instance of element(cc:facet)) then
                                 <a href="facet.html{indexes:replace-parameters((
                                     if ($qname) then concat('node-name=', $qname) else concat('match=', $match)
                                     , 
@@ -650,8 +650,6 @@ declare function indexes:analyze-lucene-indexes($xconf) {
                                     concat('facet=', $f/@dimension)
                                     ,
                                     if ($f/@hierarchical) then concat('hierarchical=', $f/@hierarchical) else ()
-                                    ,
-                                    if ($f/../cc:field) then concat('fields=', string-join($f/../cc:field/@name, ",")) else ()
                                 ))}">facet</a>
                             else (: if ($f instance of element(cc:field)) then :)
                                 if ($f/@store eq "no") then 
