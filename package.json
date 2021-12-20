@@ -30,7 +30,7 @@
     "datatables.net-responsive-bs": "^2.2.9",
     "knockout": "^3.5.1",
     "knockout.mapping": "^2.4.3",
-    "prismjs": "^1.23.0"
+    "prismjs": "^1.25.0"
   },
   "devDependencies": {
     "cypress": "^7.4.0",
