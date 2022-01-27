@@ -90,4 +90,4 @@ $ cd monex
 $ mvn package
 ```
 
-The resultant XAR will be in the `target/` folder.
+The resulting XAR will be in the `target/` folder.
