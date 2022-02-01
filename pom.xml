@@ -6,13 +6,13 @@
     <parent>
         <groupId>org.exist-db</groupId>
         <artifactId>exist-apps-parent</artifactId>
-        <version>1.10.0</version>
+        <version>1.11.0</version>
         <relativePath />
     </parent>
 
     <groupId>org.exist-db.apps</groupId>
     <artifactId>monex</artifactId>
-    <version>3.0.3-SNAPSHOT</version>
+    <version>3.0.4-SNAPSHOT</version>
 
     <name>Monex</name>
     <description>An application for monitoring, profiling and inspecting a running eXist-db instance.</description>
@@ -35,40 +35,29 @@
         <url>https://github.com/eXist-db/monex.git</url>
         <connection>scm:git:https://github.com/eXist-db/monex.git</connection>
         <developerConnection>scm:git:https://github.com/eXist-db/monex.git</developerConnection>
-      <tag>HEAD</tag>
-  </scm>
+        <tag>HEAD</tag>
+    </scm>
 
     <issueManagement>
         <system>GitHub</system>
         <url>https://www.github.com/eXist-db/monex/issues</url>
     </issueManagement>
 
-    <developers>
-        <developer>
-            <name>Wolfgang Meier</name>
-            <organization>eXist Solutions</organization>
-        </developer>
-        <developer>
-            <name>Joe Wicentowski</name>
-            <organization>Office of The Historian</organization>
-        </developer>
-        <developer>
-            <name>Lars Windauer</name>
-            <organization>eXist Solutions</organization>
-        </developer>
-    </developers>
-
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.build.source>1.8</project.build.source>
         <project.build.target>1.8</project.build.target>
 
-        <exist.java-api.version>5.3.0-SNAPSHOT</exist.java-api.version>            <!-- The eXist-db XQuery Java Module API version -->
-        <exist.processor.version>5.3.0-SNAPSHOT</exist.processor.version>          <!-- The version of eXist-db needed by this EXPath Module -->
+        <exist.java-api.version>5.4.0</exist.java-api.version>            <!-- The eXist-db XQuery Java Module API version -->
+        <exist.processor.version>5.4.0</exist.processor.version>          <!-- The version of eXist-db needed by this EXPath Module -->
 
-        <jackson.version>2.12.3</jackson.version>
+        <jackson.version>2.13.1</jackson.version>
         <websocket.api.version>1.1</websocket.api.version>
+        <templating.version>1.0.2</templating.version>
 
+        <node.version>v14.17.6</node.version>
+        <npm.version>7.24.0</npm.version>
+    
         <!-- used in the EXPath Package Descriptor -->
         <package-name>http://exist-db.org/apps/monex</package-name>
 
@@ -80,13 +69,13 @@
         <dependency>
             <groupId>org.exist-db</groupId>
             <artifactId>exist-core</artifactId>
-            <version>5.3.0-SNAPSHOT</version>
+            <version>${exist.processor.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.30</version>
+            <version>1.7.33</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -132,11 +121,10 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-changes-plugin</artifactId>
+                <version>2.12.1</version>
                 <configuration>
-                    <includeOpenIssues>false</includeOpenIssues>
-                    <onlyMilestoneIssues>false</onlyMilestoneIssues>
+                    <onlyCurrentVersion>true</onlyCurrentVersion>
                     <columnNames>Type, Summary</columnNames>
-                    <outputDirectory>${project.basedir}</outputDirectory>
                 </configuration>
                 <reportSets>
                     <reportSet>
@@ -149,109 +137,323 @@
         </plugins>
     </reporting>
 
-    <build>
+      <build>
+    <resources>
+      <resource>
+        <directory>src/main/xar-resources</directory>
+        <filtering>true</filtering>
+        <includes>
+          <include>templates/**</include>
+          <include>data/**</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>src/main/xar-resources</directory>
+        <filtering>false</filtering>
+        <excludes>
+          <exclude>templates/**</exclude>
+          <exclude>data/**</exclude>
+        </excludes>
+      </resource>
+    </resources>
 
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>exec-maven-plugin</artifactId>
+          <version>3.0.0</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
+    <plugins>
+      <plugin>
+        <groupId>com.github.eirslett</groupId>
+        <artifactId>frontend-maven-plugin</artifactId>
+        <version>1.12.1</version>
+        <executions>
+          <execution>
+            <!-- optional: looks nicer in your build log. -->
+            <id>install node and npm</id>
+            <goals>
+              <goal>install-node-and-npm</goal>
+            </goals>
+            <!-- optional: default phase is "generate-resources" -->
+            <phase>compile</phase>
+          </execution>
+          <execution>
+            <id>npm version bump</id>
+            <goals>
+              <goal>npm</goal>
+            </goals>
+            <phase>compile</phase>
+            <configuration>
+              <arguments>version --no-git-tag-version --allow-same-version=true ${project.version}</arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>npm install</id>
+            <goals>
+              <goal>npm</goal>
+            </goals>
+            <phase>compile</phase>
+            <!-- Optional configuration which provides for running any npm command -->
+            <configuration>
+              <arguments>ci</arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>gulp build</id>
+            <goals>
+              <goal>gulp</goal>
+            </goals>
+            <phase>compile</phase>
+          </execution>
+        </executions>
+        <configuration>
+          <nodeVersion>${node.version}</nodeVersion>
+          <npmVersion>${npm.version}</npmVersion>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>de.jutzig</groupId>
+        <artifactId>github-release-plugin</artifactId>
+        <version>1.4.0</version>
+        <executions>
+          <execution>
+            <id>github-upload</id>
+            <phase>deploy</phase>
+            <goals>
+              <goal>release</goal>
+            </goals>
+            <inherited>false</inherited>
+            <configuration>
+              <description>monex</description>
+              <releaseName>${project.version}</releaseName>
+              <tag>${project.version}</tag>
+              <fileSets>
+                <fileSet>
+                  <directory>${project.build.directory}</directory>
+                  <includes>
+                    <include>${project.artifactId}*.xar</include>
+                  </includes>
+                </fileSet>
+              </fileSets>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>ro.kuberam.maven.plugins</groupId>
+        <artifactId>kuberam-expath-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>create-xar</id>
+            <phase>package</phase>
+            <goals>
+              <goal>make-xar</goal>
+            </goals>
+            <configuration>
+              <descriptor>xar-assembly.xml</descriptor>
+              <finalName>${package-final-name}</finalName>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- start up Server in Docker for integration-test -->
+      <plugin>
+        <groupId>com.github.monkeywie</groupId>
+        <artifactId>copy-rename-maven-plugin</artifactId>
+        <version>1.0</version>
+        <executions>
+          <execution>
+            <id>prepare-autodeploy</id>
+            <phase>pre-integration-test</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <fileSets>
+                <fileSet>
+                  <sourceFile>${project.build.directory}/${project.artifactId}-${project.version}.xar</sourceFile>
+                  <destinationFile>${project.build.directory}/autodeploy/${project.artifactId}-${project.version}.xar</destinationFile>
+                </fileSet>
+              </fileSets>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.exist-db.maven.plugins</groupId>
+        <artifactId>public-xar-repo-plugin</artifactId>
+        <version>1.2.0</version>
+        <executions>
+          <execution>
+            <id>prepare-autodeploy-deps</id>
+            <phase>pre-integration-test</phase>
+            <goals>
+              <goal>resolve</goal>
+            </goals>
+            <configuration>
+              <repoUri>http://exist-db.org/exist/apps/public-repo</repoUri>
+              <outputDirectory>${project.build.directory}/autodeploy/</outputDirectory>
+              <existDbVersion>${exist.java-api.version}</existDbVersion>
+              <packages>
+                <package>
+                  <abbrev>templating</abbrev>
+                  <version>${templating.version}</version>
+                </package>
+              </packages>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>io.fabric8</groupId>
+        <artifactId>docker-maven-plugin</artifactId>
+        <version>0.38.1</version>
+        <configuration>
+          <verbose>true</verbose>
+          <images>
+            <image>
+              <alias>existdb-docs-tests</alias>
+              <name>existdb/existdb:latest</name>
+              <run>
+                <ports>
+                  <port>8080:8080</port>
+                </ports>
+                <volumes>
+                  <bind>
+                    <volume>${project.build.directory}/autodeploy:/exist/autodeploy</volume>
+                  </bind>
+                </volumes>
+                <wait>
+                  <log>Server has started, listening on</log>
+                  <time>120000</time>
+                </wait>
+              </run>
+            </image>
+          </images>
+        </configuration>
+        <executions>
+          <execution>
+            <id>docker-it-start</id>
+            <phase>pre-integration-test</phase>
+            <goals>
+              <goal>start</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>docker-it-stop</id>
+            <phase>post-integration-test</phase>
+            <goals>
+              <goal>stop</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <configuration>
+          <useAgent>true</useAgent>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <configuration>
+          <mavenExecutorId>forked-path
+          </mavenExecutorId>
+          <!-- avoid a bug with GPG plugin hanging http://jira.codehaus.org/browse/MGPG-9 -->
+          <autoVersionSubmodules>true</autoVersionSubmodules>
+          <tagNameFormat>@{project.version}</tagNameFormat>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <!--
+    Cypress is used for integration tests
+
+    First profile enables to run Cypress without record (cypress.io) support.
+    Second profile enables to run Cypress with record support, e.g. for CI.
+  -->
+  <profiles>
+    <profile>
+      <id>cypress-without-record</id>
+      <activation>
+        <property>
+          <name>env.GITHUB_BASE_REF</name>
+          <value>master</value>
+        </property>
+      </activation>
+      <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.1.2</version>
-                <executions>
-                    <execution>
-                        <id>analyze</id>
-                        <goals>
-                            <goal>analyze-only</goal>
-                        </goals>
-                        <configuration>
-                            <failOnWarning>true</failOnWarning>
-                            <ignoreNonCompile>true</ignoreNonCompile>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M4</version>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <phase>integration-test</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
                 <configuration>
-                    <archive>
-                        <manifest>
-                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
-                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-                        </manifest>
-                        <manifestEntries>
-                            <Build-Tag>${build-tag}</Build-Tag>
-                            <Git-Commit>${build-commit}</Git-Commit>
-                            <Git-Commit-Abbrev>${build-commit-abbrev}</Git-Commit-Abbrev>
-                            <Build-Version>${build-version}</Build-Version>
-                            <Build-Timestamp>${build-tstamp}</Build-Timestamp>
-                            <Source-Repository>${project.scm.connection}</Source-Repository>
-                            <Description>${project.description}</Description>
-                            <Implementation-URL>${project.url}</Implementation-URL>
-                        </manifestEntries>
-                    </archive>
+                  <executable>npm</executable>
+                  <arguments>
+                    <argument>run</argument>
+                    <argument>cypress</argument>
+                    <argument>--</argument>
+                  </arguments>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>ro.kuberam.maven.plugins</groupId>
-                <artifactId>kuberam-expath-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>create-xar</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>make-xar</goal>
-                        </goals>
-                        <configuration>
-                            <descriptor>xar-assembly.xml</descriptor>
-                            <finalName>${package-final-name}</finalName>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-                <configuration>
-                    <useAgent>true</useAgent>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-release-plugin</artifactId>
-                <configuration>
-                    <mavenExecutorId>forked-path
-                    </mavenExecutorId> <!-- avoid a bug with GPG plugin hanging http://jira.codehaus.org/browse/MGPG-9 -->
-                    <autoVersionSubmodules>true</autoVersionSubmodules>
-                    <tagNameFormat>@{project.version}</tagNameFormat>
-                </configuration>
-            </plugin>
+              </execution>
+            </executions>
+          </plugin>
         </plugins>
-    </build>
+      </build>
+    </profile>
+    <profile>
+      <id>cypress-with-record</id>
+      <activation>
+        <property>
+          <name>env.GITHUB_REF</name>
+          <value>refs/heads/master</value>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <phase>integration-test</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <configuration>
+                  <executable>npm</executable>
+                  <arguments>
+                    <argument>run</argument>
+                    <argument>cypress</argument>
+                    <argument>--</argument>
+                    <argument>--record</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
-    <repositories>
-        <repository>
-            <id>exist-db</id>
-            <url>https://repo.evolvedbinary.com/repository/exist-db/</url>
-            <releases><enabled>true</enabled></releases>
-            <snapshots><enabled>false</enabled></snapshots>
-        </repository>
-        <repository>
-            <id>exist-db-snapshots</id>
-            <url>https://repo.evolvedbinary.com/repository/exist-db-snapshots/</url>
-            <releases><enabled>false</enabled></releases>
-            <snapshots><enabled>true</enabled></snapshots>
-        </repository>
-    </repositories>
-
-    <pluginRepositories>
-        <pluginRepository>
-            <id>clojars.org</id>
-            <url>https://clojars.org/repo</url>
-        </pluginRepository>
-    </pluginRepositories>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>clojars.org</id>
+      <url>http://clojars.org/repo</url>
+    </pluginRepository>
+  </pluginRepositories>
 </project>
