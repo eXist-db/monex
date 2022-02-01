@@ -240,6 +240,12 @@
                 <li>Replace dependency on shared-resources package with new templating only library</li>
             </ul>
         </change>
+        <change version="3.0.4">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Important: Due to an internal API change this version is compatible with exist-db versions 5.4.0 and later</li>
+                <li>Fixed: Display all values of a facet - <a href="https://github.com/eXist-db/monex/pull/166">#166</a></li>
+            </ul>
+        </change>
     </changelog>
 
 </package>
