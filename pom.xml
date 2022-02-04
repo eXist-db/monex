@@ -230,7 +230,7 @@
             <inherited>false</inherited>
             <configuration>
               <description>monex</description>
-              <releaseName>${project.version}</releaseName>
+              <releaseName>v${project.version}</releaseName>
               <tag>${project.version}</tag>
               <fileSets>
                 <fileSet>
