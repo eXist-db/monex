@@ -48,8 +48,14 @@
         <project.build.source>1.8</project.build.source>
         <project.build.target>1.8</project.build.target>
 
-        <exist.java-api.version>5.4.0</exist.java-api.version>            <!-- The eXist-db XQuery Java Module API version -->
-        <exist.processor.version>6.0.1</exist.processor.version>          <!-- The version of eXist-db needed by this EXPath Module -->
+        <!-- exist.java-api.version: The eXist-db XQuery Java Module API version: 
+            the version of eXist that Monex needs to compile and run the java 
+            code -->
+        <exist.java-api.version>6.1.0-SNAPSHOT</exist.java-api.version>
+        <!-- exist.java-api.version: The version of eXist-db needed by this EXPath Module: 
+            the version of eXist needed to run Monex's XQuery code. This is what gets 
+            declared in the EXPath package descriptor file. -->
+        <exist.processor.version>6.1.0-SNAPSHOT</exist.processor.version>
 
         <jackson.version>2.13.2</jackson.version>
         <websocket.api.version>1.1</websocket.api.version>
