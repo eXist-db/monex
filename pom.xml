@@ -456,6 +456,13 @@
     </profile>
   </profiles>
 
+    <repositories>
+        <repository>
+            <id>exist-db</id>
+            <url>https://repo.evolvedbinary.com/repository/exist-db-snapshots/</url>
+        </repository>
+    </repositories>
+
   <pluginRepositories>
     <pluginRepository>
       <id>clojars.org</id>
