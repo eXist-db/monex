@@ -8,10 +8,11 @@ declare namespace repo="http://exist-db.org/xquery/repo";
 declare variable $target external;
 
 let $data := xmldb:create-collection($target, "data")
+let $col := xs:anyURI($data)
 return (
-    sm:chown($data, "monex"),
-    sm:chgrp($data, "monex"),
-    sm:chmod($data, "rw-rw----")
+    sm:chown($col, "monex"),
+    sm:chgrp($col, "monex"),
+    sm:chmod($col, "rw-rw----")
 ),
 for $name in ("instances.xml", "notifications.xml")
 let $res := xs:anyURI($target || "/" || $name)
