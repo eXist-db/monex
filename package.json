@@ -26,14 +26,14 @@
   "homepage": "https://github.com/eXist-db/monex#readme",
   "dependencies": {
     "admin-lte": "^2.4.18",
-    "datatables.net-responsive": "^2.2.9",
-    "datatables.net-responsive-bs": "^2.2.9",
+    "datatables.net-responsive": "^2.4.0",
+    "datatables.net-responsive-bs": "^2.4.0",
     "knockout": "^3.5.1",
     "knockout.mapping": "^2.4.3",
-    "prismjs": "^1.27.0"
+    "prismjs": "^1.29.0"
   },
   "devDependencies": {
-    "cypress": "^7.4.0",
+    "cypress": "^7.7.0",
     "delete": "^1.1.0",
     "gulp": "^4.0.2"
   }
