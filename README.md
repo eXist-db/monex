@@ -1,7 +1,6 @@
 # Monex (Monitoring for eXist)
 
-[![Build Status](https://travis-ci.com/eXist-db/monex.svg?branch=master)](https://travis-ci.com/eXist-db/monex)
-
+[![Build Status](https://github.com/eXist-db/monex/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/eXist-db/exist/monex/workflows/ci.yml)
 
 ![Image](src/main/xar-resources/resources/img/screenshot.png?raw=true)
 
