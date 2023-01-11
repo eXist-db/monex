@@ -246,6 +246,17 @@
                 <li>Fixed: Display all values of a facet - <a href="https://github.com/eXist-db/monex/pull/166">#166</a></li>
             </ul>
         </change>
+        <change version="3.0.5">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Fixed: Mistyped parameter in post-install.xql - <a href="https://github.com/eXist-db/monex/commit/bbe260744abb8bc0baed00d073383299f76a96cf">ad2868e</a></li>
+            </ul>
+        </change>
+        <change version="4.0.0">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Breaking: Due to internal API changes this version of monex requires eXist-db version 6.1.0 or later - <a href="https://github.com/eXist-db/monex/pull/210">#210</a>, <a href="https://github.com/eXist-db/monex/pull/223">#223</a></li>
+                <li>Fixed: Added missing release notes for 3.0.5 release - <a href="https://github.com/eXist-db/monex/issues/217">#217</a></li>
+            </ul>
+        </change>
     </changelog>
 
 </package>
