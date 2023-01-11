@@ -69,7 +69,7 @@
         <dependency>
             <groupId>org.exist-db</groupId>
             <artifactId>exist-core</artifactId>
-            <version>${exist.processor.version}</version>
+            <version>${exist.java-api.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -304,7 +304,7 @@
             <configuration>
               <repoUri>http://exist-db.org/exist/apps/public-repo</repoUri>
               <outputDirectory>${project.build.directory}/autodeploy/</outputDirectory>
-              <existDbVersion>${exist.java-api.version}</existDbVersion>
+              <existDbVersion>${exist.processor.version}</existDbVersion>
               <packages>
                 <package>
                   <abbrev>templating</abbrev>
@@ -324,7 +324,7 @@
           <images>
             <image>
               <alias>existdb-docs-tests</alias>
-              <name>existdb/existdb:latest</name>
+              <name>existdb/existdb:${exist.processor.version}</name>
               <run>
                 <ports>
                   <port>8080:8080</port>
