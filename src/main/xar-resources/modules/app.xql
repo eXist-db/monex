@@ -405,7 +405,7 @@ declare %private function app:sort($function as element(), $sort as xs:string) {
     if ($sort eq "name") then
         $function/@name
     else if ($sort eq "calls") then
-        xs:int($function/@calls)
+        xs:integer($function/@calls)
     else if ($sort eq "source") then
         $function/@source
     else
