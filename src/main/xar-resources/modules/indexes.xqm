@@ -20,7 +20,7 @@ import module namespace templates="http://exist-db.org/xquery/html-templating";
 :)
 declare variable $indexes:start-value := 
     request:get-parameter('start-value', '');
-declare variable $indexes:callback := indexes:term-callback#2;
+declare variable $indexes:callback as function(xs:anyAtomicType, xs:unsignedInt+) as item()* := indexes:term-callback#2;
 declare variable $indexes:max-number-returned := xs:integer(request:get-parameter('max', 100));
 declare variable $indexes:index := request:get-parameter('index', '');
 declare variable $indexes:sortby := request:get-parameter('sortby', 'term');
@@ -547,7 +547,7 @@ function indexes:show-field($node as node(), $model as map(*)) {
 (:
     Helper function: Callback function called used in indexes:show-index-keys() for util:index-keys()
 :)
-declare function indexes:term-callback($term as xs:string, $data as xs:int+) as element() {
+declare function indexes:term-callback($term as xs:anyAtomicType, $data as xs:unsignedInt+) as element(tr) {
     <tr>
         <td>{$term}</td>
         <td>{$data[1]}</td>
