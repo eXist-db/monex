@@ -218,11 +218,15 @@ function indexes:show-index-keys($node as node(), $model as map(*)) {
             return
                 switch ($indexes:show-keys-by)
                     case "field" return
+                        (: Use the range function in $indexes:range-lookup to determine which arity to use with range:index-keys-for-field().
+                          We can't re-use $indexes:range-lookup as a function here, because the global variable was not initialized explicitly with 
+                          collection($indexes:collection). :)
                         if (function-arity($indexes:range-lookup) = 4) then
-                            collection($indexes:collection)/$indexes:range-lookup($indexes:field, $indexes:start-value, $indexes:callback, 
+                            collection($indexes:collection)/range:index-keys-for-field($indexes:field, $indexes:start-value, $indexes:callback, 
                                 $indexes:max-number-returned)
                         else
-                            collection($indexes:collection)/$indexes:range-lookup($indexes:field, $indexes:callback, $indexes:max-number-returned)
+                            collection($indexes:collection)/range:index-keys-for-field($indexes:field, $indexes:callback, 
+                               $indexes:max-number-returned)
                     case "node" return
                         util:index-keys($indexes:node-set, $indexes:start-value, $indexes:callback, $indexes:max-number-returned, $index)
                     default return
