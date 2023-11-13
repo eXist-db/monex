@@ -124,7 +124,7 @@ function indexes:current-collection($node as node(), $model as map(*)) {
 declare
     %templates:wrap
 function indexes:current-index($node as node(), $model as map(*)) {
-    indexes:index-name-to-label($indexes:index) || " Index on " || ($indexes:node-name, $indexes:match)[1]
+    indexes:index-name-to-label($indexes:index) || " Index on " || ($indexes:node-name, $indexes:match, $indexes:field)[normalize-space(.) ne ''][1]
 };
 
 declare
