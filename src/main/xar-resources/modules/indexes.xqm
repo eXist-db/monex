@@ -218,15 +218,67 @@ function indexes:show-index-keys($node as node(), $model as map(*)) {
             return
                 switch ($indexes:show-keys-by)
                     case "field" return
-                        (: Use the range function in $indexes:range-lookup to determine which arity to use with range:index-keys-for-field().
-                          We can't re-use $indexes:range-lookup as a function here, because the global variable was not initialized explicitly with 
-                          collection($indexes:collection). :)
+                      let $rows :=
+                        (: Use the range function in $indexes:range-lookup to determine which arity to 
+                          use with range:index-keys-for-field(). We can't re-use $indexes:range-lookup 
+                          as a function here, because the global variable was not initialized explicitly 
+                          with collection($indexes:collection). :)
                         if (function-arity($indexes:range-lookup) = 4) then
                             collection($indexes:collection)/range:index-keys-for-field($indexes:field, $indexes:start-value, $indexes:callback, 
-                                $indexes:max-number-returned)
+                               xs:int($indexes:max-number-returned))
                         else
                             collection($indexes:collection)/range:index-keys-for-field($indexes:field, $indexes:callback, 
-                               $indexes:max-number-returned)
+                               xs:int($indexes:max-number-returned))
+                      return
+                        (: In some versions of eXist (v5.3.0 – v6.2.0), range:index-keys-for-field() 
+                           returns erroneous data:
+                              - one row is returned per term *per document*
+                                - as such, the "frequency" reported is per document
+                                - as such, the "documents" reported is always 1
+                                - as such, the "position" appears to be determined by the number of 
+                                  terms in the document
+                              - the maximum number of terms ($indexes:max-number-returned) is either not 
+                                honored, or (most likely) it would only be honored on a 
+                                document-by-document basis.
+                          If the number of rows matches the number of distinct terms, we can (hopefully) 
+                          assume that this version of eXist is doing the right thing with the range 
+                          function.
+                         :)
+                        if ( count($rows) eq count(distinct-values($rows/td[1])) and 
+                             count($rows) lt $indexes:max-number-returned ) then
+                          $rows
+                        (: If the range function appears to be outputting erroneous information for the 
+                          collection, we clean it up a little for the Monex user:
+                              - grouping up terms so only one <tr> is given per unique term,
+                              - totalling up frequencies and documents,
+                              - setting new positions, and
+                              - returning terms within the maximum set by $indexes:max-number-returned.
+                         :)
+                        else
+                          let $distinct-rows :=
+                            for $row-grp in $rows
+                            let $term := xs:string($row-grp/td[1])
+                            group by $term
+                            let $total-frequency := sum($row-grp/td[2]/xs:integer(.))
+                            let $total-docs := sum($row-grp/td[3]/xs:integer(.))
+                            order by $term[1] ascending
+                            return
+                              (: Note we're skipping the position here; the document-by-document version 
+                                is useless. :)
+                              <tr>
+                                <td>{ $term[1] }</td>
+                                <td>{ $total-frequency }</td>
+                                <td>{ $total-docs }</td>
+                              </tr>
+                          return
+                            (: Now that all the rows are distinct, we can determine the correct position 
+                              for the term across the collection, and honor $indexes:max-number-returned. :)
+                            for $row at $pos in subsequence($distinct-rows, 1, $indexes:max-number-returned)
+                            return
+                              <tr>
+                                { $row/td }
+                                <td>{ $pos }</td>
+                              </tr>
                     case "node" return
                         util:index-keys($indexes:node-set, $indexes:start-value, $indexes:callback, $indexes:max-number-returned, $index)
                     default return
@@ -240,28 +292,27 @@ function indexes:show-index-keys($node as node(), $model as map(*)) {
            documents := xs:integer($key/td[3])
            position := xs:integer($key/td[4])
     :)
-    
+    let $primary-sort-value :=
+      switch ($indexes:sortby)
+        case 'term'       return function($key) { $key/td[1] }
+        case 'frequency'  return function($key) { xs:integer($key/td[2]) }
+        case 'documents'  return function($key) { xs:integer($key/td[3]) }
+        case 'position'   return function($key) { xs:integer($key/td[4]) }
+        default return ''
     let $sorted-keys :=
-        if ($indexes:sortby eq 'term') then 
+        (: If the sort method is "term" or "position", we don't need a second sort method. :)
+        if ($indexes:sortby = ('term', 'position')) then
             if ($indexes:sortorder eq 'ascending') then
-                for $key in $keys order by $key/td[1] ascending return $key
+                for $key in $keys order by $primary-sort-value($key) ascending return $key
             else
-                for $key in $keys order by $key/td[1] descending return $key
-        else if ($indexes:sortby eq 'frequency') then 
+                for $key in $keys order by $primary-sort-value($key) descending return $key
+        (: If the sort method is "frequency" or "documents", use "term" as a secondary sort method. :)
+        else if ($indexes:sortby = ('frequency', 'documents')) then
             if ($indexes:sortorder eq 'ascending') then
-                for $key in $keys order by xs:integer($key/td[2]) ascending, $key/td[1] ascending return $key
+                for $key in $keys order by $primary-sort-value($key) ascending, $key/td[1] ascending return $key
             else
-                for $key in $keys order by xs:integer($key/td[2]) descending, $key/td[1] ascending return $key
-        else if ($indexes:sortby eq 'documents') then 
-            if ($indexes:sortorder eq 'ascending') then
-                for $key in $keys order by xs:integer($key/td[3]) ascending, $key/td[1] ascending return $key
-            else
-                for $key in $keys order by xs:integer($key/td[3]) descending, $key/td[1] ascending return $key
-        else if ($indexes:sortby eq 'position') then 
-            if ($indexes:sortorder eq 'ascending') then
-                for $key in $keys order by xs:integer($key/td[4]) ascending return $key
-            else
-                for $key in $keys order by xs:integer($key/td[4]) descending return $key
+                for $key in $keys order by $primary-sort-value($key) descending, $key/td[1] ascending return $key
+        (: No specified sort method, no need to sort. :)
         else $keys
     
     let $query-end-time := util:system-time()
