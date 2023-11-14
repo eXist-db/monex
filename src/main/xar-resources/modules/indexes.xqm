@@ -222,7 +222,9 @@ function indexes:show-index-keys($node as node(), $model as map(*)) {
                         (: Use the range function in $indexes:range-lookup to determine which arity to 
                           use with range:index-keys-for-field(). We can't re-use $indexes:range-lookup 
                           as a function here, because the global variable was not initialized explicitly 
-                          with collection($indexes:collection). :)
+                          with collection($indexes:collection). This method is probably why we get 
+                          results on a document-by-document basis, but the alternative is not getting 
+                          any results at all. :)
                         if (function-arity($indexes:range-lookup) = 4) then
                             collection($indexes:collection)/range:index-keys-for-field($indexes:field, $indexes:start-value, $indexes:callback, 
                                xs:int($indexes:max-number-returned))
@@ -231,10 +233,10 @@ function indexes:show-index-keys($node as node(), $model as map(*)) {
                                xs:int($indexes:max-number-returned))
                       return
                         (: In some versions of eXist (v5.3.0 – v6.2.0), range:index-keys-for-field() 
-                           returns erroneous data:
+                           returns erroneous data for the collection:
                               - one row is returned per term *per document*
                                 - as such, the "frequency" reported is per document
-                                - as such, the "documents" reported is always 1
+                                - as such, the "documents" reported is always 1 in every row
                                 - as such, the "position" appears to be determined by the number of 
                                   terms in the document
                               - the maximum number of terms ($indexes:max-number-returned) is either not 
@@ -261,6 +263,12 @@ function indexes:show-index-keys($node as node(), $model as map(*)) {
                             group by $term
                             let $total-frequency := sum($row-grp/td[2]/xs:integer(.))
                             let $total-docs := sum($row-grp/td[3]/xs:integer(.))
+                            (: Note that because sorting is done after $indexes:max-number-returned is 
+                              applied, $sorted-keys will only ever be accurate to the first N terms 
+                              returned. We could get around that for the range index fields by applying 
+                              the requested sort method here, but instead we're being consistent with 
+                              the behavior of other index reports. We sort by term here only to ensure 
+                              that our calculated positions are accurate. :)
                             order by $term[1] ascending
                             return
                               (: Note we're skipping the position here; the document-by-document version 
@@ -271,8 +279,9 @@ function indexes:show-index-keys($node as node(), $model as map(*)) {
                                 <td>{ $total-docs }</td>
                               </tr>
                           return
-                            (: Now that all the rows are distinct, we can determine the correct position 
-                              for the term across the collection, and honor $indexes:max-number-returned. :)
+                            (: Now that all the rows have distinct terms, we can determine the correct 
+                              position for each term across the collection, and honor the requested
+                              $indexes:max-number-returned. :)
                             for $row at $pos in subsequence($distinct-rows, 1, $indexes:max-number-returned)
                             return
                               <tr>
