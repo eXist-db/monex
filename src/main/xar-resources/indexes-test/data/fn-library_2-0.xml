@@ -1,0 +1,866 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<specification xml:lang="en">
+  
+  <about>
+    <title>XQuery 1.0 and XPath 2.0 Functions and Operators</title>
+    <version>2 (edition 2)</version>
+    <desc>W3C Recommendation 14 December 2010 (revised 13 April 2015)</desc>
+    <editors>
+      <person>Ashok Malhotra</person>
+      <person>Jim Melton</person>
+      <person>Norman Walsh</person>
+      <person>Michael Kay</person>
+    </editors>
+    <url>https://www.w3.org/TR/xquery-operators</url>
+    <url>http://www.w3.org/TR/2010/REC-xpath-functions-20101214/</url>
+  </about>
+  
+  <section n="2" xml:id="accessors">
+    <heading>Accessors</heading>
+    
+    <function fn="node-name" group="accessor">
+      <return quantifier="?">xs:QName</return>
+      <args num="1"/>
+    </function>
+    
+    <function fn="nilled" group="accessor">
+      <return quantifier="?">xs:boolean</return>
+      <args num="0"/>
+      <args num="1"/>
+    </function>
+    
+    <function fn="string" group="accessor">
+      <return>xs:string</return>
+      <args num="0">
+        <error>XPDY0002</error>
+      </args>
+      <args num="1"/>
+    </function>
+    
+    <function fn="data" group="accessor">
+      <return quantifier="*">xs:anyAtomicType</return>
+      <args num="1"/>
+      <error>FOTY0012</error>
+    </function>
+    
+    <function fn="base-uri" group="accessor">
+      <return quantifier="?">xs:anyURI</return>
+      <args num="0">
+        <error>XPDY0002</error>
+        <error>XPDY0004</error>
+      </args>
+      <args num="1"/>
+    </function>
+    
+    <function fn="document-uri" group="accessor">
+      <return quantifier="?">xs:anyURI</return>
+      <args num="0"/>
+      <args num="1"/>
+    </function>
+  </section>
+  
+  
+  <section n="3" xml:id="func-error">
+    <heading>The Error Function</heading>
+    <function fn="error" group="error">
+      <return/>
+      <args num="0"/>
+      <args num="1"/>
+      <args num="2"/>
+      <args num="3"/>
+      <error>FOER0000</error>
+    </function>
+  </section>
+  
+  
+  <section n="4" xml:id="func-trace">
+    <heading>The Trace Function</heading>
+    
+    <function fn="trace" group="trace">
+      <return quantifier="*">item()</return>
+      <args num="2"/>
+    </function>
+  </section>
+  
+  
+  <section n="5" xml:id="constructor-functions">
+    <heading>Constructor Functions</heading>
+    
+    <section n="5.2" xml:id="func-dateTime">
+      <heading>A Special Constructor for xs:dateTime</heading>
+      <function fn="dateTime" group="constructor">
+        <return quantifier="?">xs:dateTime</return>
+        <args num="2"/>
+        <error>FORG0008</error>
+      </function>
+    </section>
+  </section>
+  
+  <section n="6" xml:id="numeric-functions">
+    <heading>Functions and Operators on Numerics</heading>
+    
+    <section n="6.4" xml:id="numeric-value-functions">
+      <heading>Functions on Numeric Values</heading>
+      
+      <function fn="abs" group="numeric">
+        <return quantifier="?">xs:numeric</return>
+        <args num="1"/>
+      </function>
+      
+      <function fn="ceiling" group="numeric">
+        <return quantifier="?">xs:numeric</return>
+        <args num="1"/>
+      </function>
+      
+      <function fn="floor" group="numeric">
+        <return quantifier="?">xs:numeric</return>
+        <args num="1"/>
+      </function>
+      
+      <function fn="round" group="numeric">
+        <return quantifier="?">xs:numeric</return>
+        <args num="1"/>
+      </function>
+      
+      <function fn="round-half-to-even" group="numeric">
+        <return quantifier="?">xs:numeric</return>
+        <args num="1"/>
+        <args num="2"/>
+        <error>FOCA0001</error>
+      </function>
+    </section>
+  </section>
+  
+  
+  <section n="7" xml:id="string-functions">
+    <heading>Functions on Strings</heading>
+    
+    <section n="7.2" xml:id="func-assemble-disassemble-string">
+      <heading>Functions to Assemble and Disassemble Strings</heading>
+      
+      <function fn="codepoints-to-string" group="string">
+        <return>xs:string</return>
+        <args num="1"/>
+        <error>FOCH0001</error>
+      </function>
+      
+      <function fn="string-to-codepoints" group="string">
+        <return quantifier="*">xs:integer</return>
+        <args num="1"/>
+      </function>
+    </section>
+    
+    <section n="7.3" xml:id="string-compare">
+      <heading>Equality and Comparison of Strings</heading>
+      
+      <function fn="compare" group="string">
+        <return quantifier="?">xs:integer</return>
+        <args num="2"/>
+        <args num="3"/>
+        <error>FOCH0002</error>
+      </function>
+      
+      <function fn="codepoint-equal" group="string">
+        <return quantifier="?">xs:boolean</return>
+        <args num="2"/>
+      </function>
+    </section>
+    
+    <section n="7.4" xml:id="string-value-functions">
+      <heading>Functions on String Values</heading>
+      
+      <function fn="concat" group="string">
+        <return>xs:string</return>
+        <args quantifier="{2,}"/>
+      </function>
+      
+      <function fn="string-join" group="string">
+        <return>xs:string</return>
+        <args num="2"/>
+      </function>
+      
+      <function fn="substring" group="string">
+        <return>xs:string</return>
+        <args num="2"/>
+        <args num="3"/>
+      </function>
+      
+      <function fn="string-length" group="string">
+        <return>xs:integer</return>
+        <args num="0">
+          <error>XPDY0002</error>
+        </args>
+        <args num="1"/>
+      </function>
+      
+      <function fn="normalize-space" group="string">
+        <return>xs:string</return>
+        <args num="0">
+          <error>XPDY0002</error>
+        </args>
+        <args num="1"/>
+      </function>
+      
+      <function fn="normalize-unicode" group="string">
+        <return>xs:string</return>
+        <args num="1"/>
+        <args num="2">
+          <error>FOCH0003</error>
+        </args>
+      </function>
+      
+      <function fn="upper-case" group="string">
+        <return>xs:string</return>
+        <args num="1"/>
+      </function>
+      
+      <function fn="lower-case" group="string">
+        <return>xs:string</return>
+        <args num="1"/>
+      </function>
+      
+      <function fn="translate" group="string">
+        <return>xs:string</return>
+        <args num="3"/>
+      </function>
+      
+      <function fn="encode-for-uri" group="string">
+        <return>xs:string</return>
+        <args num="1"/>
+      </function>
+      
+      <function fn="iri-to-uri" group="string">
+        <return>xs:string</return>
+        <args num="1"/>
+      </function>
+      
+      <function fn="escape-html-uri" group="string">
+        <return>xs:string</return>
+        <args num="1"/>
+      </function>
+    </section>
+    
+    <section n="7.5" xml:id="substring.functions">
+      <heading>Functions Based on Substring Matching</heading>
+      
+      <function fn="contains" group="string">
+        <return>xs:boolean</return>
+        <args num="2"/>
+        <args num="3"/>
+        <error>FOCH0002</error>
+        <error>FOCH0004</error>
+      </function>
+      
+      <function fn="starts-with" group="string">
+        <return>xs:boolean</return>
+        <args num="2"/>
+        <args num="3"/>
+        <error>FOCH0002</error>
+        <error>FOCH0004</error>
+      </function>
+      
+      <function fn="ends-with" group="string">
+        <return>xs:boolean</return>
+        <args num="2"/>
+        <args num="3"/>
+        <error>FOCH0002</error>
+        <error>FOCH0004</error>
+      </function>
+      
+      <function fn="substring-before" group="string">
+        <return>xs:string</return>
+        <args num="2"/>
+        <args num="3"/>
+        <error>FOCH0002</error>
+        <error>FOCH0004</error>
+      </function>
+      
+      <function fn="substring-after" group="string">
+        <return>xs:string</return>
+        <args num="2"/>
+        <args num="3"/>
+        <error>FOCH0002</error>
+        <error>FOCH0004</error>
+      </function>
+    </section>
+    
+    <section n="7.6" xml:id="string.match">
+      <heading>String Functions that Use Pattern Matching</heading>
+      
+      <function fn="matches" group="string">
+        <return>xs:boolean</return>
+        <args num="2"/>
+        <args num="3">
+          <error>FORX0001</error>
+        </args>
+        <error>FORX0002</error>
+      </function>
+      
+      <function fn="replace" group="string">
+        <return>xs:string</return>
+        <args num="3"/>
+        <args num="4">
+          <error>FORX0001</error>
+        </args>
+        <error>FORX0002</error>
+        <error>FORX0003</error>
+        <error>FORX0004</error>
+      </function>
+      
+      <function fn="tokenize" group="string">
+        <return quantifier="*">xs:string</return>
+        <args num="1"/>
+        <args num="2"/>
+        <args num="3">
+          <error>FORX0001</error>
+        </args>
+        <error>FORX0002</error>
+        <error>FORX0003</error>
+      </function>
+    </section>
+  </section>
+  
+  
+  <section n="8" xml:id="anyURI-functions">
+    <heading>Functions on anyURI</heading>
+    
+    <function fn="resolve-uri" group="uri">
+      <return quantifier="?">xs:anyURI</return>
+      <args num="1">
+        <error>FONS0005</error>
+      </args>
+      <args num="2"/>
+      <error>FORG0002</error>
+      <error>FORG0009</error>
+    </function>
+  </section>
+  
+  
+  <section n="9" xml:id="boolean-functions">
+    <heading>Functions and Operators on Boolean Values</heading>
+    
+    <section n="9.1" xml:id="boolean-constructors">
+      <heading>Additional Boolean Constructor Functions</heading>
+      
+      <function fn="true" group="boolean">
+        <return>xs:boolean</return>
+        <args num="0"/>
+      </function>
+      
+      <function fn="false" group="boolean">
+        <return>xs:boolean</return>
+        <args num="0"/>
+      </function>
+    </section>
+    
+    <section n="9.3" xml:id="boolean-value-functions">
+      <heading>Functions on Boolean Values</heading>
+      <function fn="not" group="boolean">
+        <return>xs:boolean</return>
+        <args num="1"/>
+        <error>FORG0006</error>
+      </function>
+    </section>
+  </section>
+  
+  
+  <section n="10" xml:id="durations-dates-times">
+    <heading>Functions and Operators on Durations, Dates and Times</heading>
+    
+    <section n="10.5" xml:id="component-extraction-functions">
+      <heading>Component Extraction Functions on Durations, Dates and Times</heading>
+      
+      <function fn="years-from-duration" group="duration-date-time">
+        <return quantifier="?">xs:integer</return>
+        <args num="1"/>
+      </function>
+      
+      <function fn="months-from-duration" group="duration-date-time">
+        <return quantifier="?">xs:integer</return>
+        <args num="1"/>
+      </function>
+      
+      <function fn="days-from-duration" group="duration-date-time">
+        <return quantifier="?">xs:integer</return>
+        <args num="1"/>
+      </function>
+      
+      <function fn="hours-from-duration" group="duration-date-time">
+        <return quantifier="?">xs:integer</return>
+        <args num="1"/>
+      </function>
+      
+      <function fn="minutes-from-duration" group="duration-date-time">
+        <return quantifier="?">xs:integer</return>
+        <args num="1"/>
+      </function>
+      
+      <function fn="seconds-from-duration" group="duration-date-time">
+        <return quantifier="?">xs:decimal</return>
+        <args num="1"/>
+      </function>
+      
+      <function fn="year-from-dateTime" group="duration-date-time">
+        <return quantifier="?">xs:integer</return>
+        <args num="1"/>
+      </function>
+      
+      <function fn="month-from-dateTime" group="duration-date-time">
+        <return quantifier="?">xs:integer</return>
+        <args num="1"/>
+      </function>
+      
+      <function fn="day-from-dateTime" group="duration-date-time">
+        <return quantifier="?">xs:integer</return>
+        <args num="1"/>
+      </function>
+      
+      <function fn="hours-from-dateTime" group="duration-date-time">
+        <return quantifier="?">xs:integer</return>
+        <args num="1"/>
+      </function>
+      
+      <function fn="minutes-from-dateTime" group="duration-date-time">
+        <return quantifier="?">xs:integer</return>
+        <args num="1"/>
+      </function>
+      
+      <function fn="seconds-from-dateTime" group="duration-date-time">
+        <return quantifier="?">xs:decimal</return>
+        <args num="1"/>
+      </function>
+      
+      <function fn="timezone-from-dateTime" group="duration-date-time">
+        <return quantifier="?">xs:dayTimeDuration</return>
+        <args num="1"/>
+      </function>
+      
+      <function fn="year-from-date" group="duration-date-time">
+        <return quantifier="?">xs:integer</return>
+        <args num="1"/>
+      </function>
+      
+      <function fn="month-from-date" group="duration-date-time">
+        <return quantifier="?">xs:integer</return>
+        <args num="1"/>
+      </function>
+      
+      <function fn="day-from-date" group="duration-date-time">
+        <return quantifier="?">xs:integer</return>
+        <args num="1"/>
+      </function>
+      
+      <function fn="timezone-from-date" group="duration-date-time">
+        <return quantifier="?">xs:dayTimeDuration</return>
+        <args num="1"/>
+      </function>
+      
+      <function fn="hours-from-time" group="duration-date-time">
+        <return quantifier="?">xs:integer</return>
+        <args num="1"/>
+      </function>
+      
+      <function fn="minutes-from-time" group="duration-date-time">
+        <return quantifier="?">xs:integer</return>
+        <args num="1"/>
+      </function>
+      
+      <function fn="seconds-from-time" group="duration-date-time">
+        <return quantifier="?">xs:decimal</return>
+        <args num="1"/>
+      </function>
+      
+      <function fn="timezone-from-time" group="duration-date-time">
+        <return quantifier="?">xs:dayTimeDuration</return>
+        <args num="1"/>
+      </function>
+    </section>
+    
+    
+    <section n="10.7" xml:id="timezone.functions">
+      <heading>Timezone Adjustment Functions on Dates and Time Values</heading>
+      
+      <function fn="adjust-dateTime-to-timezone" group="duration-date-time">
+        <return quantifier="?">xs:dateTime</return>
+        <args num="1"/>
+        <args num="2">
+          <error>FODT0003</error>
+        </args>
+      </function>
+      
+      <function fn="adjust-date-to-timezone" group="duration-date-time">
+        <return quantifier="?">xs:date</return>
+        <args num="1"/>
+        <args num="2">
+          <error>FODT0003</error>
+        </args>
+      </function>
+      
+      <function fn="adjust-time-to-timezone" group="duration-date-time">
+        <return quantifier="?">xs:time</return>
+        <args num="1"/>
+        <args num="2">
+          <error>FODT0003</error>
+        </args>
+      </function>
+    </section>
+  </section>
+  
+  
+  <section n="11" xml:id="QName-funcs">
+    <heading>Functions Related to QNames</heading>
+    
+    <section n="11.1" xml:id="QName-constructors">
+      <heading>Additional Constructor Functions for QNames</heading>
+      
+      <function fn="resolve-QName" group="qname">
+        <return quantifier="?">xs:QName</return>
+        <args num="2"/>
+        <error>FOCA0002</error>
+        <error>FONS0004</error>
+      </function>
+      
+      <function fn="QName" group="qname">
+        <return>xs:QName</return>
+        <args num="2"/>
+        <error>FOCA0002</error>
+      </function>
+    </section>
+    
+    <section n="11.2" xml:id="QName-functions">
+      <heading>Functions and Operators Related to QNames</heading>
+      
+      <function fn="prefix-from-QName" group="qname">
+        <return quantifier="?">xs:NCName</return>
+        <args num="1"/>
+      </function>
+      
+      <function fn="local-name-from-QName" group="qname">
+        <return quantifier="?">xs:NCName</return>
+        <args num="1"/>
+      </function>
+      
+      <function fn="namespace-uri-from-QName" group="qname">
+        <return quantifier="?">xs:anyURI</return>
+        <args num="1"/>
+      </function>
+      
+      <function fn="namespace-uri-for-prefix" group="qname">
+        <return quantifier="?">xs:anyURI</return>
+        <args num="2"/>
+      </function>
+      
+      <function fn="in-scope-prefixes" group="qname">
+        <return quantifier="*">xs:string</return>
+        <args num="2"/>
+      </function>
+    </section>
+  </section>
+  
+  
+  <section n="14" xml:id="node-functions">
+    <heading>Functions and Operators on Nodes</heading>
+    
+    <function fn="name" group="node">
+      <return>xs:string</return>
+      <args num="0"/>
+      <args num="1"/>
+      <error>XPDY0002</error>
+      <error>XPTY0004</error>
+    </function>
+    
+    <function fn="local-name" group="node">
+      <return>xs:string</return>
+      <args num="0"/>
+      <args num="1"/>
+      <error>XPDY0002</error>
+      <error>XPTY0004</error>
+    </function>
+    
+    <function fn="namespace-uri" group="node">
+      <return>xs:anyURI</return>
+      <args num="0"/>
+      <args num="1"/>
+      <error>XPDY0002</error>
+      <error>XPTY0004</error>
+    </function>
+    
+    <function fn="number" group="numeric">
+      <return>xs:double</return>
+      <args num="0"/>
+      <args num="1"/>
+      <error>XPDY0002</error>
+    </function>
+    
+    <function fn="lang" group="node">
+      <return>xs:boolean</return>
+      <args num="1"/>
+      <args num="2"/>
+      <error>XPDY0002</error>
+      <error>XPTY0004</error>
+    </function>
+    
+    <function fn="root" group="node">
+      <args num="0">
+        <return>node()</return>
+      </args>
+      <args num="1">
+        <return quantifier="?">node()</return>
+      </args>
+      <error>XPDY0002</error>
+      <error>XPTY0004</error>
+    </function>
+  </section>
+  
+  
+  <section n="15" xml:id="sequence-functions">
+    <heading>Functions and Operators on Sequences</heading>
+    
+    <section n="15.1" xml:id="general-seq-funcs">
+      <heading>General Functions and Operators on Sequences</heading>
+      
+      <function fn="boolean" group="boolean">
+        <return>xs:boolean</return>
+        <args num="1"/>
+        <error>FORG0006</error>
+      </function>
+      
+      <function fn="index-of" group="sequence">
+        <return quantifier="*">xs:integer</return>
+        <args num="2"/>
+        <args num="3">
+          <error>FOCH0002</error>
+        </args>
+      </function>
+      
+      <function fn="empty" group="sequence">
+        <return>xs:boolean</return>
+        <args num="1"/>
+      </function>
+      
+      <function fn="exists" group="sequence">
+        <return>xs:boolean</return>
+        <args num="1"/>
+      </function>
+      
+      <function fn="distinct-values" group="sequence">
+        <return quantifier="*">xs:anyAtomicType</return>
+        <args num="1"/>
+        <args num="2"/>
+      </function>
+      
+      <function fn="insert-before" group="sequence">
+        <return quantifier="*">item()</return>
+        <args num="3"/>
+      </function>
+      
+      <function fn="remove" group="sequence">
+        <return quantifier="*">item()</return>
+        <args num="2"/>
+      </function>
+      
+      <function fn="reverse" group="sequence">
+        <return quantifier="*">item()</return>
+        <args num="1"/>
+      </function>
+      
+      <function fn="subsequence" group="sequence">
+        <return quantifier="*">item()</return>
+        <args num="2"/>
+        <args num="3"/>
+      </function>
+      
+      <function fn="unordered" group="sequence">
+        <return quantifier="*">item()</return>
+        <args num="1"/>
+      </function>
+    </section>
+    
+    <section n="15.2" xml:id="cardinality-functions">
+      <heading>Functions That Test the Cardinality of Sequences</heading>
+      
+      <function fn="zero-or-one" group="sequence">
+        <return quantifier="?">item()</return>
+        <args num="1"/>
+        <error>FORG0003</error>
+      </function>
+      
+      <function fn="one-or-more" group="sequence">
+        <return quantifier="+">item()</return>
+        <args num="1"/>
+        <error>FORG0004</error>
+      </function>
+      
+      <function fn="exactly-one" group="sequence">
+        <return>item()</return>
+        <args num="1"/>
+        <error>FORG0005</error>
+      </function>
+    </section>
+    
+    <section n="15.3" xml:id="union-intersection-except">
+      <heading>Equals, Union, Intersection and Except</heading>
+      <function fn="deep-equal" group="sequence">
+        <return>xs:boolean</return>
+        <args num="2"/>
+        <args num="3">
+          <error>FOCH0002</error>
+        </args>
+      </function>
+    </section>
+    
+    <section n="15.4" xml:id="aggregate-functions">
+      <heading>Aggregate Functions</heading>
+      
+      <function fn="count" group="sequence">
+        <return>xs:integer</return>
+        <args num="1"/>
+      </function>
+      
+      <function fn="avg" group="sequence">
+        <return quantifier="?">xs:anyAtomicType</return>
+        <args num="1"/>
+        <error>FORG0006</error>
+      </function>
+      
+      <function fn="max" group="sequence">
+        <return quantifier="?">xs:anyAtomicType</return>
+        <args num="1"/>
+        <args num="2"/>
+        <error>FORG0006</error>
+        <error>FOCH0002</error>
+      </function>
+      
+      <function fn="min" group="sequence">
+        <return quantifier="?">xs:anyAtomicType</return>
+        <args num="1"/>
+        <args num="2"/>
+        <error>FORG0006</error>
+        <error>FOCH0002</error>
+      </function>
+      
+      <function fn="sum" group="sequence">
+        <args num="1">
+          <return>xs:anyAtomicType</return>
+        </args>
+        <args num="2">
+          <return quantifier="?">xs:anyAtomicType</return>
+        </args>
+        <error>FORG0006</error>
+      </function>
+      
+    </section>
+    
+    <section n="15.5" xml:id="fns-that-generate-sequences">
+      <heading>Functions and Operators that Generate Sequences</heading>
+      
+      <function fn="id" group="sequence">
+        <return quantifier="*">element()</return>
+        <args num="1"/>
+        <args num="2"/>
+        <error>FODC0001</error>
+        <error>XPDY0002</error>
+        <error>XPTY0004</error>
+      </function>
+      
+      <function fn="idref" group="sequence">
+        <return quantifier="*">node()</return>
+        <args num="1"/>
+        <args num="2"/>
+        <error>FODC0001</error>
+        <error>XPDY0002</error>
+        <error>XPTY0004</error>
+      </function>
+      
+      <function fn="doc" group="sequence">
+        <return quantifier="?">document-node()</return>
+        <property>stable</property>
+        <args num="1"/>
+        <error>FODC0002</error>
+        <error>FODC0003</error>
+        <error>FODC0005</error>
+      </function>
+      
+      <function fn="doc-available" group="sequence">
+        <return>xs:boolean</return>
+        <args num="1"/>
+        <error>FODC0005</error>
+      </function>
+      
+      <function fn="collection" group="sequence">
+        <return quantifier="?">document-node()</return>
+        <property>stable</property>
+        <args num="0"/>
+        <args num="1">
+          <error>FODC0004</error>
+        </args>
+        <error>FODC0002</error>
+        <error>FODC0003</error>
+      </function>
+      
+      <function fn="element-with-id" group="sequence">
+        <return quantifier="*">element()</return>
+        <args num="1">
+          <error>XPDY0002</error>
+          <error>XPTY0004</error>
+        </args>
+        <args num="2"/>
+        <error>FODC0001</error>
+      </function>
+    </section>
+    
+  </section>
+  
+  
+  <section n="16" xml:id="context">
+    <heading>Context Functions</heading>
+    
+    <function fn="position" group="context">
+      <return>xs:integer</return>
+      <property>contextual</property>
+      <args num="0"/>
+      <error>XPDY0002</error>
+    </function>
+    
+    <function fn="last" group="context">
+      <return>xs:integer</return>
+      <property>contextual</property>
+      <args num="0"/>
+      <error>XPDY0002</error>
+    </function>
+    
+    <function fn="current-dateTime" group="context">
+      <return>xs:dateTimeStamp</return>
+      <args num="0"/>
+    </function>
+    
+    <function fn="current-date" group="context">
+      <return>xs:date</return>
+      <args num="0"/>
+    </function>
+    
+    <function fn="current-time" group="context">
+      <return>xs:time</return>
+      <args num="0"/>
+    </function>
+    
+    <function fn="implicit-timezone" group="context">
+      <return>xs:dayTimeDuration</return>
+      <property>contextual</property><!-- not marked as "stable" -->
+      <args num="0"/>
+    </function>
+    
+    <function fn="default-collation" group="context">
+      <return>xs:string</return>
+      <property>contextual</property><!-- not marked as "stable" -->
+      <args num="0"/>
+    </function>
+    
+    <function fn="static-base-uri" group="context">
+      <return quantifier="?">xs:anyURI</return>
+      <property>contextual</property>
+      <args num="0"/>
+    </function>
+  </section>
+  
+</specification>

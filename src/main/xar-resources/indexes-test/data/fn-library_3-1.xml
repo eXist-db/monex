@@ -1,0 +1,1830 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<specification xml:lang="en">
+  
+  <about>
+    <title>XPath and XQuery Functions and Operators 3.1</title>
+    <version>4</version>
+    <desc>W3C Recommendation 21 March 2017</desc>
+    <editors>
+      <person>Michael Kay</person>
+    </editors>
+    <url>https://www.w3.org/TR/xpath-functions-31</url>
+    <url>https://www.w3.org/TR/2017/REC-xpath-functions-31-20170321/</url>
+  </about>
+  
+  <section n="2" xml:id="accessors">
+    <heading>Accessors</heading>
+    
+    <function fn="node-name" group="accessor">
+      <return quantifier="?">xs:QName</return>
+      <property>deterministic</property>
+      <args num="0">
+        <property>context-dependent</property>
+        <property>focus-dependent</property>
+        <error>XPDY0002</error>
+        <error>XPDY0004</error>
+      </args>
+      <args num="1">
+        <property>context-independent</property>
+        <property>focus-independent</property>
+      </args>
+    </function>
+    
+    <function fn="nilled" group="accessor">
+      <return quantifier="?">xs:boolean</return>
+      <property>deterministic</property>
+      <args num="0">
+        <property>context-dependent</property>
+        <property>focus-dependent</property>
+        <error>XPDY0002</error>
+        <error>XPDY0004</error>
+      </args>
+      <args num="1">
+        <property>context-independent</property>
+        <property>focus-independent</property>
+      </args>
+    </function>
+    
+    <function fn="string" group="accessor">
+      <return>xs:string</return>
+      <property>deterministic</property>
+      <args num="0">
+        <property>context-dependent</property>
+        <property>focus-dependent</property>
+        <error>XPDY0002</error>
+      </args>
+      <args num="1">
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <error>FOTY0014</error>
+      </args>
+    </function>
+    
+    <function fn="data" group="accessor">
+      <return quantifier="*">xs:anyAtomicType</return>
+      <property>deterministic</property>
+      <args num="0">
+        <property>context-dependent</property>
+        <property>focus-dependent</property>
+        <error>XPDY0002</error><!-- this is a guess: spec does not specify which error is raised when context is missing -->
+      </args>
+      <args num="1">
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <error>FOTY0012</error>
+        <error>FOTY0013</error>
+      </args>
+    </function>
+    
+    <function fn="base-uri" group="accessor">
+      <return quantifier="?">xs:anyURI</return>
+      <property>deterministic</property>
+      <args num="0">
+        <property>context-dependent</property>
+        <property>focus-dependent</property>
+        <error>XPDY0002</error>
+        <error>XPDY0004</error>
+      </args>
+      <args num="1">
+        <property>context-independent</property>
+        <property>focus-independent</property>
+      </args>
+    </function>
+    
+    <function fn="document-uri" group="accessor">
+      <return quantifier="?">xs:anyURI</return>
+      <property>deterministic</property>
+      <args num="0">
+        <property>context-dependent</property>
+        <property>focus-dependent</property>
+        <error>XPDY0002</error>
+        <error>XPDY0004</error>
+      </args>
+      <args num="1">
+        <property>context-independent</property>
+        <property>focus-independent</property>
+      </args>
+    </function>
+    
+  </section>
+  
+  <section n="3" xml:id="errors-and-diagnostics">
+    <heading>Errors and diagnostics</heading>
+    
+    <section n="3.1" xml:id="errors">
+      <heading>Raising errors</heading>
+      <function fn="error" group="reporting">
+        <return/>
+        <property>nondeterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="0"/>
+        <args num="1"/>
+        <args num="2"/>
+        <args num="3"/>
+        <error>FOER0000</error>
+      </function>
+    </section>
+    
+    <section n="3.2" xml:id="diagnostics">
+      <heading>Diagnostic tracing</heading>
+      <function fn="trace" group="reporting">
+        <return quantifier="*">item()</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+        <args num="2"/>
+      </function>
+    </section>
+  </section>
+  
+  
+  <section n="4" xml:id="numeric-functions">
+    <heading>Functions and operators on numerics</heading>
+    
+    <section n="4.4" xml:id="numeric-value-functions">
+      <heading>Functions on numeric values</heading>
+      
+      <function fn="abs" group="numeric">
+        <return quantifier="?">xs:numeric</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+      
+      <function fn="ceiling" group="numeric">
+        <return quantifier="?">xs:numeric</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+      
+      <function fn="floor" group="numeric">
+        <return quantifier="?">xs:numeric</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+      
+      <function fn="round" group="numeric">
+        <return quantifier="?">xs:numeric</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+        <args num="2"/>
+      </function>
+      
+      <function fn="round-half-to-even" group="numeric">
+        <return quantifier="?">xs:numeric</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+        <args num="2"/>
+      </function>
+      
+    </section>
+    
+    <section n="4.5" xml:id="parsing-numbers">
+      <heading>Parsing numbers</heading>
+      
+      <function fn="number" group="numeric">
+        <return>xs:double</return>
+        <property>deterministic</property>
+        <args num="0">
+          <property>context-dependent</property>
+          <property>focus-dependent</property>
+          <error>XPDY0002</error>
+        </args>
+        <args num="1">
+          <property>context-independent</property>
+          <property>focus-independent</property>
+        </args>
+      </function>
+    </section>
+    
+    <section n="4.6" xml:id="formatting-integers">
+      <heading>Formatting integers</heading>
+      
+      <function fn="format-integer" group="numeric">
+        <return>xs:string</return>
+        <property>deterministic</property>
+        <property>focus-independent</property>
+        <args num="2">
+          <property>context-dependent</property>
+        </args>
+        <args num="3">
+          <property>context-independent</property>
+        </args>
+        <error>FODF1310</error>
+      </function>
+    </section>
+    
+    <section n="4.7" xml:id="formatting-numbers">
+      <heading>Formatting numbers</heading>
+      
+      <function fn="format-number" group="numeric">
+        <return>xs:string</return>
+        <property>deterministic</property>
+        <property>focus-independent</property>
+        <args num="2">
+          <property>context-independent</property>
+        </args>
+        <args num="3">
+          <property>context-dependent</property>
+        </args>
+        <error>FODF1280</error>
+      </function>
+    </section>
+    
+    <section n="4.8" xml:id="trigonometry">
+      <heading>Trigonometric and exponential functions</heading>
+    </section>
+    
+    <section n="4.9" xml:id="random-numbers">
+      <heading>Random Numbers</heading>
+      
+      <function fn="random-number-generator" group="numeric">
+        <return>map(xs:string, item())</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <property>higher-order</property>
+        <args num="0"/>
+        <args num="1"/>
+      </function>
+    </section>
+  </section>
+  
+  
+  <section n="5" xml:id="string-functions">
+    <heading>Functions on strings</heading>
+    
+    <section n="5.2" xml:id="func-assemble-disassemble-string">
+      <heading>Functions to assemble and disassemble strings</heading>
+      
+      <function fn="codepoints-to-string" group="string">
+        <return>xs:string</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+        <error>FOCH0001</error>
+      </function>
+      
+      <function fn="string-to-codepoints" group="string">
+        <return quantifier="*">xs:integer</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+    </section>
+    
+    <section n="5.3" xml:id="string-compare">
+      <heading>Comparison of strings</heading>
+      
+      <function fn="compare" group="string">
+        <return quantifier="?">xs:integer</return>
+        <property>deterministic</property>
+        <property>context-dependent</property>
+        <property>focus-independent</property>
+        <args num="2"/>
+        <args num="3"/>
+        <error>FOCH0002</error>
+      </function>
+      
+      <function fn="codepoint-equal" group="string">
+        <return quantifier="?">xs:boolean</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="2"/>
+      </function>
+      
+      <function fn="collation-key" group="string">
+        <return>xs:base64Binary</return>
+        <property>deterministic</property>
+        <property>context-dependent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+        <args num="2"/>
+        <error>FOCH0002</error>
+        <error>FOCH0004</error>
+      </function>
+      
+      <function fn="contains-token" group="string">
+        <return>xs:boolean</return>
+        <property>deterministic</property>
+        <property>context-dependent</property>
+        <property>focus-independent</property>
+        <args num="2"/>
+        <args num="3"/>
+        <error>FOCH0002</error>
+      </function>
+    </section>
+    
+    <section n="5.4" xml:id="string-value-functions">
+      <heading>Functions on string values</heading>
+      
+      <function fn="concat" group="string">
+        <return>xs:string</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args quantifier="{2,}"/>
+      </function>
+      
+      <function fn="string-join" group="string">
+        <return>xs:string</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+        <args num="2"/>
+      </function>
+      
+      <function fn="substring" group="string">
+        <return>xs:string</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="2"/>
+        <args num="3"/>
+      </function>
+      
+      <function fn="string-length" group="string">
+        <return>xs:integer</return>
+        <property>deterministic</property>
+        <args num="0">
+          <property>context-dependent</property>
+          <property>focus-dependent</property>
+          <error>XPDY0002</error>
+        </args>
+        <args num="1">
+          <property>context-independent</property>
+          <property>focus-independent</property>
+        </args>
+      </function>
+      
+      <function fn="normalize-space" group="string">
+        <return>xs:string</return>
+        <property>deterministic</property>
+        <args num="0">
+          <property>context-dependent</property>
+          <property>focus-dependent</property>
+          <error>XPDY0002</error>
+        </args>
+        <args num="1">
+          <property>context-independent</property>
+          <property>focus-independent</property>
+        </args>
+      </function>
+      
+      <function fn="normalize-unicode" group="string">
+        <return>xs:string</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+        <args num="2">
+          <error>FOCH0003</error>
+        </args>
+      </function>
+      
+      <function fn="upper-case" group="string">
+        <return>xs:string</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+      
+      <function fn="lower-case" group="string">
+        <return>xs:string</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+      
+      <function fn="translate" group="string">
+        <return>xs:string</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="3"/>
+      </function>
+    </section>
+    
+    <section n="5.5" xml:id="substring.functions">
+      <heading>Functions based on substring matching</heading>
+      
+      <function fn="contains" group="string">
+        <return>xs:boolean</return>
+        <property>deterministic</property>
+        <property>context-dependent</property>
+        <property>focus-independent</property>
+        <args num="2"/>
+        <args num="3"/>
+        <error>FOCH0002</error>
+        <error>FOCH0004</error>
+      </function>
+      
+      <function fn="starts-with" group="string">
+        <return>xs:boolean</return>
+        <property>deterministic</property>
+        <property>context-dependent</property>
+        <property>focus-independent</property>
+        <args num="2"/>
+        <args num="3"/>
+        <error>FOCH0002</error>
+        <error>FOCH0004</error>
+      </function>
+      
+      <function fn="ends-with" group="string">
+        <return>xs:boolean</return>
+        <property>deterministic</property>
+        <property>context-dependent</property>
+        <property>focus-independent</property>
+        <args num="2"/>
+        <args num="3"/>
+        <error>FOCH0002</error>
+        <error>FOCH0004</error>
+      </function>
+      
+      <function fn="substring-before" group="string">
+        <return>xs:string</return>
+        <property>deterministic</property>
+        <property>context-dependent</property>
+        <property>focus-independent</property>
+        <args num="2"/>
+        <args num="3"/>
+        <error>FOCH0002</error>
+        <error>FOCH0004</error>
+      </function>
+      
+      <function fn="substring-after" group="string">
+        <return>xs:string</return>
+        <property>deterministic</property>
+        <property>context-dependent</property>
+        <property>focus-independent</property>
+        <args num="2"/>
+        <args num="3"/>
+        <error>FOCH0002</error>
+        <error>FOCH0004</error>
+      </function>
+    </section>
+    
+    <section n="5.6" xml:id="string.match">
+      <heading>String functions that use regular expressions</heading>
+      
+      <function fn="matches" group="string">
+        <return>xs:boolean</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="2"/>
+        <args num="3">
+          <error>FORX0001</error>
+        </args>
+        <error>FORX0002</error>
+      </function>
+      
+      <function fn="replace" group="string">
+        <return>xs:string</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="3"/>
+        <args num="4">
+          <error>FORX0001</error>
+        </args>
+        <error>FORX0002</error>
+        <error>FORX0003</error>
+        <error>FORX0004</error>
+      </function>
+      
+      <function fn="tokenize" group="string">
+        <return quantifier="*">xs:string</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+        <args num="2"/>
+        <args num="3">
+          <error>FORX0001</error>
+        </args>
+        <error>FORX0002</error>
+        <error>FORX0003</error>
+      </function>
+      
+      <function fn="analyze-string" group="string">
+        <return>element(fn:analyze-string-result)</return>
+        <property>nondeterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+        <args num="2"/>
+        <args num="3">
+          <error>FORX0001</error>
+        </args>
+        <error>FORX0002</error>
+        <error>FORX0003</error>
+      </function>
+    </section>
+    
+  </section>
+  
+  
+  <section n="6" xml:id="anyURI-functions">
+    <heading>Functions that manipulate URIs</heading>
+    
+    <function fn="resolve-uri" group="uri">
+      <return quantifier="?">xs:anyURI</return>
+      <property>deterministic</property>
+      <property>focus-independent</property>
+      <args num="1">
+        <property>context-dependent</property>
+        <error>FONS0005</error>
+      </args>
+      <args num="2">
+        <property>context-independent</property>
+      </args>
+      <error>FORG0002</error>
+      <error>FORG0009</error>
+    </function>
+    
+    <function fn="encode-for-uri" group="uri">
+      <return>xs:string</return>
+      <property>deterministic</property>
+      <property>context-independent</property>
+      <property>focus-independent</property>
+      <args num="1"/>
+    </function>
+    
+    <function fn="iri-to-uri" group="uri">
+      <return>xs:string</return>
+      <property>deterministic</property>
+      <property>context-independent</property>
+      <property>focus-independent</property>
+      <args num="1"/>
+    </function>
+    
+    <function fn="escape-html-uri" group="uri">
+      <return>xs:string</return>
+      <property>deterministic</property>
+      <property>context-independent</property>
+      <property>focus-independent</property>
+      <args num="1"/>
+    </function>
+  </section>
+  
+  
+  <section n="7" xml:id="boolean-functions">
+    <heading>Functions and operators on Boolean values</heading>
+    
+    <section n="7.1" xml:id="boolean-constructors">
+      <heading>Boolean constant functions</heading>
+      
+      <function fn="true" group="boolean">
+        <return>xs:boolean</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="0"/>
+      </function>
+      
+      <function fn="false" group="boolean">
+        <return>xs:boolean</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="0"/>
+      </function>
+    </section>
+    
+    <section n="7.3" xml:id="boolean-value-functions">
+      <heading>Functions on Boolean values</heading>
+      
+      <function fn="boolean" group="boolean">
+        <return>xs:boolean</return>
+        <args num="1"/>
+        <!-- spec lists no properties -->
+        <error>FORG0006</error>
+      </function>
+      
+      <function fn="not" group="boolean">
+        <return>xs:boolean</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+        <error>FORG0006</error>
+      </function>
+    </section>
+  </section>
+  
+  
+  <section n="8" xml:id="durations">
+    <heading>Functions and operators on durations</heading>
+    
+    <section n="8.3" xml:id="component-extraction-durations">
+      <heading>Component extraction functions on durations</heading>
+      
+      <function fn="years-from-duration" group="duration">
+        <return quantifier="?">xs:integer</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+      
+      <function fn="months-from-duration" group="duration">
+        <return quantifier="?">xs:integer</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+      
+      <function fn="days-from-duration" group="duration">
+        <return quantifier="?">xs:integer</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+      
+      <function fn="hours-from-duration" group="duration">
+        <return quantifier="?">xs:integer</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+      
+      <function fn="minutes-from-duration" group="duration">
+        <return quantifier="?">xs:integer</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+      
+      <function fn="seconds-from-duration" group="duration">
+        <return quantifier="?">xs:decimal</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+    </section>
+  </section>
+  
+  
+  <section n="9" xml:id="dates-times">
+    <heading>Functions and operators on dates and times</heading>
+    
+    <section n="9.3" xml:id="constructing-dateTime">
+      <heading>Constructing a dateTime</heading>
+      
+      <function fn="dateTime" group="datetime">
+        <return quantifier="?">xs:dateTime</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="2"/>
+        <error>FORG0008</error>
+      </function>
+    </section>
+    
+    <section n="9.5" xml:id="component-extraction-dateTime">
+      <heading>Component extraction functions on dates and times</heading>
+      
+      <function fn="year-from-dateTime" group="datetime">
+        <return quantifier="?">xs:integer</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+      
+      <function fn="month-from-dateTime" group="datetime">
+        <return quantifier="?">xs:integer</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+      
+      <function fn="day-from-dateTime" group="datetime">
+        <return quantifier="?">xs:integer</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+      
+      <function fn="hours-from-dateTime" group="datetime">
+        <return quantifier="?">xs:integer</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+      
+      <function fn="minutes-from-dateTime" group="datetime">
+        <return quantifier="?">xs:integer</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+      
+      <function fn="seconds-from-dateTime" group="datetime">
+        <return quantifier="?">xs:decimal</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+      
+      <function fn="timezone-from-dateTime" group="datetime">
+        <return quantifier="?">xs:dayTimeDuration</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+      
+      <function fn="year-from-date" group="datetime">
+        <return quantifier="?">xs:integer</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+      
+      <function fn="month-from-date" group="datetime">
+        <return quantifier="?">xs:integer</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+      
+      <function fn="day-from-date" group="datetime">
+        <return quantifier="?">xs:integer</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+      
+      <function fn="timezone-from-date" group="datetime">
+        <return quantifier="?">xs:dayTimeDuration</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+      
+      <function fn="hours-from-time" group="datetime">
+        <return quantifier="?">xs:integer</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+      
+      <function fn="minutes-from-time" group="datetime">
+        <return quantifier="?">xs:integer</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+      
+      <function fn="seconds-from-time" group="datetime">
+        <return quantifier="?">xs:decimal</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+      
+      <function fn="timezone-from-time" group="datetime">
+        <return quantifier="?">xs:dayTimeDuration</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+    </section>
+    
+    <section n="9.6" xml:id="timezone.functions">
+      <heading>Timezone adjustment functions on dates and time values</heading>
+      
+      <function fn="adjust-dateTime-to-timezone" group="datetime">
+        <return quantifier="?">xs:dateTime</return>
+        <property>deterministic</property>
+        <property>focus-independent</property>
+        <args num="1">
+          <property>context-dependent</property>
+        </args>
+        <args num="2">
+          <property>context-independent</property>
+          <error>FODT0003</error>
+        </args>
+      </function>
+      
+      <function fn="adjust-date-to-timezone" group="datetime">
+        <return quantifier="?">xs:date</return>
+        <property>deterministic</property>
+        <property>focus-independent</property>
+        <args num="1">
+          <property>context-dependent</property>
+        </args>
+        <args num="2">
+          <property>context-independent</property>
+          <error>FODT0003</error>
+        </args>
+      </function>
+      
+      <function fn="adjust-time-to-timezone" group="datetime">
+        <return quantifier="?">xs:time</return>
+        <property>deterministic</property>
+        <property>focus-independent</property>
+        <args num="1">
+          <property>context-dependent</property>
+        </args>
+        <args num="2">
+          <property>context-independent</property>
+          <error>FODT0003</error>
+        </args>
+      </function>
+    </section>
+    
+    <section n="9.8" xml:id="formatting-dates-and-times">
+      <heading>Formatting dates and times</heading>
+      
+      <function fn="format-dateTime" group="datetime">
+        <return quantifier="?">xs:string</return>
+        <property>deterministic</property>
+        <property>context-dependent</property>
+        <property>focus-independent</property>
+        <args num="2"/>
+        <args num="5"/>
+        <error>FOFD1340</error>
+      </function>
+      
+      <function fn="format-date" group="datetime">
+        <return quantifier="?">xs:string</return>
+        <property>deterministic</property>
+        <property>context-dependent</property>
+        <property>focus-independent</property>
+        <args num="2"/>
+        <args num="5"/>
+        <error>FOFD1340</error>
+        <error>FOFD1350</error>
+      </function>
+      
+      <function fn="format-time" group="datetime">
+        <return quantifier="?">xs:string</return>
+        <property>deterministic</property>
+        <property>context-dependent</property>
+        <property>focus-independent</property>
+        <args num="2"/>
+        <args num="5"/>
+        <error>FOFD1340</error>
+        <error>FOFD1350</error>
+      </function>
+    </section>
+    
+    <section n="9.9" xml:id="parsing-dates-and-times">
+      <heading>Parsing dates and times</heading>
+      
+      <function fn="parse-ietf-date" group="datetime">
+        <return quantifier="?">xs:dateTime</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+        <error>FORG0010</error>
+      </function>
+    </section>
+  </section>
+  
+  
+  <section n="10" xml:id="QName-funcs">
+    <heading>Functions related to QNames</heading>
+    
+    <section n="10.1" xml:id="QName-constructors">
+      <heading>Functions to create a QName</heading>
+      
+      <function fn="resolve-QName" group="qname">
+        <return quantifier="?">xs:QName</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="2"/>
+        <error>FOCA0002</error>
+        <error>FONS0004</error>
+      </function>
+      
+      <function fn="QName" group="qname">
+        <return>xs:QName</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="2"/>
+        <error>FOCA0002</error>
+      </function>
+    </section>
+    
+    <section n="10.2" xml:id="QName-functions">
+      <heading>Functions and operators related to QNames</heading>
+      
+      <function fn="prefix-from-QName" group="qname">
+        <return quantifier="?">xs:NCName</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+      
+      <function fn="local-name-from-QName" group="qname">
+        <return quantifier="?">xs:NCName</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+      
+      <function fn="namespace-uri-from-QName" group="qname">
+        <return quantifier="?">xs:anyURI</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+      
+      <function fn="namespace-uri-for-prefix" group="qname">
+        <return quantifier="?">xs:anyURI</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="2"/>
+      </function>
+      
+      <function fn="in-scope-prefixes" group="qname">
+        <return quantifier="*">xs:string</return>
+        <property>nondeterministic-wrt-ordering</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+    </section>
+  </section>
+  
+  
+  <section n="13" xml:id="node-functions">
+    <heading>Functions and operators on nodes</heading>
+    
+    <function fn="name" group="node">
+      <return>xs:string</return>
+      <property>deterministic</property>
+      <args num="0">
+        <property>context-dependent</property>
+        <property>focus-dependent</property>
+        <error>XPDY0002</error>
+        <error>XPTY0004</error>
+      </args>
+      <args num="1">
+        <property>context-independent</property>
+        <property>focus-independent</property>
+      </args>
+    </function>
+    
+    <function fn="local-name" group="node">
+      <return>xs:string</return>
+      <property>deterministic</property>
+      <args num="0">
+        <property>context-dependent</property>
+        <property>focus-dependent</property>
+        <error>XPDY0002</error>
+        <error>XPTY0004</error>
+      </args>
+      <args num="1">
+        <property>context-independent</property>
+        <property>focus-independent</property>
+      </args>
+    </function>
+    
+    <function fn="namespace-uri" group="node">
+      <return>xs:anyURI</return>
+      <property>deterministic</property>
+      <args num="0">
+        <property>context-dependent</property>
+        <property>focus-dependent</property>
+        <error>XPDY0002</error>
+        <error>XPTY0004</error>
+      </args>
+      <args num="1">
+        <property>context-independent</property>
+        <property>focus-independent</property>
+      </args>
+    </function>
+    
+    <function fn="lang" group="node">
+      <return>xs:boolean</return>
+      <property>deterministic</property>
+      <args num="1">
+        <property>context-dependent</property>
+        <property>focus-dependent</property>
+        <error>XPDY0002</error>
+        <error>XPTY0004</error>
+      </args>
+      <args num="2">
+        <property>context-independent</property>
+        <property>focus-independent</property>
+      </args>
+    </function>
+    
+    <function fn="root" group="node">
+      <property>deterministic</property>
+      <args num="0">
+        <return>node()</return>
+        <property>context-dependent</property>
+        <property>focus-dependent</property>
+        <error>XPDY0002</error>
+        <error>XPTY0004</error>
+      </args>
+      <args num="1">
+        <return quantifier="?">node()</return>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+      </args>
+    </function>
+    
+    <function fn="path" group="node">
+      <return quantifier="?">xs:string</return>
+      <property>deterministic</property>
+      <args num="0">
+        <property>context-dependent</property>
+        <property>focus-dependent</property>
+        <error>XPDY0002</error>
+        <error>XPTY0004</error>
+      </args>
+      <args num="1">
+        <property>context-independent</property>
+        <property>focus-independent</property>
+      </args>
+    </function>
+    
+    <function fn="has-children" group="node">
+      <return>xs:boolean</return>
+      <property>deterministic</property>
+      <args num="0">
+        <property>context-dependent</property>
+        <property>focus-dependent</property>
+        <error>XPDY0002</error>
+        <error>XPTY0004</error>
+      </args>
+      <args num="1">
+        <property>context-independent</property>
+        <property>focus-independent</property>
+      </args>
+    </function>
+    
+    <function fn="innermost" group="node">
+      <return quantifier="*">node()</return>
+      <property>deterministic</property>
+      <property>context-independent</property>
+      <property>focus-independent</property>
+      <args num="1"/>
+    </function>
+    
+    <function fn="outermost" group="node">
+      <return quantifier="*">node()</return>
+      <property>deterministic</property>
+      <property>context-independent</property>
+      <property>focus-independent</property>
+      <args num="1"/>
+    </function>
+  </section>
+  
+  <section n="14" xml:id="sequence-functions">
+    <heading>Functions and operators on sequences</heading>
+    
+    <section n="14.1" xml:id="general-seq-funcs">
+      <heading>General functions and operators on sequences</heading>
+      
+      <function fn="empty" group="sequence">
+        <return>xs:boolean</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+      
+      <function fn="exists" group="sequence">
+        <return>xs:boolean</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+      
+      <function fn="head" group="sequence">
+        <return quantifier="?">item()</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+      
+      <function fn="tail" group="sequence">
+        <return quantifier="*">item()</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+      
+      <function fn="insert-before" group="sequence">
+        <return quantifier="*">item()</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="3"/>
+      </function>
+      
+      <function fn="remove" group="sequence">
+        <return quantifier="*">item()</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="2"/>
+      </function>
+      
+      <function fn="reverse" group="sequence">
+        <return quantifier="*">item()</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+      
+      <function fn="subsequence" group="sequence">
+        <return quantifier="*">item()</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="2"/>
+        <args num="3"/>
+      </function>
+      
+      <function fn="unordered" group="sequence">
+        <return quantifier="*">item()</return>
+        <property>nondeterministic-wrt-ordering</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+    </section>
+    
+    <section n="14.2" xml:id="comparing-sequences">
+      <heading>Functions that compare values in sequences</heading>
+      
+      <function fn="distinct-values" group="sequence">
+        <return quantifier="*">xs:anyAtomicType</return>
+        <property>context-dependent</property>
+        <property>focus-independent</property>
+        <args num="1">
+          <property>nondeterministic-wrt-ordering</property>
+        </args>
+        <args num="2">
+          <property>deterministic</property>
+          <error>FOCH0002</error>
+        </args>
+      </function>
+      
+      <function fn="index-of" group="sequence">
+        <return quantifier="*">xs:integer</return>
+        <property>deterministic</property>
+        <property>context-dependent</property>
+        <property>focus-independent</property>
+        <args num="2"/>
+        <args num="3">
+          <error>FOCH0002</error>
+        </args>
+      </function>
+      
+      <function fn="deep-equal" group="sequence">
+        <return>xs:boolean</return>
+        <property>deterministic</property>
+        <property>context-dependent</property>
+        <property>focus-independent</property>
+        <args num="2"/>
+        <args num="3">
+          <error>FOCH0002</error>
+        </args>
+        <error>FOTY0015</error>
+      </function>
+    </section>
+    
+    <section n="14.3" xml:id="cardinality-functions">
+      <heading>Functions that test the cardinality of sequences</heading>
+      
+      <function fn="zero-or-one" group="sequence">
+        <return quantifier="?">item()</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+        <error>FORG0003</error>
+      </function>
+      
+      <function fn="one-or-more" group="sequence">
+        <return quantifier="+">item()</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+        <error>FORG0004</error>
+      </function>
+      
+      <function fn="exactly-one" group="sequence">
+        <return>item()</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+        <error>FORG0005</error>
+      </function>
+    </section>
+    
+    <section n="14.4" xml:id="aggregate-functions">
+      <heading>Aggregate-functions</heading>
+      
+      <function fn="count" group="sequence">
+        <return>xs:integer</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+      
+      <function fn="avg" group="sequence">
+        <return quantifier="?">xs:anyAtomicType</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+        <error>FORG0006</error>
+      </function>
+      
+      <function fn="max" group="sequence">
+        <return quantifier="?">xs:anyAtomicType</return>
+        <property>deterministic</property>
+        <property>context-dependent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+        <args num="2"/>
+        <error>FORG0006</error>
+        <error>FOCH0002</error>
+      </function>
+      
+      <function fn="min" group="sequence">
+        <return quantifier="?">xs:anyAtomicType</return>
+        <property>deterministic</property>
+        <property>context-dependent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+        <args num="2"/>
+        <error>FORG0006</error>
+        <error>FOCH0002</error>
+      </function>
+      
+      <function fn="sum" group="sequence">
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1">
+          <return>xs:anyAtomicType</return>
+        </args>
+        <args num="2">
+          <return quantifier="?">xs:anyAtomicType</return>
+        </args>
+        <error>FORG0006</error>
+      </function>
+    </section>
+    
+    <section n="14.5" xml:id="fns-on-identifiers">
+      <heading>Functions on node identifiers</heading>
+      
+      <function fn="id" group="sequence">
+        <return quantifier="*">element()</return>
+        <property>deterministic</property>
+        <args num="1">
+          <property>context-dependent</property>
+          <property>focus-dependent</property>
+          <error>XPDY0002</error>
+          <error>XPTY0004</error>
+        </args>
+        <args num="2">
+          <property>context-independent</property>
+          <property>focus-independent</property>
+        </args>
+        <error>FODC0001</error>
+      </function>
+      
+      <function fn="element-with-id" group="sequence">
+        <return quantifier="*">element()</return>
+        <property>deterministic</property>
+        <args num="1">
+          <property>context-dependent</property>
+          <property>focus-dependent</property>
+          <error>XPDY0002</error>
+          <error>XPTY0004</error>
+        </args>
+        <args num="2">
+          <property>context-independent</property>
+          <property>focus-independent</property>
+        </args>
+        <error>FODC0001</error>
+      </function>
+      
+      <function fn="idref" group="sequence">
+        <return quantifier="*">node()</return>
+        <property>deterministic</property>
+        <args num="1">
+          <property>context-dependent</property>
+          <property>focus-dependent</property>
+          <error>XPDY0002</error>
+          <error>XPTY0004</error>
+        </args>
+        <args num="2">
+          <property>context-independent</property>
+          <property>focus-independent</property>
+        </args>
+        <error>FODC0001</error>
+      </function>
+      
+      <function fn="generate-id" group="sequence">
+        <return>xs:string</return>
+        <property>deterministic</property>
+        <args num="0">
+          <property>context-dependent</property>
+          <property>focus-dependent</property>
+          <error>XPDY0002</error>
+          <error>XPTY0004</error>
+        </args>
+        <args num="1">
+          <property>context-independent</property>
+          <property>focus-independent</property>
+        </args>
+      </function>
+    </section>
+    
+    <section n="14.6" xml:id="fns-on-docs">
+      <heading>Functions giving access to external information</heading>
+      
+      <function fn="doc" group="sequence">
+        <return quantifier="?">document-node()</return>
+        <property>deterministic</property>
+        <property>context-dependent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+        <error>FODC0002</error>
+        <error>FODC0003</error>
+        <error>FODC0005</error>
+      </function>
+      
+      <function fn="doc-available" group="sequence">
+        <return>xs:boolean</return>
+        <property>deterministic</property>
+        <property>context-dependent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+      
+      <function fn="collection" group="sequence">
+        <return quantifier="?">document-node()</return>
+        <property>deterministic</property>
+        <property>context-dependent</property>
+        <property>focus-independent</property>
+        <args num="0"/>
+        <args num="1">
+          <error>FODC0004</error>
+        </args>
+        <error>FODC0002</error>
+        <error>FODC0003</error>
+      </function>
+      
+      <function fn="uri-collection" group="sequence">
+        <return quantifier="*">xs:anyURI</return>
+        <property>deterministic</property>
+        <property>context-dependent</property>
+        <property>focus-independent</property>
+        <args num="0"/>
+        <args num="1">
+          <error>FODC0004</error>
+        </args>
+        <error>FODC0002</error>
+        <error>FODC0003</error>
+      </function>
+      
+      <function fn="unparsed-text" group="sequence">
+        <return quantifier="?">xs:string</return>
+        <property>deterministic</property>
+        <property>context-dependent</property>
+        <property>focus-independent</property>
+        <args num="1">
+          <error>FOUT1200</error>
+        </args>
+        <args num="2">
+          <error>FOUT1190</error>
+        </args>
+        <error>FOUT1170</error>
+      </function>
+      
+      <function fn="unparsed-text-lines" group="sequence">
+        <return quantifier="*">xs:string</return>
+        <property>deterministic</property>
+        <property>context-dependent</property>
+        <property>focus-independent</property>
+        <args num="1">
+          <error>FOUT1200</error>
+        </args>
+        <args num="2">
+          <error>FOUT1190</error>
+        </args>
+        <error>FOUT1170</error>
+      </function>
+      
+      <function fn="unparsed-text-available" group="sequence">
+        <return>xs:boolean</return>
+        <property>deterministic</property>
+        <property>context-dependent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+        <args num="2"/>
+      </function>
+      
+      <function fn="environment-variable" group="sequence">
+        <return quantifier="?">xs:string</return>
+        <property>deterministic</property>
+        <property>context-dependent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+      </function>
+      
+      <function fn="available-environment-variables" group="sequence">
+        <return quantifier="*">xs:string</return>
+        <property>deterministic</property>
+        <property>context-dependent</property>
+        <property>focus-independent</property>
+        <args num="0"/>
+      </function>
+    </section>
+    
+    <section n="14.7" xml:id="parsing-and-serializing">
+      <heading>Parsing and serializing</heading>
+      
+      <function fn="parse-xml" group="sequence">
+        <return quantifier="?">document-node(element(*))</return>
+        <property>nondeterministic</property>
+        <property>context-dependent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+        <error>FODC0006</error>
+      </function>
+      
+      <function fn="parse-xml-fragment" group="sequence">
+        <return quantifier="?">document-node()</return>
+        <property>nondeterministic</property>
+        <property>context-dependent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+        <error>FODC0006</error>
+      </function>
+      
+      <function fn="serialize" group="sequence">
+        <return>xs:string</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+        <args num="2">
+          <error>XPTY0004</error>
+          <error>SEPM0016</error>
+        </args>
+        <error>FODC0010</error>
+      </function>
+    </section>
+  </section>
+  
+  <section n="15" xml:id="context">
+    <heading>Context functions</heading>
+    
+    <function fn="position" group="context">
+      <return>xs:integer</return>
+      <property>deterministic</property>
+      <property>context-dependent</property>
+      <property>focus-dependent</property>
+      <args num="0"/>
+      <error>XPDY0002</error>
+    </function>
+    
+    <function fn="last" group="context">
+      <return>xs:integer</return>
+      <property>deterministic</property>
+      <property>context-dependent</property>
+      <property>focus-dependent</property>
+      <args num="0"/>
+      <error>XPDY0002</error>
+    </function>
+    
+    <function fn="current-dateTime" group="context">
+      <return>xs:dateTimeStamp</return>
+      <property>deterministic</property>
+      <property>context-dependent</property>
+      <property>focus-independent</property>
+      <args num="0"/>
+    </function>
+    
+    <function fn="current-date" group="context">
+      <return>xs:date</return>
+      <property>deterministic</property>
+      <property>context-dependent</property>
+      <property>focus-independent</property>
+      <args num="0"/>
+    </function>
+    
+    <function fn="current-time" group="context">
+      <return>xs:time</return>
+      <property>deterministic</property>
+      <property>context-dependent</property>
+      <property>focus-independent</property>
+      <args num="0"/>
+    </function>
+    
+    <function fn="implicit-timezone" group="context">
+      <return>xs:dayTimeDuration</return>
+      <property>deterministic</property>
+      <property>context-dependent</property>
+      <property>focus-independent</property>
+      <args num="0"/>
+    </function>
+    
+    <function fn="default-collation" group="context">
+      <return>xs:string</return>
+      <property>deterministic</property>
+      <property>context-dependent</property>
+      <property>focus-independent</property>
+      <args num="0"/>
+    </function>
+    
+    <function fn="default-language" group="context">
+      <return>xs:language</return>
+      <property>deterministic</property>
+      <property>context-dependent</property>
+      <property>focus-independent</property>
+      <args num="0"/>
+    </function>
+    
+    <function fn="static-base-uri" group="context">
+      <return quantifier="?">xs:anyURI</return>
+      <property>deterministic</property>
+      <property>context-dependent</property>
+      <property>focus-independent</property>
+      <args num="0"/>
+    </function>
+  </section>
+  
+  <section n="16" xml:id="higher-order-functions">
+    <heading>Higher-order functions</heading>
+    
+    <section n="16.1" xml:id="functions-on-functions">
+      <heading>Functions on functions</heading>
+      
+      <function fn="function-lookup" group="higher-order">
+        <return quantifier="?">function(*)</return>
+        <property>deterministic</property>
+        <property>context-dependent</property>
+        <property>focus-dependent</property>
+        <property>higher-order</property>
+        <args num="2"/>
+      </function>
+      
+      <function fn="function-name" group="higher-order">
+        <return quantifier="?">xs:QName</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <property>higher-order</property>
+        <args num="1"/>
+      </function>
+      
+      <function fn="function-arity" group="higher-order">
+        <return>xs:integer</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <property>higher-order</property>
+        <args num="1"/>
+      </function>
+    </section>
+    
+    <section n="16.2" xml:id="basic-hofs">
+      <heading>Basic higher-order functions</heading>
+      
+      <function fn="for-each" group="higher-order">
+        <return quantifier="*">item()</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <property>higher-order</property>
+        <args num="2"/>
+      </function>
+      
+      <function fn="filter" group="higher-order">
+        <return quantifier="*">item()</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <property>higher-order</property>
+        <args num="2"/>
+        <!-- type error -->
+      </function>
+      
+      <function fn="fold-left" group="higher-order">
+        <return quantifier="*">item()</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <property>higher-order</property>
+        <args num="3"/>
+        <!-- type error -->
+      </function>
+      
+      <function fn="fold-right" group="higher-order">
+        <return quantifier="*">item()</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <property>higher-order</property>
+        <args num="3"/>
+        <!-- type error -->
+      </function>
+      
+      <function fn="for-each-pair" group="higher-order">
+        <return quantifier="*">item()</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <property>higher-order</property>
+        <args num="3"/>
+      </function>
+      
+      <function fn="sort" group="higher-order">
+        <return quantifier="*">item()</return>
+        <property>deterministic</property>
+        <property>context-dependent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+        <args num="2"/>
+        <args num="3">
+          <property>higher-order</property>
+        </args>
+        <error>XPTY0004</error>
+      </function>
+      
+      <function fn="apply" group="higher-order">
+        <return quantifier="*">item()</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <property>higher-order</property>
+        <args num="2"/>
+        <error>FOAP0001</error>
+      </function>
+    </section>
+    
+    <section n="16.3" xml:id="dynamic-loading">
+      <heading>Dynamic Loading</heading>
+      
+      <function fn="load-xquery-module" group="higher-order">
+        <return>xs:integer</return>
+        <property>deterministic</property>
+        <property>context-dependent</property>
+        <property>focus-independent</property>
+        <property>higher-order</property>
+        <args num="1"/>
+        <args num="2"/>
+        <error>FOQM0001</error>
+        <error>FOQM0002</error>
+        <error>FOQM0003</error>
+        <error>FOQM0005</error>
+        <error>FOQM0006</error>
+      </function>
+      
+      <function fn="transform" group="higher-order">
+        <return>map(*)</return>
+        <property>nondeterministic</property>
+        <property>context-dependent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+        <error>FOXT0001</error>
+        <error>FOXT0002</error>
+        <error>FOXT0003</error>
+        <error>FOXT0004</error>
+        <error>FOXT0006</error>
+      </function>
+    </section>
+  </section>
+  
+  <section n="17" xml:id="maps-and-arrays">
+    <heading>Maps and Arrays</heading>
+    
+    <section n="17.1" xml:id="map-functions">
+      <heading>Functions that Operate on Maps</heading>
+    </section>
+    
+    <section n="17.3" xml:id="array-functions">
+      <heading>Functions that Operate on Arrays</heading>
+    </section>
+    
+    <section n="17.5" xml:id="json-functions">
+      <heading>Functions on JSON Data</heading>
+      
+      <function fn="parse-json" group="json">
+        <return quantifier="?">item()</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+        <args num="2">
+          <error>FOJS0003</error>
+          <error>FOJS0005</error>
+        </args>
+        <error>FOJS0001</error>
+      </function>
+      
+      <function fn="json-doc" group="json">
+        <return quantifier="?">item()</return>
+        <property>deterministic</property>
+        <property>context-dependent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+        <args num="2">
+          <error>FOJS0003</error>
+          <error>FOJS0005</error>
+        </args>
+        <error>FOJS0001</error>
+        <error>FOUT1170</error>
+        <error>FOUT1190</error>
+        <error>FOUT1200</error>
+      </function>
+      
+      <function fn="json-to-xml" group="json">
+        <return quantifier="?">document-node()</return>
+        <property>nondeterministic</property>
+        <property>context-dependent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+        <args num="2">
+          <error>FOJS0005</error>
+        </args>
+        <error>FOJS0001</error>
+        <error>FOJS0004</error>
+      </function>
+      
+      <function fn="xml-to-json" group="json">
+        <return quantifier="?">xs:string</return>
+        <property>deterministic</property>
+        <property>context-independent</property>
+        <property>focus-independent</property>
+        <args num="1"/>
+        <args num="2">
+          <error>FOJS0005</error>
+        </args>
+        <error>FOJS0006</error>
+        <error>FOJS0007</error>
+      </function>
+    </section>
+  </section>
+  
+  <section n="18" xml:id="constructor-functions">
+    <heading>Constructor functions</heading>
+  </section>
+  
+</specification>
