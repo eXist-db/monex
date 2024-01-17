@@ -13,6 +13,14 @@
     </editors>
     <url>https://www.w3.org/TR/xquery-operators</url>
     <url>http://www.w3.org/TR/2010/REC-xpath-functions-20101214/</url>
+    <note>
+      <p>Compiled 2023-12 by Ash Clark.</p>
+      <p>This is free and unencumbered data released into the public domain.</p>
+      <p>Anyone is free to copy, modify, publish, use, compile, sell, or
+        distribute this data, either in source code form or as a compiled
+        binary, for any purpose, commercial or non-commercial, and by any
+        means.</p>
+    </note>
   </about>
   
   <section n="2" xml:id="accessors">

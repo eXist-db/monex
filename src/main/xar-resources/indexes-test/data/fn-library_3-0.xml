@@ -10,6 +10,13 @@
     </editors>
     <url>https://www.w3.org/TR/xpath-functions-30</url>
     <url>http://www.w3.org/TR/2014/REC-xpath-functions-30-20140408/</url>
+    <note>
+      <p>Compiled 2023-12 by Ash Clark.</p>
+      <p>This is free and unencumbered data released into the public domain.</p>
+      <p>Anyone is free to copy, modify, publish, use, compile, sell, or
+        distribute this data for any purpose, commercial or non-commercial, 
+        and by any means.</p>
+    </note>
   </about>
   
   <section n="2" xml:id="accessors">
