@@ -49,7 +49,7 @@
                         <span class="info-box-text">
                             Uptime
                         </span>
-                        <span class="info-box-number" id="jmx-uptime" data-bind="text: uptime($data.jmx.Database.Uptime())">?</span>
+                        <span class="info-box-number" id="jmx-uptime" data-bind="text: uptime($data?.jmx?.Database?.Uptime() ?? '')">?</span>
                     </div>
                 </div>
             </div><!-- ./col -->
@@ -63,7 +63,7 @@
                             Running Queries
                         </span>
                         <span class="info-box-number">
-                            <span id="jmx-queries" data-bind="text: $data.jmx.ProcessReport.RunningQueries().length || 0">?</span>
+                            <span id="jmx-queries" data-bind="text: $data?.jmx?.ProcessReport?.RunningQueries?.()?.length || 0">?</span>
                         </span>
                     </div>
                 </div>
@@ -104,31 +104,31 @@
                                     <div class="clearfix">
                                         <span class="pull-left">Memory Used</span>
                                         <small class="pull-right">
-                                            <span data-bind="text: Math.floor(parseInt($data.used()) / 1024 / 1024)">10</span> /
-                                            <span data-bind="text: Math.floor(parseInt($data.max()) / 1024 / 1024)">10</span> M
+                                            <span data-bind="text: Math.floor(parseInt($data?.used?.() ?? 0) / 1024 / 1024)">10</span> /
+                                            <span data-bind="text: Math.floor(parseInt($data?.max?.() ?? 1) / 1024 / 1024)">10</span> M
                                         </small>
                                     </div>
                                     <div class="progress xs">
-                                        <div class="progress-bar progress-bar-green" data-bind="style: {width: Math.round($data.used() / ($data.max() / 100)) + '%'}"/>
+                                      <div class="progress-bar progress-bar-green" data-bind="style: {width: Math.round(($data?.used?.() ?? 0) / (($data?.max?.() ?? 1) / 100)) + '%'}"/>
                                     </div>
                                 </div><!-- /.pad -->
                                 <div class="pad"><!-- Progress bars -->
                                     <div class="clearfix">
                                         <span class="pull-left">Memory Committed</span>
                                         <small class="pull-right">
-                                            <span data-bind="text: Math.floor(parseInt($data.committed()) / 1024 / 1024)">10</span> /
-                                            <span data-bind="text: Math.floor(parseInt($data.max()) / 1024 / 1024)">10</span> M
+                                            <span data-bind="text: Math.floor(parseInt($data?.committed?.() ?? 0) / 1024 / 1024)">10</span> /
+                                          <span data-bind="text: Math.floor(parseInt($data?.max?.() ?? 1) / 1024 / 1024)">10</span> M
                                         </small>
                                     </div>
                                     <div class="progress xs">
-                                        <div class="progress-bar progress-bar-green" data-bind="style: {width: Math.round($data.committed() / ($data.max() / 100)) + '%'}"/>
+                                      <div class="progress-bar progress-bar-green" data-bind="style: {width: Math.round(($data?.committed?.() ?? 0) / (($data?.max?.() ?? 1) / 100)) + '%'}"/>
                                     </div>
                                 </div><!-- /.pad -->
                             </div><!-- /.col -->
                         </div><!-- /.row - inside box -->
                     </div><!-- /.box-body -->
                     <div class="box-footer">
-                        <button class="btn btn-warning" data-bind="visible: parseInt($data.jmx.version()) &gt; 0, click: gc">Garbage Collect</button>
+                        <button class="btn btn-warning" data-bind="visible: parseInt($data?.jmx?.version?.() ?? 0) &gt; 0, click: gc">Garbage Collect</button>
                     </div>
                 </div><!-- /.box -->
             </section>
@@ -182,7 +182,7 @@
                                     <th>Info</th>
                                 </tr>
                             </thead>
-                            <tbody data-bind="visible: $data.jmx.ProcessReport.RunningJobs().length == 0">
+                            <tbody data-bind="visible: $data?.jmx?.ProcessReport?.RunningJobs?.()?.length == 0">
                                 <tr>
                                     <td colspan="5">No running jobs</td>
                                 </tr>
@@ -250,19 +250,19 @@
                                 </tr>
                                 <tr data-bind="if: $data.jmx.OperatingSystemImpl">
                                     <td>System CPU Load:</td>
-                                    <td data-bind="text: parseFloat($data.jmx.OperatingSystemImpl.SystemCpuLoad()).toPrecision(6)"/>
+                                    <td data-bind="text: parseFloat($data?.jmx?.OperatingSystemImpl?.SystemCpuLoad?.() ?? 0).toPrecision(6)"/>
                                 </tr>
                                 <tr data-bind="if: $data.jmx.OperatingSystemImpl">
                                     <td>Process CPU Load:</td>
-                                    <td data-bind="text: parseFloat($data.jmx.OperatingSystemImpl.ProcessCpuLoad()).toPrecision(6)"/>
+                                    <td data-bind="text: parseFloat($data?.jmx?.OperatingSystemImpl?.ProcessCpuLoad?.() ?? 0).toPrecision(6)"/>
                                 </tr>
                                 <tr data-bind="if: $data.jmx.OperatingSystemImpl">
                                     <td>Free Physical Memory:</td>
-                                    <td data-bind="text: parseInt($data.jmx.OperatingSystemImpl.FreePhysicalMemorySize())"/>
+                                    <td data-bind="text: parseInt($data?.jmx?.OperatingSystemImpl?.FreePhysicalMemorySize?.() ?? 0)"/>
                                 </tr>
                                 <tr data-bind="if: $data.jmx.OperatingSystemImpl">
                                     <td>Total Physical Memory:</td>
-                                    <td data-bind="text: parseInt($data.jmx.OperatingSystemImpl.TotalPhysicalMemorySize())"/>
+                                    <td data-bind="text: parseInt($data?.jmx?.OperatingSystemImpl?.TotalPhysicalMemorySize?.() ?? 0)"/>
                                 </tr>
                             </tbody>
                         </table>
@@ -301,7 +301,7 @@
                                 Using <span data-bind="text: CurrentSize">0</span> of <span data-bind="text: MaxTotal">0</span> pages</small>
                         </div>
                         <div class="progress xs">
-                            <div class="progress-bar progress-bar-success progress-cache" data-bind="style: {width: Math.round($data.CurrentSize() / ($data.MaxTotal() / 100)) + '%'}"/>
+                            <div class="progress-bar progress-bar-success progress-cache" data-bind="style: {width: Math.round(($data?.CurrentSize?.() ?? 0) / (($data?.MaxTotal?.() ?? 1) / 100)) + '%'}"/>
                         </div>
                     </div>
                     <div class="box-body jmx-cache-manager" data-bind="with: findByName($data.jmx.CacheManager, 'org.exist.management.exist:type=CollectionCacheManager')">
@@ -311,10 +311,10 @@
                                 Using <span data-bind="text: CurrentSize">0</span> of <span data-bind="text: MaxTotal">0</span> bytes</small>
                         </div>
                         <div class="progress xs">
-                            <div class="progress-bar progress-bar-success progress-cache" data-bind="style: {width: Math.round($data.CurrentSize() / ($data.MaxTotal() / 100)) + '%'}"/>
+                            <div class="progress-bar progress-bar-success progress-cache" data-bind="style: {width: Math.round(($data?.CurrentSize?.() ?? 0) / (($data?.MaxTotal?.() ?? 0) / 100)) + '%'}"/>
                         </div>
                     </div>
-                    <div class="box-body jmx-cache" data-bind="with: findByName($data.jmx.Cache(), 'org.exist.management.exist:type=CacheManager.Cache,name=dom.dbx,cache-type=BTREE')">
+                    <div class="box-body jmx-cache" data-bind="with: findByName($data?.jmx?.Cache?.(), 'org.exist.management.exist:type=CacheManager.Cache,name=dom.dbx,cache-type=BTREE')">
                         <div class="clearfix">
                             <span class="pull-left">dom.dbx (BTree)</span>
                             <small class="pull-right">
@@ -327,10 +327,10 @@
                             </small>
                         </div>
                         <div class="progress xs">
-                            <div class="progress-bar progress-bar-info progress-cache" data-bind="style: {width: Math.round($data.Used() / ($data.Size() / 100)) + '%'}"/>
+                            <div class="progress-bar progress-bar-info progress-cache" data-bind="style: {width: Math.round(($data?.Used?.() ?? 0) / (($data?.Size?.() ?? 1) / 100)) + '%'}"/>
                         </div>
                     </div>
-                    <div class="box-body jmx-cache" data-bind="with: findByName($data.jmx.Cache(), 'org.exist.management.exist:type=CacheManager.Cache,name=structure.dbx,cache-type=BTREE')">
+                    <div class="box-body jmx-cache" data-bind="with: findByName($data?.jmx?.Cache?.(), 'org.exist.management.exist:type=CacheManager.Cache,name=structure.dbx,cache-type=BTREE')">
                         <div class="clearfix">
                             <span class="pull-left">structure.dbx (BTree)</span>
                             <small class="pull-right">
@@ -343,10 +343,10 @@
                             </small>
                         </div>
                         <div class="progress xs">
-                            <div class="progress-bar progress-bar-info progress-cache" data-bind="style: {width: Math.round($data.Used() / ($data.Size() / 100)) + '%'}"/>
+                            <div class="progress-bar progress-bar-info progress-cache" data-bind="style: {width: Math.round(($data?.Used?.() ?? 0) / (($data?.Size?.() ?? 1) / 100)) + '%'}"/>
                         </div>
                     </div>
-                    <div class="box-body jmx-cache" data-bind="with: findByName($data.jmx.Cache(), 'org.exist.management.exist:type=CacheManager.Cache,name=collections.dbx,cache-type=BTREE')">
+                    <div class="box-body jmx-cache" data-bind="with: findByName($data?.jmx?.Cache?.(), 'org.exist.management.exist:type=CacheManager.Cache,name=collections.dbx,cache-type=BTREE')">
                         <div class="clearfix">
                             <span class="pull-left">collections.dbx (BTree)</span>
                             <small class="pull-right">
@@ -359,10 +359,10 @@
                             </small>
                         </div>
                         <div class="progress xs">
-                            <div class="progress-bar progress-bar-info progress-cache" data-bind="style: {width: Math.round($data.Used() / ($data.Size() / 100)) + '%'}"/>
+                            <div class="progress-bar progress-bar-info progress-cache" data-bind="style: {width: Math.round(($data?.Used?.() ?? 0) / (($data?.Size?.() ?? 1) / 100)) + '%'}"/>
                         </div>
                     </div>
-                    <div class="box-body jmx-cache" data-bind="with: findByName($data.jmx.Cache(), 'org.exist.management.exist:type=CacheManager.Cache,name=values.dbx,cache-type=BTREE')">
+                    <div class="box-body jmx-cache" data-bind="with: findByName($data?.jmx?.Cache?.(), 'org.exist.management.exist:type=CacheManager.Cache,name=values.dbx,cache-type=BTREE')">
                         <div class="clearfix">
                             <span class="pull-left">values.dbx (BTree)</span>
                             <small class="pull-right">
@@ -375,7 +375,7 @@
                             </small>
                         </div>
                         <div class="progress xs">
-                            <div class="progress-bar progress-bar-info progress-cache" data-bind="style: {width: Math.round($data.Used() / ($data.Size() / 100)) + '%'}"/>
+                            <div class="progress-bar progress-bar-info progress-cache" data-bind="style: {width: Math.round(($data?.Used?.() ?? 0) / (($data?.Size?.() ?? 1) / 100)) + '%'}"/>
                         </div>
                     </div>
                 </div>
@@ -405,7 +405,7 @@
                                         <th/>
                                     </tr>
                                 </thead>
-                                <tbody data-bind="visible: $data.jmx.ProcessReport.RunningQueries().length == 0">
+                                <tbody data-bind="visible: $data?.jmx?.ProcessReport?.RunningQueries?.()?.length == 0">
                                     <tr>
                                         <td colspan="5">No running queries</td>
                                     </tr>
@@ -414,13 +414,13 @@
                                     <tr>
                                         <td data-bind="text: $data.thread ? $data.thread : $data.id"/>
                                         <td>
-                                          <span class="source-key" data-bind="text: typeof($data.sourceKey) == 'function' ? ( $data.sourceKey().replace(/^.*\/([^\/]+)$/, '$1') ) : '', attr: { title: ( typeof($data.sourceKey) == 'function' ? sourceKey : '' ) }" data-toggle="tooltip"/>
+                                          <span class="source-key" data-bind="text: $data?.sourceKey?.()?.replace(/^.*\/([^\/]+)$/, '$1') ?? '', attr: { title: ( typeof($data.sourceKey) == 'function' ? sourceKey : '' ) }" data-toggle="tooltip"/>
                                         </td>
                                         <td>
-                                            <a target="_new" data-bind="attr: { href: (typeof $data.requestURI == 'function' ? ($root.url + $data.requestURI()) : '#') }, text: ($data.requestURI ? $data.requestURI : '')"/>
+                                            <a target="_new" data-bind="attr: { href: (typeof $data.requestURI == 'function' ? ($root.url + $data?.requestURI?.()) : '#') }, text: ($data.requestURI ? $data.requestURI : '')"/>
                                         </td>
                                         <td>
-                                            <span class="label" data-bind="text: $data.terminating() == 'false' ? 'running' : 'terminating', css: { 'label-success': $data.terminating() == 'false', 'label-warning': $data.terminating() == 'true' }"/>
+                                            <span class="label" data-bind="text: $data?.terminating?.() == 'false' ? 'running' : 'terminating', css: { 'label-success': $data?.terminating?.() == 'false', 'label-warning': $data?.terminating?.() == 'true' }"/>
                                         </td>
                                         <td>
                                             <a href="#" class="kill-query" title="Kill Query" data-bind="if: JMX_INSTANCE.name == 'localhost' || JMX_INSTANCE.version != 0">
@@ -460,16 +460,16 @@
                                         <th>Request URI</th>
                                     </tr>
                                 </thead>
-                                <tbody data-bind="visible: $data.jmx.ProcessReport.RecentQueryHistory().length == 0">
+                                <tbody data-bind="visible: $data?.jmx?.ProcessReport?.RecentQueryHistory?.()?.length == 0">
                                     <tr>
                                         <td colspan="2">Empty</td>
                                     </tr>
                                 </tbody>
-                                <tbody id="jmx-recent-queries" data-bind="visible: $data.jmx.ProcessReport.RecentQueryHistory().length &gt; 0, foreach: {data: jmx.ProcessReport.RecentQueryHistory, afterRender: function(node) { $('.source-key', node).tooltip(); }}">
+                                <tbody id="jmx-recent-queries" data-bind="visible: $data?.jmx?.ProcessReport?.RecentQueryHistory?.()?.length &gt; 0, foreach: {data: jmx.ProcessReport.RecentQueryHistory, afterRender: function(node) { $('.source-key', node).tooltip(); }}">
                                     <tr>
-                                      <td data-bind="text: typeof($data.mostRecentExecutionTime) == 'function' ? ( new Date(parseInt($data.mostRecentExecutionTime())).toISOString() ) : ''"/>
+                                      <td data-bind="text: new Date(parseInt($data?.mostRecentExecutionTime?.() ?? 0)).toISOString()"/>
                                         <td>
-                                          <span class="source-key" data-bind="text: typeof($data.sourceKey) == 'function' ? ( $data.sourceKey().replace(/^.*\/([^\/]+)$/, '$1') ) : '', attr: { title: ( typeof($data.sourceKey) == 'function' ? sourceKey : '' ) }" data-toggle="tooltip"/>
+                                          <span class="source-key" data-bind="text: $data?.sourceKey?.()?.replace(/^.*\/([^\/]+)$/, '$1') ?? '', attr: { title: ( typeof($data.sourceKey) == 'function' ? sourceKey : '' ) }" data-toggle="tooltip"/>
                                         </td>
                                       <td data-bind="text: typeof($data.mostRecentExecutionTime) == 'function' ? mostRecentExecutionDuration : ''"/>
                                         <td>
@@ -523,7 +523,7 @@
                                     <th>Waiting for</th>
                                 </tr>
                             </thead>
-                            <tbody data-bind="visible: !$data.jmx.LockTable.Acquired() || $data.jmx.LockTable.Acquired().length == 0">
+                            <tbody data-bind="visible: !$data?.jmx?.LockTable?.Acquired?.() || $data?.jmx?.LockTable?.Acquired?.()?.length == 0">
                                 <tr>
                                     <td colspan="5">No waiting threads</td>
                                 </tr>
@@ -562,7 +562,7 @@
                                     <th/>
                                 </tr>
                             </thead>
-                            <tbody data-bind="visible: $data.jmx.Database.ActiveBrokersMap().length == 0">
+                            <tbody data-bind="visible: $data?.jmx?.Database?.ActiveBrokersMap?.()?.length == 0">
                                 <tr>
                                     <td colspan="2">No active threads</td>
                                 </tr>
