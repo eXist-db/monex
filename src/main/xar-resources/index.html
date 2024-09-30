@@ -414,7 +414,7 @@
                                     <tr>
                                         <td data-bind="text: $data.thread ? $data.thread : $data.id"/>
                                         <td>
-                                            <span class="source-key" data-bind="text: $data.sourceKey().replace(/^.*\/([^\/]+)$/, '$1'), attr: { title: sourceKey }" data-toggle="tooltip"/>
+                                          <span class="source-key" data-bind="text: typeof($data.sourceKey) == 'function' ? ( $data.sourceKey().replace(/^.*\/([^\/]+)$/, '$1') ) : '', attr: { title: ( typeof($data.sourceKey) == 'function' ? sourceKey : '' ) }" data-toggle="tooltip"/>
                                         </td>
                                         <td>
                                             <a target="_new" data-bind="attr: { href: (typeof $data.requestURI == 'function' ? ($root.url + $data.requestURI()) : '#') }, text: ($data.requestURI ? $data.requestURI : '')"/>
@@ -467,11 +467,11 @@
                                 </tbody>
                                 <tbody id="jmx-recent-queries" data-bind="visible: $data.jmx.ProcessReport.RecentQueryHistory().length &gt; 0, foreach: {data: jmx.ProcessReport.RecentQueryHistory, afterRender: function(node) { $('.source-key', node).tooltip(); }}">
                                     <tr>
-                                        <td data-bind="text: new Date(parseInt($data.mostRecentExecutionTime())).toISOString()"/>
+                                      <td data-bind="text: typeof($data.mostRecentExecutionTime) == 'function' ? ( new Date(parseInt($data.mostRecentExecutionTime())).toISOString() ) : ''"/>
                                         <td>
-                                            <span class="source-key" data-bind="text: $data.sourceKey().replace(/^.*\/([^\/]+)$/, '$1'), attr: { title: sourceKey }" data-toggle="tooltip"/>
+                                          <span class="source-key" data-bind="text: typeof($data.sourceKey) == 'function' ? ( $data.sourceKey().replace(/^.*\/([^\/]+)$/, '$1') ) : '', attr: { title: ( typeof($data.sourceKey) == 'function' ? sourceKey : '' ) }" data-toggle="tooltip"/>
                                         </td>
-                                        <td data-bind="text: mostRecentExecutionDuration"/>
+                                      <td data-bind="text: typeof($data.mostRecentExecutionTime) == 'function' ? mostRecentExecutionDuration : ''"/>
                                         <td>
                                             <a target="_new" data-bind="attr: { href: (typeof $data.requestURI == 'function' ? ($root.url + $data.requestURI()) : '#') }, text: ($data.requestURI ? $data.requestURI : '')"/>
                                         </td>
