@@ -63,7 +63,7 @@
                             Running Queries
                         </span>
                         <span class="info-box-number">
-                            <span id="jmx-queries" data-bind="text: $data?.jmx?.ProcessReport?.RunningQueries?.()?.length || 0">?</span>
+                          <span id="jmx-queries" data-bind="text: $data?.jmx?.ProcessReport?.RunningQueries?.()?.length ?? '???'">?</span>
                         </span>
                     </div>
                 </div>
@@ -105,7 +105,7 @@
                                         <span class="pull-left">Memory Used</span>
                                         <small class="pull-right">
                                             <span data-bind="text: Math.floor(parseInt($data?.used?.() ?? 0) / 1024 / 1024)">10</span> /
-                                            <span data-bind="text: Math.floor(parseInt($data?.max?.() ?? 1) / 1024 / 1024)">10</span> M
+                                            <span data-bind="text: Math.floor(parseInt($data?.max?.() ?? 0) / 1024 / 1024)">10</span> M
                                         </small>
                                     </div>
                                     <div class="progress xs">
@@ -117,7 +117,7 @@
                                         <span class="pull-left">Memory Committed</span>
                                         <small class="pull-right">
                                             <span data-bind="text: Math.floor(parseInt($data?.committed?.() ?? 0) / 1024 / 1024)">10</span> /
-                                          <span data-bind="text: Math.floor(parseInt($data?.max?.() ?? 1) / 1024 / 1024)">10</span> M
+                                          <span data-bind="text: Math.floor(parseInt($data?.max?.() ?? 0) / 1024 / 1024)">10</span> M
                                         </small>
                                     </div>
                                     <div class="progress xs">
@@ -182,16 +182,16 @@
                                     <th>Info</th>
                                 </tr>
                             </thead>
-                            <tbody data-bind="visible: $data?.jmx?.ProcessReport?.RunningJobs?.()?.length == 0">
+                            <tbody data-bind="visible: ( $data?.jmx?.ProcessReport?.RunningJobs?.()?.length ?? 0 ) == 0">
                                 <tr>
-                                    <td colspan="5">No running jobs</td>
+                                    <td colspan="3">No running jobs</td>
                                 </tr>
                             </tbody>
-                            <tbody data-bind="foreach: jmx.ProcessReport.RunningJobs">
+                          <tbody data-bind="foreach: { data: jmx.ProcessReport.RunningJobs }">
                                 <tr>
-                                    <td data-bind="text: action"/>
-                                    <td data-bind="text: id"/>
-                                    <td data-bind="text: info"/>
+                                  <td data-bind="text: ( $data?.action?.() ?? $data?.value?.action?.() ?? '' )"/>
+                                  <td data-bind="text: ( $data?.id?.() ?? $data?.value?.id?.() ?? '' )"/>
+                                  <td data-bind="text: ( $data?.info?.() ?? $data?.value?.info?.() ?? '' )"/>
                                 </tr>
                             </tbody>
                         </table>
@@ -405,22 +405,22 @@
                                         <th/>
                                     </tr>
                                 </thead>
-                                <tbody data-bind="visible: $data?.jmx?.ProcessReport?.RunningQueries?.()?.length == 0">
+                                <tbody data-bind="visible: ( $data?.jmx?.ProcessReport?.RunningQueries?.()?.length ?? 0 ) == 0">
                                     <tr>
                                         <td colspan="5">No running queries</td>
                                     </tr>
                                 </tbody>
                                 <tbody data-bind="foreach: { data: jmx.ProcessReport.RunningQueries, afterRender: addKillBtn }">
                                     <tr>
-                                        <td data-bind="text: $data.thread ? $data.thread : $data.id"/>
+                                        <td data-bind="text: ( $data.thread ?? $data.value.thread ?? $data.id ?? $data.value.id )" />
                                         <td>
-                                          <span class="source-key" data-bind="text: $data?.sourceKey?.()?.replace(/^.*\/([^\/]+)$/, '$1') ?? '', attr: { title: ( typeof($data.sourceKey) == 'function' ? sourceKey : '' ) }" data-toggle="tooltip"/>
+                                          <span class="source-key" data-bind="text: ( $data?.sourceKey?.() ?? $data?.value?.sourceKey?.() )?.replace(/^.*\/([^\/]+)$/, '$1') ?? '???', attr: { title: ( $data?.sourceKey?.() ?? $data?.value?.sourceKey?.() ?? '' ) }" data-toggle="tooltip"/>
                                         </td>
                                         <td>
-                                            <a target="_new" data-bind="attr: { href: (typeof $data.requestURI == 'function' ? ($root.url + $data?.requestURI?.()) : '#') }, text: ($data.requestURI ? $data.requestURI : '')"/>
+                                          <a target="_blank" data-bind="attr: { href: $root.url +( $data?.requestURI?.() ?? $data?.value?.requestURI?.() ?? '#') }, text: ($data?.requestURI ?? $data?.value?.requestURI ?? '???')"/>
                                         </td>
                                         <td>
-                                            <span class="label" data-bind="text: $data?.terminating?.() == 'false' ? 'running' : 'terminating', css: { 'label-success': $data?.terminating?.() == 'false', 'label-warning': $data?.terminating?.() == 'true' }"/>
+                                          <span class="label" data-bind="text: ( $data?.terminating?.() ?? $data?.value?.terminating?.() ?? 'false' ) == 'false' ? 'running' : 'terminating', css: { 'label-success': ( $data?.terminating?.() ?? $data?.value?.terminating?.() ?? 'false' ) == 'false', 'label-warning': ( $data?.terminating?.() ?? $data?.value?.terminating?.() ?? 'false' ) == 'true' }"/>
                                         </td>
                                         <td>
                                             <a href="#" class="kill-query" title="Kill Query" data-bind="if: JMX_INSTANCE.name == 'localhost' || JMX_INSTANCE.version != 0">
@@ -460,20 +460,20 @@
                                         <th>Request URI</th>
                                     </tr>
                                 </thead>
-                                <tbody data-bind="visible: $data?.jmx?.ProcessReport?.RecentQueryHistory?.()?.length == 0">
+                                <tbody data-bind="visible: ( $data?.jmx?.ProcessReport?.RecentQueryHistory?.()?.length ?? 0) == 0">
                                     <tr>
-                                        <td colspan="2">Empty</td>
+                                        <td colspan="4">No recent queries</td>
                                     </tr>
                                 </tbody>
-                                <tbody id="jmx-recent-queries" data-bind="visible: $data?.jmx?.ProcessReport?.RecentQueryHistory?.()?.length &gt; 0, foreach: {data: jmx.ProcessReport.RecentQueryHistory, afterRender: function(node) { $('.source-key', node).tooltip(); }}">
+                                <tbody id="jmx-recent-queries" data-bind="visible: ( $data?.jmx?.ProcessReport?.RecentQueryHistory?.()?.length ?? 0 ) &gt; 0, foreach: {data: $data.jmx.ProcessReport.RecentQueryHistory, afterRender: function(node) { $('.source-key', node).tooltip(); }}">
                                     <tr>
-                                      <td data-bind="text: new Date(parseInt($data?.mostRecentExecutionTime?.() ?? 0)).toISOString()"/>
+                                      <td data-bind="text: new Date(parseInt( $data?.mostRecentExecutionTime?.() ?? $data?.value?.mostRecentExecutionTime?.() ?? 0 )).toISOString()"/>
                                         <td>
-                                          <span class="source-key" data-bind="text: $data?.sourceKey?.()?.replace(/^.*\/([^\/]+)$/, '$1') ?? '', attr: { title: ( typeof($data.sourceKey) == 'function' ? sourceKey : '' ) }" data-toggle="tooltip"/>
+                                          <span class="source-key"  data-bind="text: ( $data?.sourceKey?.() ?? $data?.value?.sourceKey?.() )?.replace(/^.*\/([^\/]+)$/, '$1') ?? '???', attr: { title: ( $data?.sourceKey?.() ?? $data?.value?.sourceKey?.() ?? '' ) }" data-toggle="tooltip"/>
                                         </td>
-                                      <td data-bind="text: typeof($data.mostRecentExecutionTime) == 'function' ? mostRecentExecutionDuration : ''"/>
+                                        <td data-bind="text: ( $data?.mostRecentExecutionDuration?.() ?? $data?.value?.mostRecentExecutionDuration?.() ?? '' )"/>
                                         <td>
-                                            <a target="_new" data-bind="attr: { href: (typeof $data.requestURI == 'function' ? ($root.url + $data.requestURI()) : '#') }, text: ($data.requestURI ? $data.requestURI : '')"/>
+                                          <a target="_blank" data-bind="attr: { href: $root.url + ( $data?.requestURI?.() ?? $data?.value?.requestURI() ?? '#' ) }, text: ( $data?.requestURI?.() ?? $data?.value?.requestURI() ?? '#' )"/>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -487,7 +487,7 @@
                                 <input type="text" class="form-control" id="threshold" title="The minimum execution time for a query to be recorded"/>
                             </div>
                             <div class="form-group">
-                                <label for="history-max">Keep history for (ms): </label>
+                              <label for="history-timespan">Keep history for (ms): </label>
                                 <input type="text" class="form-control" id="history-timespan" title="The time in seconds to keep queries in the history"/>
                             </div>
                             <div class="form-group">
@@ -525,7 +525,7 @@
                             </thead>
                             <tbody data-bind="visible: !$data?.jmx?.LockTable?.Acquired?.() || $data?.jmx?.LockTable?.Acquired?.()?.length == 0">
                                 <tr>
-                                    <td colspan="5">No waiting threads</td>
+                                    <td colspan="2">No waiting threads</td>
                                 </tr>
                             </tbody>
                             <tbody data-bind="foreach: jmx.LockTable.Acquired">
@@ -583,12 +583,12 @@
             </section>
         </div>
     </section>
-    <script type="text/javascript" src="resources/scripts/modernizr.custom.js"></script>
-    <script type="text/javascript" src="resources/scripts/knockout-latest.js"></script>
-    <script type="text/javascript" src="resources/scripts/knockout.mapping.js"></script>
-    <script type="text/javascript" src="resources/scripts/jquery.flot.min.js"></script>
-    <script type="text/javascript" src="resources/scripts/jquery.flot.time.min.js"></script>
-    <script type="text/javascript" src="resources/scripts/ion.rangeSlider.min.js"></script>
-    <script type="text/javascript" src="resources/scripts/util.js"></script>
-    <script type="text/javascript" src="resources/scripts/exadmin.js"></script>
+    <script type="text/javascript" src="resources/scripts/modernizr.custom.js"> </script>
+    <script type="text/javascript" src="resources/scripts/knockout-latest.js"> </script>
+    <script type="text/javascript" src="resources/scripts/knockout.mapping.js"> </script>
+    <script type="text/javascript" src="resources/scripts/jquery.flot.min.js"> </script>
+    <script type="text/javascript" src="resources/scripts/jquery.flot.time.min.js"> </script>
+    <script type="text/javascript" src="resources/scripts/ion.rangeSlider.min.js"> </script>
+    <script type="text/javascript" src="resources/scripts/util.js"> </script>
+    <script type="text/javascript" src="resources/scripts/exadmin.js"> </script>
 </div>
