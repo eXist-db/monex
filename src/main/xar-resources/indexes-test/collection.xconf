@@ -7,6 +7,18 @@
             <create qname="@empty-namespace-attribute" type="xs:string"/>
             <create qname="my:my-namespace-element" type="xs:string"/>
             <create qname="@my:my-namespace-attribute" type="xs:string"/>
+            
+            <!-- Indexes on fn data -->
+            <create qname="function">
+                <field name="function-name" match="@fn" type="xs:string"/>
+                <field name="function-group" match="@group" type="xs:string"/>
+            </create>
+            <create qname="return">
+                <field name="return-type" type="xs:string"/>
+                <field name="return-quantifier" match="@quantifier" type="xs:string"/>
+            </create>
+            <create qname="property" type="xs:string"/>
+            <create qname="error" type="xs:string"/>
         </range>
     </index>
 </collection>
