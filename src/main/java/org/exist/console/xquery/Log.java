@@ -49,7 +49,7 @@ public class Log extends BasicFunction {
                 new FunctionParameterSequenceType("items", Type.ITEM, Cardinality.ZERO_OR_MORE,
                     "Values to be printed. Will be concatenated into a single string.")
             },
-            new FunctionReturnSequenceType(Type.EMPTY, Cardinality.EMPTY_SEQUENCE, "Empty")
+            new FunctionReturnSequenceType(Type.EMPTY_SEQUENCE, Cardinality.EMPTY_SEQUENCE, "Empty")
         ),
         new FunctionSignature(
             new QName("log", ConsoleModule.NAMESPACE_URI, ConsoleModule.PREFIX),
@@ -60,7 +60,7 @@ public class Log extends BasicFunction {
                 new FunctionParameterSequenceType("items", Type.ITEM, Cardinality.ZERO_OR_MORE,
                     "Values to be printed. Will be concatenated into a single string.")
             },
-            new FunctionReturnSequenceType(Type.EMPTY, Cardinality.EMPTY_SEQUENCE, "Empty")
+            new FunctionReturnSequenceType(Type.EMPTY_SEQUENCE, Cardinality.EMPTY_SEQUENCE, "Empty")
         ),
         new FunctionSignature(
             new QName("send", ConsoleModule.NAMESPACE_URI, ConsoleModule.PREFIX),
@@ -71,7 +71,7 @@ public class Log extends BasicFunction {
                     new FunctionParameterSequenceType("items", Type.ITEM, Cardinality.ZERO_OR_ONE,
                             "Value to be sent. Will be transformed into JSON.")
             },
-            new FunctionReturnSequenceType(Type.EMPTY, Cardinality.EMPTY_SEQUENCE, "Empty")
+            new FunctionReturnSequenceType(Type.EMPTY_SEQUENCE, Cardinality.EMPTY_SEQUENCE, "Empty")
         ),
         new FunctionSignature(
                 new QName("dump", ConsoleModule.NAMESPACE_URI, ConsoleModule.PREFIX),
@@ -84,7 +84,7 @@ public class Log extends BasicFunction {
                     new FunctionParameterSequenceType("vars", Type.STRING, Cardinality.ONE_OR_MORE,
                         "The names of the variables to dump."),
                 },
-                new FunctionReturnSequenceType(Type.EMPTY, Cardinality.EMPTY_SEQUENCE, "Empty")
+                new FunctionReturnSequenceType(Type.EMPTY_SEQUENCE, Cardinality.EMPTY_SEQUENCE, "Empty")
         ),
         new FunctionSignature(
             new QName("dump", ConsoleModule.NAMESPACE_URI, ConsoleModule.PREFIX),
@@ -94,14 +94,14 @@ public class Log extends BasicFunction {
                 new FunctionParameterSequenceType("channel", Type.STRING, Cardinality.EXACTLY_ONE,
                     "The channel to print to.")
             },
-            new FunctionReturnSequenceType(Type.EMPTY, Cardinality.EMPTY_SEQUENCE, "Empty")
+            new FunctionReturnSequenceType(Type.EMPTY_SEQUENCE, Cardinality.EMPTY_SEQUENCE, "Empty")
         ),
         new FunctionSignature(
             new QName("dump", ConsoleModule.NAMESPACE_URI, ConsoleModule.PREFIX),
             "Dump the local variable stack to the console, including all variables which are visible at the " +
             "point the statement appears in the code. Use with care: might produce lots of output.",
             null,
-            new FunctionReturnSequenceType(Type.EMPTY, Cardinality.EMPTY_SEQUENCE, "Empty")
+            new FunctionReturnSequenceType(Type.EMPTY_SEQUENCE, Cardinality.EMPTY_SEQUENCE, "Empty")
         )
     };
 
@@ -206,7 +206,7 @@ public class Log extends BasicFunction {
                 } catch (SAXException e) {
                     out.append(e.getMessage());
                 }
-            } else if (item.getType() == Type.MAP || item.getType() == Type.ARRAY) {
+            } else if (item.getType() == Type.MAP_ITEM || item.getType() == Type.ARRAY_ITEM) {
                 final StringWriter writer = new StringWriter();
                 final XQuerySerializer xqSerializer = new XQuerySerializer(context.getBroker(), JSON_SERIALIZATION_PROPERTIES, writer);
                 try {
