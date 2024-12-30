@@ -325,7 +325,7 @@
           <images>
             <image>
               <alias>existdb-docs-tests</alias>
-              <name>existdb/existdb:${exist.processor.version}</name>
+              <name>duncdrum/existdb:${exist.processor.version}</name>
               <run>
                 <ports>
                   <port>8080:8080</port>
@@ -408,11 +408,10 @@
                   <goal>exec</goal>
                 </goals>
                 <configuration>
-                  <executable>npm</executable>
+                  <executable>npx</executable>
                   <arguments>
-                    <argument>run</argument>
                     <argument>cypress</argument>
-                    <argument>--</argument>
+                    <argument>run</argument>
                   </arguments>
                 </configuration>
               </execution>
@@ -441,10 +440,10 @@
                   <goal>exec</goal>
                 </goals>
                 <configuration>
-                  <executable>npm</executable>
+                  <executable>npx</executable>
                   <arguments>
-                    <argument>run</argument>
                     <argument>cypress</argument>
+                    <argument>run</argument>
                     <argument>--</argument>
                     <argument>--record</argument>
                   </arguments>
