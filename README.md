@@ -121,6 +121,11 @@ Before performing the release, in addition to the Build requirements you need an
 
 Only users with push access to the GitHub repo can act as release manager.
 
+```shell
+mvn release:prepare
+mvn release:perform
+```
+
 ### Preparation
 
 Before creating the release, check if:

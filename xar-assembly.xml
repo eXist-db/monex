@@ -257,6 +257,12 @@
                 <li>Fixed: Added missing release notes for 3.0.5 release - <a href="https://github.com/eXist-db/monex/issues/217">#217</a></li>
             </ul>
         </change>
+        <change version="4.2.1">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Dependency updates</li>
+                <li>Fixed: handling of $data when not defined - <a href="https://github.com/eXist-db/monex/pull/266">#266</a></li>
+            </ul>
+        </change>
     </changelog>
 
 </package>
