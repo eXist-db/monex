@@ -45,12 +45,12 @@ public class JMXToken extends BasicFunction {
             new FunctionReturnSequenceType(Type.STRING, Cardinality.ZERO_OR_ONE, "The authentication token")
         );
 
-    public JMXToken(XQueryContext context) {
+    public JMXToken(final XQueryContext context) {
         super(context, signature);
     }
 
     @Override
-    public Sequence eval(Sequence[] sequences, Sequence sequence) throws XPathException {
+    public Sequence eval(final Sequence[] sequences, final Sequence sequence) throws XPathException {
         if (!context.getEffectiveUser().hasDbaRole()) {
             throw new XPathException(this, "Only a dba user is allowed to retrieve the JMX access token.");
         }
@@ -74,7 +74,7 @@ public class JMXToken extends BasicFunction {
                 if (key != null) {
                     return new StringValue(key);
                 }
-            } catch (IOException ex) {
+            } catch (final IOException ex) {
                 throw new XPathException(this, "Exception while reading token file: " + ex.getMessage(), ex);
             }
         }
