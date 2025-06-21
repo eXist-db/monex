@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.exist-db.apps</groupId>
+        <artifactId>monex-parent</artifactId>
+        <version>4.3.0-SNAPSHOT</version>
+        <relativePath>../monex-parent</relativePath>
+    </parent>
+
+    <artifactId>monex-db-api</artifactId>
+    <packaging>pom</packaging>
+
+    <name>Monex Database APIs</name>
+    <description>Monex Database APIs</description>
+
+    <scm>
+        <url>https://github.com/eXist-db/monex.git</url>
+        <connection>scm:git:https://github.com/eXist-db/monex.git</connection>
+        <developerConnection>scm:git:https://github.com/eXist-db/monex.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
+    <modules>
+        <module>db-api-common</module>
+        <module>db-api-6</module>
+        <module>db-api-7</module>
+    </modules>
+
+</project>
