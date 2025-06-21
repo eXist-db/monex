@@ -21,23 +21,29 @@
  */
 package org.exist.remoteconsole;
 
-import org.exist.xquery.XPathException;
-import org.exist.xquery.value.DateTimeValue;
 import org.exist.console.ConsoleAdapter;
 
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
 public class RemoteConsoleAdapter implements ConsoleAdapter {
 
-    private final BiConsumer<String, Map> remoteDataWriter;
+    private final BiConsumer<String, Map<String, Object>> remoteDataWriter;
     private final BiConsumer<String, String> remoteStringWriter;
+    private final DatatypeFactory xmlDatatypeFactory;
 
-    public RemoteConsoleAdapter(final BiConsumer<String, Map> remoteDataWriter,
-            final BiConsumer<String, String> remoteStringWriter) {
+
+    public RemoteConsoleAdapter(final BiConsumer<String, Map<String, Object>> remoteDataWriter,
+            final BiConsumer<String, String> remoteStringWriter) throws DatatypeConfigurationException {
         this.remoteDataWriter = remoteDataWriter;
         this.remoteStringWriter = remoteStringWriter;
+        this.xmlDatatypeFactory = DatatypeFactory.newInstance();
     }
 
     @Override
@@ -56,7 +62,7 @@ public class RemoteConsoleAdapter implements ConsoleAdapter {
     }
 
     @Override
-    public void log(String channel, String source, int line, int column, String message) {
+    public void log(final String channel, final String source, final int line, final int column, final String message) {
         log(channel, source, line, column, false, message);
     }
 
@@ -80,10 +86,11 @@ public class RemoteConsoleAdapter implements ConsoleAdapter {
     }
 
     private String getTimestamp() {
-        try {
-            return new DateTimeValue().getStringValue();
-        } catch (XPathException e) {
-            return null;
-        }
+        final Calendar calendar = Calendar.getInstance();
+        final GregorianCalendar gregorianCalendar = new GregorianCalendar();
+        gregorianCalendar.setTimeZone(calendar.getTimeZone());
+        gregorianCalendar.setTimeInMillis(calendar.getTimeInMillis());
+        final XMLGregorianCalendar xmlCalendar = xmlDatatypeFactory.newXMLGregorianCalendar(gregorianCalendar);
+        return xmlCalendar.toXMLFormat();
     }
 }

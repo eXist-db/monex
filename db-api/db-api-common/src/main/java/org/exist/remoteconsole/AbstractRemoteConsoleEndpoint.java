@@ -23,14 +23,12 @@ package org.exist.remoteconsole;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.exist.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.exist.console.xquery.ConsoleModule;
 
 import javax.annotation.Nullable;
-import javax.websocket.*;
-import javax.websocket.server.ServerEndpoint;
+import javax.xml.datatype.DatatypeConfigurationException;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
@@ -40,37 +38,33 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
- * @author <a href="mailto:adam@exist-db.org">Adam Retter</a>
+ * Base class for the Remote Console Endpoint.
+ *
+ * @author <a href="mailto:adam@evolvedbinary.com">Adam Retter</a>
+ *
+ * @param <S> The type of the Session object. Allows us to support both javax.websocket.Session and jakarta.websocket.Session.
  */
-@ServerEndpoint("/rconsole")
-public class RemoteConsoleEndpoint {
-    public final static String DEFAULT_CHANNEL = "_default_";
+public abstract class AbstractRemoteConsoleEndpoint<S> {
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractRemoteConsoleEndpoint.class);
+    protected static final String DEFAULT_CHANNEL = "_default_";
 
-    private static final Logger LOG = LoggerFactory.getLogger(RemoteConsoleEndpoint.class);
+    private final Map<S, String> sessions = new ConcurrentHashMap<>();
 
-    private final Map<Session, String> sessions = new ConcurrentHashMap();
-
-    public RemoteConsoleEndpoint() {
+    protected AbstractRemoteConsoleEndpoint() throws DatatypeConfigurationException {
         ConsoleModule.setAdapter(new RemoteConsoleAdapter(this::sendAll, this::sendAll));
+
         final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor(
-                runnable -> ThreadUtils.newGlobalThread("rconsole", runnable));
+                runnable -> new Thread(runnable, "global.rconsole"));
         service.scheduleAtFixedRate(this::pingAll, 500, 500, TimeUnit.MILLISECONDS);
     }
 
-    @OnOpen
-    public void openSession(final Session session) {
-        session.setMaxIdleTimeout(10000);
-        sessions.put(session, DEFAULT_CHANNEL);
-    }
-
-    @OnClose
-    public void closeSession(final Session session,
-            final CloseReason closeReason) {
-        sessions.remove(session);
-    }
-
-    @OnMessage
-    public void recv(final String message, final Session session) {
+    /**
+     * Receive a message for a session.
+     *
+     * @param message the received message.
+     * @param session the session that sent the message.
+     */
+    protected void receiveMessageForSession(final String message, final S session) {
         final ObjectMapper objectMapper = new ObjectMapper();
         try {
             final JsonNode root = objectMapper.readTree(message);
@@ -100,7 +94,7 @@ public class RemoteConsoleEndpoint {
      *     be sent to all web sockets.
      * @param data data which will be serialized to JSON.
      */
-    void sendAll(@Nullable final String toChannel, final Map data) {
+    void sendAll(@Nullable final String toChannel, final Map<String, Object> data) {
         final ObjectMapper objectMapper = new ObjectMapper();
         try {
             final String json = objectMapper.writeValueAsString(data);
@@ -120,20 +114,55 @@ public class RemoteConsoleEndpoint {
      * @param message the message to send
      */
     void sendAll(@Nullable final String toChannel, final String message) {
-        final Iterator<Map.Entry<Session, String>> iterator = sessions.entrySet().iterator();
+        final Iterator<Map.Entry<S, String>> iterator = sessions.entrySet().iterator();
         while (iterator.hasNext()) {
             try {
-                final Map.Entry<Session, String> entry = iterator.next();
-                final Session session = entry.getKey();
+                final Map.Entry<S, String> entry = iterator.next();
+                final S session = entry.getKey();
                 final String channel = entry.getValue();
 
                 if (toChannel == null || (!channel.equals(DEFAULT_CHANNEL) && toChannel.equals(channel))) {
-                    session.getBasicRemote().sendText(message);
+                    sendText(session, message);
                 }
 
             } catch (final IOException e) {
                 LOG.error("Error sending message via websocket: " + e.getMessage(), e);
             }
         }
+    }
+
+    /**
+     * Add a session.
+     *
+     * @param session the session to add.
+     */
+    protected void addSession(final S session) {
+        setSessionMaxIdleTimeout(session, 10000);
+        sessions.put(session, DEFAULT_CHANNEL);
+    }
+
+    /**
+     * Set the max idle timeout of the session.
+     *
+     * @param session the session to set the timeout for.
+     * @param timeout the timeout to set on the session.
+     */
+    protected abstract void setSessionMaxIdleTimeout(S session, long timeout);
+
+    /**
+     * Send a message to a session.
+     *
+     * @param session the session to send the message to.
+     * @param message the message to send to the session.
+     */
+    protected abstract void sendText(final S session, final String message) throws IOException;
+
+    /**
+     * Remove a session.
+     *
+     * @param session the session to remove.
+     */
+    protected void removeSession(final S session) {
+        sessions.remove(session);
     }
 }

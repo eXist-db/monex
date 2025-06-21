@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     eXist-db Open Source Native XML Database
@@ -22,37 +22,22 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.exist-db</groupId>
-        <artifactId>exist-apps-parent</artifactId>
-        <version>1.12.0</version>
-        <relativePath />
+        <groupId>org.exist-db.apps</groupId>
+        <artifactId>monex-parent</artifactId>
+        <version>4.3.0-SNAPSHOT</version>
+        <relativePath>./monex-parent</relativePath>
     </parent>
 
-    <groupId>org.exist-db.apps</groupId>
     <artifactId>monex</artifactId>
-    <version>4.2.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
 
     <name>Monex</name>
-    <description>An application for monitoring, profiling and inspecting a running eXist-db instance.</description>
-    <url>https://www.github.com/eXist-db/monex</url>
-
-    <organization>
-        <name>The eXist-db Open Source project</name>
-        <url>https://www.exist-db.org</url>
-    </organization>
-
-    <licenses>
-        <license>
-            <name>GNU Lesser General Public License, version 2.1</name>
-            <url>https://opensource.org/licenses/LGPL-2.1</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
 
     <scm>
         <url>https://github.com/eXist-db/monex.git</url>
@@ -61,87 +46,199 @@
         <tag>HEAD</tag>
     </scm>
 
-    <issueManagement>
-        <system>GitHub</system>
-        <url>https://www.github.com/eXist-db/monex/issues</url>
-    </issueManagement>
-
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.build.source>1.8</project.build.source>
-        <project.build.target>1.8</project.build.target>
-
-        <exist.java-api.version>5.4.0</exist.java-api.version>            <!-- The eXist-db XQuery Java Module API version -->
-        <exist.processor.version>6.1.0</exist.processor.version>          <!-- The version of eXist-db needed by this EXPath Module -->
-
-        <jackson.version>2.19.1</jackson.version>
-        <websocket.api.version>1.1</websocket.api.version>
-        <templating.version>1.0.2</templating.version>
+        <templating.version>1.2.1</templating.version>
 
         <node.version>v18.12.1</node.version>
         <npm.version>9.1.3</npm.version>
-    
+
         <!-- used in the EXPath Package Descriptor -->
         <package-name>http://exist-db.org/apps/monex</package-name>
 
         <console.module.namespace>http://exist-db.org/xquery/console</console.module.namespace>
         <console.module.java.classname>org.exist.console.xquery.ConsoleModule</console.module.java.classname>
 
-        <!-- NOTE(AR) Needed just for the license-maven-plugin in this module! -->
-        <project.copyright.name>The eXist-db Authors</project.copyright.name>
-        <contact.email>info@exist-db.org</contact.email>
+        <db.api.6.test.port>10096</db.api.6.test.port>
+        <db.api.7.test.port>10097</db.api.7.test.port>
     </properties>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.exist-db</groupId>
-            <artifactId>exist-core</artifactId>
-            <version>${exist.java-api.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>2.0.17</version><!-- maven will use 2.x.x when provided -->
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.google.code.findbugs</groupId>
-            <artifactId>jsr305</artifactId>
-            <version>3.0.2</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>xml-apis</groupId>
-            <artifactId>xml-apis</artifactId>
-            <version>1.4.01</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
-            <version>${jackson.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>${jackson.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>javax.websocket</groupId>
-            <artifactId>javax.websocket-api</artifactId>
-            <version>${websocket.api.version}</version>
-        </dependency>
+    <modules>
+        <module>db-api</module>
+    </modules>
 
-        <!-- test dependencies -->
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/xar-resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>templates/**</include>
+                    <include>data/**</include>
+                </includes>
+                <targetPath>xar-resources</targetPath>
+            </resource>
+            <resource>
+                <directory>src/main/xar-resources</directory>
+                <filtering>false</filtering>
+                <excludes>
+                    <exclude>templates/**</exclude>
+                    <exclude>data/**</exclude>
+                </excludes>
+                <targetPath>xar-resources</targetPath>
+            </resource>
+        </resources>
 
-    </dependencies>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>com.github.monkeywie</groupId>
+                    <artifactId>copy-rename-maven-plugin</artifactId>
+                    <version>1.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.exist-db.maven.plugins</groupId>
+                    <artifactId>public-xar-repo-plugin</artifactId>
+                    <version>1.2.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>io.fabric8</groupId>
+                    <artifactId>docker-maven-plugin</artifactId>
+                    <version>0.46.0</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>resources</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <version>1.15.1</version>
+                <executions>
+                    <execution>
+                        <!-- optional: looks nicer in your build log. -->
+                        <id>install node and npm</id>
+                        <goals>
+                            <goal>install-node-and-npm</goal>
+                        </goals>
+                        <!-- optional: default phase is "generate-resources" -->
+                        <phase>compile</phase>
+                    </execution>
+                    <execution>
+                        <id>npm version bump</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <phase>compile</phase>
+                        <configuration>
+                            <arguments>version --no-git-tag-version --allow-same-version=true ${project.version}
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>npm install</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <phase>compile</phase>
+                        <!-- Optional configuration which provides for running any npm command -->
+                        <configuration>
+                            <arguments>ci</arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>gulp build</id>
+                        <goals>
+                            <goal>gulp</goal>
+                        </goals>
+                        <phase>compile</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <nodeVersion>${node.version}</nodeVersion>
+                    <npmVersion>${npm.version}</npmVersion>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>de.jutzig</groupId>
+                <artifactId>github-release-plugin</artifactId>
+                <version>1.6.0</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.codehaus.plexus</groupId>
+                        <artifactId>plexus-utils</artifactId>
+                        <version>4.0.2</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <id>github-upload</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>release</goal>
+                        </goals>
+                        <inherited>false</inherited>
+                        <configuration>
+                            <description>monex</description>
+                            <releaseName>v${project.version}</releaseName>
+                            <tag>${project.version}</tag>
+                            <fileSets>
+                                <fileSet>
+                                    <directory>${project.build.directory}</directory>
+                                    <includes>
+                                        <include>${project.artifactId}*.xar</include>
+                                    </includes>
+                                </fileSet>
+                            </fileSets>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>ro.kuberam.maven.plugins</groupId>
+                <artifactId>kuberam-expath-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>create-xar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>make-xar</goal>
+                        </goals>
+                        <configuration>
+                            <descriptor>xar-assembly.xml</descriptor>
+                            <finalName>${package-final-name}</finalName>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <configuration>
+                    <useAgent>true</useAgent>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <configuration>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                    <tagNameFormat>@{project.version}</tagNameFormat>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
     <reporting>
         <plugins>
@@ -164,375 +261,373 @@
         </plugins>
     </reporting>
 
-      <build>
-    <resources>
-      <resource>
-        <directory>src/main/xar-resources</directory>
-        <filtering>true</filtering>
-        <includes>
-          <include>templates/**</include>
-          <include>data/**</include>
-        </includes>
-      </resource>
-      <resource>
-        <directory>src/main/xar-resources</directory>
-        <filtering>false</filtering>
-        <excludes>
-          <exclude>templates/**</exclude>
-          <exclude>data/**</exclude>
-        </excludes>
-      </resource>
-    </resources>
+    <profiles>
+        <profile>
+            <!--
+           Starts eXist-db 6.x.x inside Docker for the purposes of Integration Testing
+           -->
+            <id>docker-integration-test-db-api-6</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <docker.integration-test.db-api-6.dir>${project.build.directory}/docker-integration-test/db-api-6</docker.integration-test.db-api-6.dir>
+                <docker.integration-test.db-api-6.autodeploy.dir>${docker.integration-test.db-api-6.dir}/autodeploy</docker.integration-test.db-api-6.autodeploy.dir>
+            </properties>
+            <build>
+                <plugins>
+                    <!-- start up Server in Docker for integration-test -->
+                    <plugin>
+                        <groupId>com.github.monkeywie</groupId>
+                        <artifactId>copy-rename-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>prepare-db-api-6-autodeploy</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>copy</goal>
+                                </goals>
+                                <configuration>
+                                    <fileSets>
+                                        <fileSet>
+                                            <sourceFile>${project.build.directory}/${project.artifactId}-${project.version}.xar</sourceFile>
+                                            <destinationFile>${docker.integration-test.db-api-6.autodeploy.dir}/${project.artifactId}-${project.version}.xar</destinationFile>
+                                        </fileSet>
+                                    </fileSets>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.exist-db.maven.plugins</groupId>
+                        <artifactId>public-xar-repo-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>prepare-db-api-6-autodeploy-deps</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>resolve</goal>
+                                </goals>
+                                <configuration>
+                                    <repoUri>https://exist-db.org/exist/apps/public-repo</repoUri>
+                                    <outputDirectory>${docker.integration-test.db-api-6.autodeploy.dir}</outputDirectory>
+                                    <existDbVersion>${db.api.6.impl.version}</existDbVersion>
+                                    <packages>
+                                        <package>
+                                            <abbrev>templating</abbrev>
+                                            <version>${templating.version}</version>
+                                        </package>
+                                    </packages>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>io.fabric8</groupId>
+                        <artifactId>docker-maven-plugin</artifactId>
+                        <configuration>
+                            <verbose>true</verbose>
+                            <images>
+                                <image>
+                                    <alias>db-api-6-monex-tests</alias>
+                                    <name>existdb/existdb:${db.api.6.impl.version}</name>
+                                    <run>
+                                        <containerNamePattern>%a-%i</containerNamePattern>
+                                        <ports>
+                                            <port>${db.api.6.test.port}:8080</port>
+                                        </ports>
+                                        <volumes>
+                                            <bind>
+                                                <volume>${docker.integration-test.db-api-6.autodeploy.dir}:/exist/autodeploy</volume>
+                                            </bind>
+                                        </volumes>
+                                        <wait>
+                                            <log>Server has started, listening on</log>
+                                            <time>120000</time>
+                                        </wait>
+                                    </run>
+                                </image>
+                            </images>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>docker-db-api-6-it-start</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>start</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>docker-db-api-6-it-stop</id>
+                                <phase>post-integration-test</phase>
+                                <goals>
+                                    <goal>stop</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
 
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>exec-maven-plugin</artifactId>
-          <version>3.5.1</version>
-        </plugin>
-      </plugins>
-    </pluginManagement>
+        <profile>
+            <!--
+            Starts Elemental 7.x.x inside Docker and Deploys Monex for the purposes of Integration Testing
 
-    <plugins>
-      <plugin>
-        <groupId>com.mycila</groupId>
-        <artifactId>license-maven-plugin</artifactId>
-        <version>4.6</version>
-        <configuration>
-          <failIfMissing>true</failIfMissing>
-          <aggregate>true</aggregate>
-          <strictCheck>true</strictCheck>
-          <headerDefinitions>
-            <headerDefinition>xquery-license-style.xml</headerDefinition>
-          </headerDefinitions>
-          <mapping>
-            <java>SLASHSTAR_STYLE</java>
-            <xconf>XML_STYLE</xconf>
-            <xq>XQUERY_STYLE</xq>
-            <xql>XQUERY_STYLE</xql>
-            <xqm>XQUERY_STYLE</xqm>
-            <xsl>XML_STYLE</xsl>
-            <xslt>XML_STYLE</xslt>
-          </mapping>
-          <licenseSets>
-            <licenseSet>
-              <header>LGPL-21-license.template.txt</header>
-              <properties>
-                <copyright.year>${project.inceptionYear}</copyright.year>
-                <copyright.name>${project.copyright.name}</copyright.name>
-                <email>${contact.email}</email>
-                <url>${project.organization.url}</url>
-              </properties>
-              <excludes>
-                <exclude>.gitignore</exclude>
-                <exclude>.idea/</exclude>
-                <exclude>.nvmrc</exclude>
-                <exclude>README.md</exclude>
-                <exclude>LICENSE</exclude>
-                <exclude>**/LGPL-21-license.template.txt</exclude>
-                <exclude>**/xquery-license-style.xml</exclude>
-                <exclude>xar-assembly.xml</exclude>
-                <exclude>**/vendor/scripts/**</exclude>
-                <exclude>**/indexes-test/data/**</exclude>
-              </excludes>
-            </licenseSet>
-          </licenseSets>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>com.github.eirslett</groupId>
-        <artifactId>frontend-maven-plugin</artifactId>
-        <version>1.15.1</version>
-        <executions>
-          <execution>
-            <!-- optional: looks nicer in your build log. -->
-            <id>install node and npm</id>
-            <goals>
-              <goal>install-node-and-npm</goal>
-            </goals>
-            <!-- optional: default phase is "generate-resources" -->
-            <phase>compile</phase>
-          </execution>
-          <execution>
-            <id>npm version bump</id>
-            <goals>
-              <goal>npm</goal>
-            </goals>
-            <phase>compile</phase>
-            <configuration>
-              <arguments>version --no-git-tag-version --allow-same-version=true ${project.version}</arguments>
-            </configuration>
-          </execution>
-          <execution>
-            <id>npm install</id>
-            <goals>
-              <goal>npm</goal>
-            </goals>
-            <phase>compile</phase>
-            <!-- Optional configuration which provides for running any npm command -->
-            <configuration>
-              <arguments>ci</arguments>
-            </configuration>
-          </execution>
-          <execution>
-            <id>gulp build</id>
-            <goals>
-              <goal>gulp</goal>
-            </goals>
-            <phase>compile</phase>
-          </execution>
-        </executions>
-        <configuration>
-          <nodeVersion>${node.version}</nodeVersion>
-          <npmVersion>${npm.version}</npmVersion>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>de.jutzig</groupId>
-        <artifactId>github-release-plugin</artifactId>
-        <version>1.6.0</version>
-	<dependencies>
-          <dependency>
-            <groupId>org.codehaus.plexus</groupId>
-            <artifactId>plexus-utils</artifactId>
-            <version>4.0.2</version>
-          </dependency>
-	</dependencies>
-        <executions>
-          <execution>
-            <id>github-upload</id>
-            <phase>deploy</phase>
-            <goals>
-              <goal>release</goal>
-            </goals>
-            <inherited>false</inherited>
-            <configuration>
-              <description>monex</description>
-              <releaseName>v${project.version}</releaseName>
-              <tag>${project.version}</tag>
-              <fileSets>
-                <fileSet>
-                  <directory>${project.build.directory}</directory>
-                  <includes>
-                    <include>${project.artifactId}*.xar</include>
-                  </includes>
-                </fileSet>
-              </fileSets>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>ro.kuberam.maven.plugins</groupId>
-        <artifactId>kuberam-expath-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>create-xar</id>
-            <phase>package</phase>
-            <goals>
-              <goal>make-xar</goal>
-            </goals>
-            <configuration>
-              <descriptor>xar-assembly.xml</descriptor>
-              <finalName>${package-final-name}</finalName>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <!-- start up Server in Docker for integration-test -->
-      <plugin>
-        <groupId>com.github.monkeywie</groupId>
-        <artifactId>copy-rename-maven-plugin</artifactId>
-        <version>1.0</version>
-        <executions>
-          <execution>
-            <id>prepare-autodeploy</id>
-            <phase>pre-integration-test</phase>
-            <goals>
-              <goal>copy</goal>
-            </goals>
-            <configuration>
-              <fileSets>
-                <fileSet>
-                  <sourceFile>${project.build.directory}/${project.artifactId}-${project.version}.xar</sourceFile>
-                  <destinationFile>${project.build.directory}/autodeploy/${project.artifactId}-${project.version}.xar</destinationFile>
-                </fileSet>
-              </fileSets>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.exist-db.maven.plugins</groupId>
-        <artifactId>public-xar-repo-plugin</artifactId>
-        <version>1.2.0</version>
-        <executions>
-          <execution>
-            <id>prepare-autodeploy-deps</id>
-            <phase>pre-integration-test</phase>
-            <goals>
-              <goal>resolve</goal>
-            </goals>
-            <configuration>
-              <repoUri>http://exist-db.org/exist/apps/public-repo</repoUri>
-              <outputDirectory>${project.build.directory}/autodeploy/</outputDirectory>
-              <existDbVersion>${exist.processor.version}</existDbVersion>
-              <packages>
-                <package>
-                  <abbrev>templating</abbrev>
-                  <version>${templating.version}</version>
-                </package>
-              </packages>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>io.fabric8</groupId>
-        <artifactId>docker-maven-plugin</artifactId>
-        <version>0.46.0</version>
-        <configuration>
-          <verbose>true</verbose>
-          <images>
-            <image>
-              <alias>existdb-docs-tests</alias>
-              <name>duncdrum/existdb:${exist.processor.version}</name>
-              <run>
-                <ports>
-                  <port>8080:8080</port>
-                </ports>
-                <volumes>
-                  <bind>
-                    <volume>${project.build.directory}/autodeploy:/exist/autodeploy</volume>
-                  </bind>
-                </volumes>
-                <wait>
-                  <log>Server has started, listening on</log>
-                  <time>120000</time>
-                </wait>
-              </run>
-            </image>
-          </images>
-        </configuration>
-        <executions>
-          <execution>
-            <id>docker-it-start</id>
-            <phase>pre-integration-test</phase>
-            <goals>
-              <goal>start</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>docker-it-stop</id>
-            <phase>post-integration-test</phase>
-            <goals>
-              <goal>stop</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-gpg-plugin</artifactId>
-        <configuration>
-          <useAgent>true</useAgent>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-release-plugin</artifactId>
-        <configuration>
-          <mavenExecutorId>forked-path
-          </mavenExecutorId>
-          <!-- avoid a bug with GPG plugin hanging http://jira.codehaus.org/browse/MGPG-9 -->
-          <autoVersionSubmodules>true</autoVersionSubmodules>
-          <tagNameFormat>@{project.version}</tagNameFormat>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
+            NOTE(AR) Could be swapped out for eXist-db 7.0.0 if it is released, but leaving it as Elemental does no harm either
+            -->
+            <id>docker-integration-test-db-api-7</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <docker.integration-test.db-api-7.dir>${project.build.directory}/docker-integration-test/db-api-7</docker.integration-test.db-api-7.dir>
+                <docker.integration-test.db-api-7.autodeploy.dir>${docker.integration-test.db-api-7.dir}/autodeploy</docker.integration-test.db-api-7.autodeploy.dir>
+            </properties>
+            <build>
+                <plugins>
+                    <!-- start up Server in Docker for integration-test -->
+                    <plugin>
+                        <groupId>com.github.monkeywie</groupId>
+                        <artifactId>copy-rename-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>prepare-db-api-7-autodeploy</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>copy</goal>
+                                </goals>
+                                <configuration>
+                                    <fileSets>
+                                        <fileSet>
+                                            <sourceFile>${project.build.directory}/${project.artifactId}-${project.version}.xar</sourceFile>
+                                            <destinationFile>${docker.integration-test.db-api-7.autodeploy.dir}/${project.artifactId}-${project.version}.xar</destinationFile>
+                                        </fileSet>
+                                    </fileSets>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.exist-db.maven.plugins</groupId>
+                        <artifactId>public-xar-repo-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>prepare-db-api-7-autodeploy-deps</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>resolve</goal>
+                                </goals>
+                                <configuration>
+                                    <repoUri>https://exist-db.org/exist/apps/public-repo</repoUri>
+                                    <outputDirectory>${docker.integration-test.db-api-7.autodeploy.dir}</outputDirectory>
+                                    <existDbVersion>${db.api.7.impl.version}</existDbVersion>
+                                    <packages>
+                                        <package>
+                                            <abbrev>templating</abbrev>
+                                            <version>${templating.version}</version>
+                                        </package>
+                                    </packages>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>io.fabric8</groupId>
+                        <artifactId>docker-maven-plugin</artifactId>
+                        <configuration>
+                            <verbose>true</verbose>
+                            <images>
+                                <image>
+                                    <alias>db-api-7-monex-tests</alias>
+                                    <name>evolvedbinary/elemental:${db.api.7.impl.version}</name>
+                                    <run>
+                                        <containerNamePattern>%a-%i</containerNamePattern>
+                                        <ports>
+                                            <port>${db.api.7.test.port}:8080</port>
+                                        </ports>
+                                        <volumes>
+                                            <bind>
+                                                <volume>${docker.integration-test.db-api-7.autodeploy.dir}:/elemental/autodeploy</volume>
+                                            </bind>
+                                        </volumes>
+                                        <wait>
+                                            <log>Server has started, listening on</log>
+                                            <time>120000</time>
+                                        </wait>
+                                    </run>
+                                </image>
+                            </images>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>docker-db-api-7-it-start</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>start</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>docker-db-api-7-it-stop</id>
+                                <phase>post-integration-test</phase>
+                                <goals>
+                                    <goal>stop</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
 
-  <!--
-    Cypress is used for integration tests
+        <profile>
+            <!--
+            Cypress is used for integration tests, this profile enables Cypress and eXist-db 6.x.x without recording support (see cypress.io).
+            -->
+            <id>cypress-without-recording-db-api-6</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>exec-cypress-without-recording-db-api-6</id>
+                                <phase>integration-test</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>npx</executable>
+                                    <arguments>
+                                        <argument>cypress</argument>
+                                        <argument>run</argument>
+                                        <argument>--config</argument>
+                                        <argument>baseUrl=http://localhost:${db.api.6.test.port}/exist</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
 
-    First profile enables to run Cypress without record (cypress.io) support.
-    Second profile enables to run Cypress with record support, e.g. for CI.
-  -->
-  <profiles>
-    <profile>
-      <id>cypress-without-record</id>
-      <activation>
-        <property>
-          <name>env.GITHUB_BASE_REF</name>
-          <value>master</value>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <phase>integration-test</phase>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <configuration>
-                  <executable>npx</executable>
-                  <arguments>
-                    <argument>cypress</argument>
-                    <argument>run</argument>
-                  </arguments>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
-      <id>cypress-with-record</id>
-      <activation>
-        <property>
-          <name>env.GITHUB_REF</name>
-          <value>refs/heads/master</value>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <phase>integration-test</phase>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <configuration>
-                  <executable>npx</executable>
-                  <arguments>
-                    <argument>cypress</argument>
-                    <argument>run</argument>
-                    <argument>--</argument>
-                    <argument>--record</argument>
-                  </arguments>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
+        <profile>
+            <!--
+            Cypress is used for integration tests, this profile enables Cypress and Elemental 7.x.x without recording support (see cypress.io).
+            -->
+            <id>cypress-without-recording-db-api-7</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>exec-cypress-without-recording-db-api-7</id>
+                                <phase>integration-test</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>npx</executable>
+                                    <arguments>
+                                        <argument>cypress</argument>
+                                        <argument>run</argument>
+                                        <argument>--config</argument>
+                                        <argument>baseUrl=http://localhost:${db.api.7.test.port}/exist</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
 
-  <pluginRepositories>
-    <pluginRepository>
-      <id>clojars.org</id>
-      <url>http://clojars.org/repo</url>
-    </pluginRepository>
-  </pluginRepositories>
+        <profile>
+            <!--
+            Cypress is used for integration tests, this profile enables to run Cypress and eXist-db 6.x.x with recording support (see cypress.io), e.g. for CI.
+            -->
+            <id>cypress-with-recording-db-api-6</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>exec-cypress-with-recording-db-api-6</id>
+                                <phase>integration-test</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>npx</executable>
+                                    <arguments>
+                                        <argument>cypress</argument>
+                                        <argument>run</argument>
+                                        <argument>--config</argument>
+                                        <argument>baseUrl=http://localhost:${db.api.6.test.port}/exist</argument>
+                                        <argument>--</argument>
+                                        <argument>--record</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <!--
+            Cypress is used for integration tests, this profile enables to run Cypress and Elemental 7.x.x with recording support (see cypress.io), e.g. for CI.
+            -->
+            <id>cypress-with-recording-db-api-7</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>exec-cypress-with-recording-db-api-7</id>
+                                <phase>integration-test</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>npx</executable>
+                                    <arguments>
+                                        <argument>cypress</argument>
+                                        <argument>run</argument>
+                                        <argument>--config</argument>
+                                        <argument>baseUrl=http://localhost:${db.api.7.test.port}/exist</argument>
+                                        <argument>--</argument>
+                                        <argument>--record</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+    </profiles>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>clojars.org</id>
+            <url>http://clojars.org/repo</url>
+        </pluginRepository>
+    </pluginRepositories>
 </project>
-
