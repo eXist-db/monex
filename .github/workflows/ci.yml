@@ -2,29 +2,60 @@ name: CI
 on: [push, pull_request]
 jobs:
   build:
-    name: Build and Test (${{ matrix.os }} / OpenJDK ${{ matrix.jdk }})
-    strategy:
-      fail-fast: true
-      matrix:
-        jdk: ['8', '11']
-        os: [ubuntu-latest]
-    runs-on: ${{ matrix.os }}
+    name: Build
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up JDK ${{ matrix.jdk }}
+      - name: Set up JDK
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: ${{ matrix.jdk }}
-      - name: Cache Maven packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
+          java-version: 21
+          cache: maven
       - name: Maven Build
         run: mvn clean package -DskipTests
-      - name: Test
-        env:
-          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-        run: mvn verify -P cypress-without-record
+      - uses: actions/upload-artifact@v4
+        with:
+          name: target
+          path: target/
+          retention-days: 1
+
+  test6:
+    name: Integration Test (DB API 6.x.x)
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+      - uses: actions/download-artifact@v4
+        with:
+          name: target
+      - name: Maven Test
+        run: mvn verify -Dgpg.skip -P docker-integration-test-db-api-6,cypress-with-recording-db-api-6
+
+  test7:
+    name: Integration Test (DB API 7.x.x)
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+      - uses: actions/download-artifact@v4
+        with:
+          name: target
+      - name: Maven Test
+        run: mvn verify -Dgpg.skip -P docker-integration-test-db-api-7,cypress-with-recording-db-api-7

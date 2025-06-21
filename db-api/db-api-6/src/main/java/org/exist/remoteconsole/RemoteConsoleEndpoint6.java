@@ -1,0 +1,65 @@
+/*
+ * eXist Open Source Native XML Database
+ * Copyright (C) 2001-2018 The eXist Project
+ * http://exist-db.org
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+package org.exist.remoteconsole;
+
+import javax.websocket.CloseReason;
+import javax.websocket.OnClose;
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
+import javax.websocket.Session;
+import javax.websocket.server.ServerEndpoint;
+import javax.xml.datatype.DatatypeConfigurationException;
+import java.io.IOException;
+
+/**
+ * @author <a href="mailto:adam@evolvedbinary.com">Adam Retter</a>
+ */
+@ServerEndpoint("/rconsole")
+public class RemoteConsoleEndpoint6 extends AbstractRemoteConsoleEndpoint<Session> {
+
+    public RemoteConsoleEndpoint6() throws DatatypeConfigurationException {
+        super();
+    }
+
+    @OnOpen
+    public void openSession(final Session session) {
+        addSession(session);
+    }
+
+    @Override
+    protected void setSessionMaxIdleTimeout(final Session session, final long timeout) {
+        session.setMaxIdleTimeout(timeout);
+    }
+
+    @Override
+    protected void sendText(final Session session, final String message) throws IOException {
+        session.getBasicRemote().sendText(message);
+    }
+
+    @OnClose
+    public void closeSession(final Session session, final CloseReason closeReason) {
+        removeSession(session);
+    }
+
+    @OnMessage
+    public void receiveMessage(final String message, final Session session) {
+        receiveMessageForSession(message, session);
+    }
+}
