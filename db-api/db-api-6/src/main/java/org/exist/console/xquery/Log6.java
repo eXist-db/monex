@@ -1,6 +1,6 @@
 /*
  * eXist-db Open Source Native XML Database
- * Copyright (C) 2017 The eXist-db Authors
+ * Copyright (C) 2014 The eXist-db Authors
  *
  * info@exist-db.org
  * https://www.exist-db.org

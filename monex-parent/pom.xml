@@ -2,7 +2,7 @@
 <!--
 
     eXist-db Open Source Native XML Database
-    Copyright (C) 2017 The eXist-db Authors
+    Copyright (C) 2014 The eXist-db Authors
 
     info@exist-db.org
     https://www.exist-db.org
@@ -44,8 +44,8 @@
     <inceptionYear>2014</inceptionYear>
 
     <organization>
-        <name>eXist-db Project</name>
-        <url>http://www.exist-db.org</url>
+        <name>The eXist-db Open Source project</name>
+        <url>https://www.exist-db.org</url>
     </organization>
 
     <contributors>
@@ -89,6 +89,12 @@
         <db.api.7.version>7.0.0</db.api.7.version>
         <db.api.7.impl.version>7.2.1</db.api.7.impl.version>
         <db.api.7.java.version>21</db.api.7.java.version>
+
+        <!-- NOTE(AR) Needed just for the license-maven-plugin in this module! -->
+        <project.parent.relativePath>.</project.parent.relativePath>
+
+        <project.copyright.name>The eXist-db Authors</project.copyright.name>
+        <contact.email>info@exist-db.org</contact.email>
     </properties>
 
     <dependencyManagement>
@@ -157,6 +163,50 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <configuration>
+                    <failIfMissing>true</failIfMissing>
+                    <aggregate>true</aggregate>
+                    <strictCheck>true</strictCheck>
+                    <headerDefinitions>
+                        <headerDefinition>${project.parent.relativePath}/xquery-license-style.xml</headerDefinition>
+                    </headerDefinitions>
+                    <mapping>
+                        <java>SLASHSTAR_STYLE</java>
+                        <xconf>XML_STYLE</xconf>
+                        <xq>XQUERY_STYLE</xq>
+                        <xql>XQUERY_STYLE</xql>
+                        <xqm>XQUERY_STYLE</xqm>
+                        <xsl>XML_STYLE</xsl>
+                        <xslt>XML_STYLE</xslt>
+                    </mapping>
+                    <licenseSets>
+                        <licenseSet>
+                            <header>${project.parent.relativePath}/LGPL-21-license.template.txt</header>
+                            <properties>
+                                <copyright.year>${project.inceptionYear}</copyright.year>
+                                <copyright.name>${project.copyright.name}</copyright.name>
+                                <email>${contact.email}</email>
+                                <url>${project.organization.url}</url>
+                            </properties>
+                            <excludes>
+                                <exclude>.gitignore</exclude>
+                                <exclude>.idea/</exclude>
+                                <exclude>.nvmrc</exclude>
+                                <exclude>README.md</exclude>
+                                <exclude>LICENSE</exclude>
+                                <exclude>**/LGPL-21-license.template.txt</exclude>
+                                <exclude>**/xquery-license-style.xml</exclude>
+                                <exclude>xar-assembly.xml</exclude>
+                                <exclude>**/vendor/scripts/**</exclude>
+                                <exclude>**/indexes-test/data/**</exclude>
+                            </excludes>
+                        </licenseSet>
+                    </licenseSets>
+                </configuration>
             </plugin>
         </plugins>
     </build>
