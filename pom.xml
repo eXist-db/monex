@@ -19,14 +19,14 @@
     <url>https://www.github.com/eXist-db/monex</url>
 
     <organization>
-        <name>eXist-db Project</name>
-        <url>http://www.exist-db.org</url>
+        <name>The eXist-db Open Source project</name>
+        <url>https://www.exist-db.org</url>
     </organization>
 
     <licenses>
         <license>
             <name>GNU Lesser General Public License, version 2.1</name>
-            <url>http://opensource.org/licenses/LGPL-2.1</url>
+            <url>https://opensource.org/licenses/LGPL-2.1</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
@@ -63,6 +63,10 @@
 
         <console.module.namespace>http://exist-db.org/xquery/console</console.module.namespace>
         <console.module.java.classname>org.exist.console.xquery.ConsoleModule</console.module.java.classname>
+
+        <!-- NOTE(AR) Needed just for the license-maven-plugin in this module! -->
+        <project.copyright.name>The eXist-db Authors</project.copyright.name>
+        <contact.email>info@exist-db.org</contact.email>
     </properties>
 
     <dependencies>
@@ -168,6 +172,51 @@
     </pluginManagement>
 
     <plugins>
+      <plugin>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>4.6</version>
+        <configuration>
+          <failIfMissing>true</failIfMissing>
+          <aggregate>true</aggregate>
+          <strictCheck>true</strictCheck>
+          <headerDefinitions>
+            <headerDefinition>xquery-license-style.xml</headerDefinition>
+          </headerDefinitions>
+          <mapping>
+            <java>SLASHSTAR_STYLE</java>
+            <xconf>XML_STYLE</xconf>
+            <xq>XQUERY_STYLE</xq>
+            <xql>XQUERY_STYLE</xql>
+            <xqm>XQUERY_STYLE</xqm>
+            <xsl>XML_STYLE</xsl>
+            <xslt>XML_STYLE</xslt>
+          </mapping>
+          <licenseSets>
+            <licenseSet>
+              <header>LGPL-21-license.template.txt</header>
+              <properties>
+                <copyright.year>${project.inceptionYear}</copyright.year>
+                <copyright.name>${project.copyright.name}</copyright.name>
+                <email>${contact.email}</email>
+                <url>${project.organization.url}</url>
+              </properties>
+              <excludes>
+                <exclude>.gitignore</exclude>
+                <exclude>.idea/</exclude>
+                <exclude>.nvmrc</exclude>
+                <exclude>README.md</exclude>
+                <exclude>LICENSE</exclude>
+                <exclude>**/LGPL-21-license.template.txt</exclude>
+                <exclude>**/xquery-license-style.xml</exclude>
+                <exclude>xar-assembly.xml</exclude>
+                <exclude>**/vendor/scripts/**</exclude>
+                <exclude>**/indexes-test/data/**</exclude>
+              </excludes>
+            </licenseSet>
+          </licenseSets>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>com.github.eirslett</groupId>
         <artifactId>frontend-maven-plugin</artifactId>
@@ -463,3 +512,4 @@
     </pluginRepository>
   </pluginRepositories>
 </project>
+
