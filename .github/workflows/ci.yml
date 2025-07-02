@@ -20,12 +20,16 @@ jobs:
           path: target/
           retention-days: 1
 
-  test6:
-    name: Integration Test (DB API 6.x.x)
+  integration-test:
+    name: Integration Test (DB API ${{ matrix.db-api-version }}.x.x)
     needs: build
     runs-on: ubuntu-latest
     env:
       CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+    strategy:
+      fail-fast: false
+      matrix:
+        db-api-version: [6, 7]
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK
@@ -37,25 +41,5 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: target
-      - name: Maven Test
-        run: mvn verify -Dgpg.skip -P docker-integration-test-db-api-6,cypress-with-recording-db-api-6
-
-  test7:
-    name: Integration Test (DB API 7.x.x)
-    needs: build
-    runs-on: ubuntu-latest
-    env:
-      CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 21
-          cache: maven
-      - uses: actions/download-artifact@v4
-        with:
-          name: target
-      - name: Maven Test
-        run: mvn verify -Dgpg.skip -P docker-integration-test-db-api-7,cypress-with-recording-db-api-7
+      - name: Maven Integration Test
+        run: mvn verify -Dgpg.skip -P docker-integration-test-db-api-${{ matrix.db-api-version }},cypress-with-recording-db-api-${{ matrix.db-api-version }}
