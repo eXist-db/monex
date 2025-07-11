@@ -27,9 +27,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>xyz.elemental.expath</groupId>
-        <artifactId>elemental-expath-package-parent</artifactId>
-        <version>1.0.0</version>
+        <groupId>org.exist-db</groupId>
+        <artifactId>exist-apps-parent</artifactId>
+        <version>2.0.0</version>
         <relativePath/>
     </parent>
 
