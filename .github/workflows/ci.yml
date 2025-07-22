@@ -21,7 +21,7 @@ jobs:
           retention-days: 1
 
   integration-test:
-    name: Integration Test (DB API ${{ matrix.db-api-version }}.x.x)
+    name: Integration Test (DB API ${{ matrix.db-image }} ${{ matrix.db-api-version }})
     needs: build
     runs-on: ubuntu-latest
     env:
@@ -29,6 +29,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        db-image: [existdb/existdb, evolvedbinary/elemental]
         db-api-version: [6, 7]
     steps:
       - uses: actions/checkout@v4
@@ -41,5 +42,13 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: target
-      - name: Maven Integration Test
-        run: mvn verify -Dgpg.skip -P docker-integration-test-db-api-${{ matrix.db-api-version }},cypress-with-recording-db-api-${{ matrix.db-api-version }}
+      - name: "Maven Integration Test: ${{ matrix.db-image }} ${{ matrix.db-api-version }}"
+        run: mvn verify -Dgpg.skip -Ddocker.integration-test.db-image=${{ matrix.db-image }} -P docker-integration-test-db-api-${{ matrix.db-api-version }},cypress-with-recording-db-api-${{ matrix.db-api-version }}
+        if: ${{ (matrix.db-image  == 'existdb/existdb' && matrix.db-api-version == '6') || (matrix.db-image  == 'evolvedbinary/elemental' && matrix.db-api-version == '7') }}
+      - name: "Maven Integration Test: ${{ matrix.db-image }} ${{ matrix.db-api-version }}"
+        run: mvn verify -Dgpg.skip -Ddocker.integration-test.db-image=${{ matrix.db-image }} -Ddb.api.6.impl.version=6.6.1 -P docker-integration-test-db-api-${{ matrix.db-api-version }},cypress-with-recording-db-api-${{ matrix.db-api-version }}
+        if: ${{ matrix.db-image  == 'evolvedbinary/elemental' && matrix.db-api-version == '6' }}
+      - name: "Maven Integration Test: ${{ matrix.db-image }} ${{ matrix.db-api-version }}"
+        run: mvn verify -Dgpg.skip -Ddocker.integration-test.db-image=${{ matrix.db-image }} -Ddb.api.7.impl.version=latest -P docker-integration-test-db-api-${{ matrix.db-api-version }},cypress-with-recording-db-api-${{ matrix.db-api-version }}
+        if: ${{ matrix.db-image  == 'existdb/existdb' && matrix.db-api-version == '7' }}
+

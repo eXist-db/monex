@@ -271,6 +271,7 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
+                <docker.integration-test.db-image>existdb/existdb</docker.integration-test.db-image>
                 <docker.integration-test.db-api-6.dir>${project.build.directory}/docker-integration-test/db-api-6</docker.integration-test.db-api-6.dir>
                 <docker.integration-test.db-api-6.autodeploy.dir>${docker.integration-test.db-api-6.dir}/autodeploy</docker.integration-test.db-api-6.autodeploy.dir>
             </properties>
@@ -330,7 +331,7 @@
                             <images>
                                 <image>
                                     <alias>db-api-6-monex-tests</alias>
-                                    <name>existdb/existdb:${db.api.6.impl.version}</name>
+                                    <name>${docker.integration-test.db-image}:${db.api.6.impl.version}</name>
                                     <run>
                                         <containerNamePattern>%a-%i</containerNamePattern>
                                         <ports>
@@ -381,6 +382,7 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
+                <docker.integration-test.db-image>evolvedbinary/elemental</docker.integration-test.db-image>
                 <docker.integration-test.db-api-7.dir>${project.build.directory}/docker-integration-test/db-api-7</docker.integration-test.db-api-7.dir>
                 <docker.integration-test.db-api-7.autodeploy.dir>${docker.integration-test.db-api-7.dir}/autodeploy</docker.integration-test.db-api-7.autodeploy.dir>
             </properties>
@@ -440,7 +442,7 @@
                             <images>
                                 <image>
                                     <alias>db-api-7-monex-tests</alias>
-                                    <name>evolvedbinary/elemental:${db.api.7.impl.version}</name>
+                                    <name>${docker.integration-test.db-image}:${db.api.7.impl.version}</name>
                                     <run>
                                         <containerNamePattern>%a-%i</containerNamePattern>
                                         <ports>
