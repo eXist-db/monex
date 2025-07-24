@@ -84,6 +84,56 @@ describe('Monex', function () {
     })
   })
 
+  describe('remote console channels', function () {
+    it ('should show the message from the right channel', function () {
+      // WebSocket connection 1.
+      const ws1 = new WebSocket('ws://localhost:8080/exist/rconsole')
+      ws1.onopen = () => {
+        ws1.send(JSON.stringify({ channel: 'c1' }))
+      }
+      ws1.onmessage = (e) => {
+        if (e.data == "ping") return;
+        const messageData = JSON.parse(e.data)
+        // Verify message content
+        expect(messageData.message).to.eq('111')
+        // Close connection and end test
+        ws.close()
+        done()
+      }
+      ws1.onerror = (error) => {
+        done(error)
+      }
+
+      // WebSocket connection 2.
+      const ws2 = new WebSocket('ws://localhost:8080/exist/rconsole')
+      ws2.onopen = () => {
+        ws2.send(JSON.stringify({ channel: 'c2' }))
+      }
+      ws2.onmessage = (e) => {
+        if (e.data == "ping") return;
+        const messageData = JSON.parse(e.data)
+        // Verify message content
+        expect(messageData.message).to.eq('222')
+        // Close connection and end test
+        ws.close()
+        done()
+      }
+      ws2.onerror = (error) => {
+        done(error)
+      }
+
+      // Send messages to both web sockets.
+      cy.request({
+        method: 'GET',
+        url: '/rest/db?_query=import%20module%20namespace%20console="http://exist-db.org/xquery/console";%20console:log("c1", "111")'
+      })
+      cy.request({
+        method: 'GET',
+        url: '/rest/db?_query=import%20module%20namespace%20console="http://exist-db.org/xquery/console";%20console:log("c2", "222")'
+      })
+    })
+  })
+
   describe('remote monitoring', function () {
     it ('should load remote monitoring', function () {
       cy.visit('/apps/monex/remotes.html')
