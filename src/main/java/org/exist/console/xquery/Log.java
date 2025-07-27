@@ -42,7 +42,7 @@ import java.util.Set;
  */
 public class Log extends BasicFunction {
 
-    public final static FunctionSignature signatures[] = {
+    public final static FunctionSignature[] signatures = {
         new FunctionSignature(
             new QName("log", ConsoleModule.NAMESPACE_URI, ConsoleModule.PREFIX),
             "Logs a message to the logger using the template given in the first parameter and " +
@@ -51,7 +51,7 @@ public class Log extends BasicFunction {
                 new FunctionParameterSequenceType("items", Type.ITEM, Cardinality.ZERO_OR_MORE,
                     "Values to be printed. Will be concatenated into a single string.")
             },
-            new FunctionReturnSequenceType(Type.EMPTY, Cardinality.EMPTY_SEQUENCE, "Empty")
+            new FunctionReturnSequenceType(Type.EMPTY_SEQUENCE, Cardinality.EMPTY_SEQUENCE, "Empty")
         ),
         new FunctionSignature(
             new QName("log", ConsoleModule.NAMESPACE_URI, ConsoleModule.PREFIX),
@@ -62,7 +62,7 @@ public class Log extends BasicFunction {
                 new FunctionParameterSequenceType("items", Type.ITEM, Cardinality.ZERO_OR_MORE,
                     "Values to be printed. Will be concatenated into a single string.")
             },
-            new FunctionReturnSequenceType(Type.EMPTY, Cardinality.EMPTY_SEQUENCE, "Empty")
+            new FunctionReturnSequenceType(Type.EMPTY_SEQUENCE, Cardinality.EMPTY_SEQUENCE, "Empty")
         ),
         new FunctionSignature(
             new QName("send", ConsoleModule.NAMESPACE_URI, ConsoleModule.PREFIX),
@@ -73,7 +73,7 @@ public class Log extends BasicFunction {
                     new FunctionParameterSequenceType("items", Type.ITEM, Cardinality.ZERO_OR_ONE,
                             "Value to be sent. Will be transformed into JSON.")
             },
-            new FunctionReturnSequenceType(Type.EMPTY, Cardinality.EMPTY_SEQUENCE, "Empty")
+            new FunctionReturnSequenceType(Type.EMPTY_SEQUENCE, Cardinality.EMPTY_SEQUENCE, "Empty")
         ),
         new FunctionSignature(
                 new QName("dump", ConsoleModule.NAMESPACE_URI, ConsoleModule.PREFIX),
@@ -86,7 +86,7 @@ public class Log extends BasicFunction {
                     new FunctionParameterSequenceType("vars", Type.STRING, Cardinality.ONE_OR_MORE,
                         "The names of the variables to dump."),
                 },
-                new FunctionReturnSequenceType(Type.EMPTY, Cardinality.EMPTY_SEQUENCE, "Empty")
+                new FunctionReturnSequenceType(Type.EMPTY_SEQUENCE, Cardinality.EMPTY_SEQUENCE, "Empty")
         ),
         new FunctionSignature(
             new QName("dump", ConsoleModule.NAMESPACE_URI, ConsoleModule.PREFIX),
@@ -96,14 +96,14 @@ public class Log extends BasicFunction {
                 new FunctionParameterSequenceType("channel", Type.STRING, Cardinality.EXACTLY_ONE,
                     "The channel to print to.")
             },
-            new FunctionReturnSequenceType(Type.EMPTY, Cardinality.EMPTY_SEQUENCE, "Empty")
+            new FunctionReturnSequenceType(Type.EMPTY_SEQUENCE, Cardinality.EMPTY_SEQUENCE, "Empty")
         ),
         new FunctionSignature(
             new QName("dump", ConsoleModule.NAMESPACE_URI, ConsoleModule.PREFIX),
             "Dump the local variable stack to the console, including all variables which are visible at the " +
             "point the statement appears in the code. Use with care: might produce lots of output.",
             null,
-            new FunctionReturnSequenceType(Type.EMPTY, Cardinality.EMPTY_SEQUENCE, "Empty")
+            new FunctionReturnSequenceType(Type.EMPTY_SEQUENCE, Cardinality.EMPTY_SEQUENCE, "Empty")
         )
     };
 
@@ -121,40 +121,40 @@ public class Log extends BasicFunction {
 
     private Expression parent = null;
 
-    public Log(XQueryContext context, FunctionSignature signature) {
+    public Log(final XQueryContext context, final FunctionSignature signature) {
         super(context, signature);
     }
 
     @Override
-    public void analyze(AnalyzeContextInfo contextInfo) throws XPathException {
+    public void analyze(final AnalyzeContextInfo contextInfo) throws XPathException {
         super.analyze(contextInfo);
         parent = contextInfo.getParent();
     }
 
     @Override
-    public Sequence eval(Sequence[] args, Sequence contextSequence) throws XPathException {
+    public Sequence eval(final Sequence[] args, final Sequence contextSequence) throws XPathException {
         final Properties outputProperties = new Properties(SERIALIZATION_PROPERTIES);
         if (isCalledAs("dump")) {
             final String channel = getArgumentCount() == 0 ? "default" : args[0].getStringValue();
             Set<String> varsToPrint = null;
             if (getArgumentCount() == 2) {
-                varsToPrint = new HashSet<String>();
-                for (SequenceIterator i = args[1].iterate(); i.hasNext(); ) {
+                varsToPrint = new HashSet<>();
+                for (final SequenceIterator i = args[1].iterate(); i.hasNext(); ) {
                     varsToPrint.add(i.nextItem().getStringValue());
                 }
             }
-            StringWriter writer = new StringWriter();
-            JSONWriter jsonWriter = new JSONWriter(writer);
+            final StringWriter writer = new StringWriter();
+            final JSONWriter jsonWriter = new JSONWriter(writer);
             try {
                 jsonWriter.startDocument();
                 jsonWriter.startElement("", "result", "result");
 
-                Map<QName, Variable> vars = context.getLocalVariables();
-                for (Map.Entry<QName, Variable> var: vars.entrySet()) {
-                    String name = var.getKey().toString();
+                final Map<QName, Variable> vars = context.getLocalVariables();
+                for (final Map.Entry<QName, Variable> var: vars.entrySet()) {
+                    final String name = var.getKey().toString();
                     if (varsToPrint == null || varsToPrint.contains(name)) {
                         jsonWriter.startElement("", name, name);
-                        StringBuilder value = new StringBuilder();
+                        final StringBuilder value = new StringBuilder();
                         printItems(value, outputProperties, false, var.getValue().getValue());
                         jsonWriter.characters(value);
                         jsonWriter.endElement("", name, name);
@@ -169,7 +169,7 @@ public class Log extends BasicFunction {
                 } else {
                     ConsoleModule.log(channel, parent.getSource().pathOrContentOrShortIdentifier(), parent.getLine(), parent.getColumn(), true, msg);
                 }
-            } catch (TransformerException e) {
+            } catch (final TransformerException e) {
                 e.printStackTrace();
             }
 
@@ -196,8 +196,8 @@ public class Log extends BasicFunction {
         return Sequence.EMPTY_SEQUENCE;
     }
 
-    private void printItems(StringBuilder out, Properties outputProperties, boolean jsonFormat, Sequence sequence) throws XPathException {
-        for (SequenceIterator i = sequence.iterate(); i.hasNext(); ) {
+    private void printItems(final StringBuilder out, final Properties outputProperties, final boolean jsonFormat, final Sequence sequence) throws XPathException {
+        for (final SequenceIterator i = sequence.iterate(); i.hasNext(); ) {
             final Item item = i.nextItem();
             if (Type.subTypeOf(item.getType(), Type.NODE)) {
                 final Serializer serializer = context.getBroker().getSerializer();
@@ -205,16 +205,16 @@ public class Log extends BasicFunction {
                 try {
                     serializer.setProperties(outputProperties);
                     out.append(serializer.serialize((NodeValue) item));
-                } catch (SAXException e) {
+                } catch (final SAXException e) {
                     out.append(e.getMessage());
                 }
-            } else if (item.getType() == Type.MAP || item.getType() == Type.ARRAY) {
+            } else if (item.getType() == Type.MAP_ITEM || item.getType() == Type.ARRAY_ITEM) {
                 final StringWriter writer = new StringWriter();
                 final XQuerySerializer xqSerializer = new XQuerySerializer(context.getBroker(), JSON_SERIALIZATION_PROPERTIES, writer);
                 try {
                     xqSerializer.serialize(item.toSequence());
-                    out.append(writer.toString());
-                } catch (SAXException e) {
+                    out.append(writer);
+                } catch (final SAXException e) {
                     throw new XPathException(this, e.getMessage());
                 }
             } else if (jsonFormat) {

@@ -35,7 +35,7 @@
 
     <groupId>org.exist-db.apps</groupId>
     <artifactId>monex</artifactId>
-    <version>4.2.1-SNAPSHOT</version>
+    <version>5.0.0-SNAPSHOT</version>
 
     <name>Monex</name>
     <description>An application for monitoring, profiling and inspecting a running eXist-db instance.</description>
@@ -68,11 +68,11 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.build.source>1.8</project.build.source>
-        <project.build.target>1.8</project.build.target>
+        <project.build.source>17</project.build.source>
+        <project.build.target>17</project.build.target>
 
-        <exist.java-api.version>5.4.0</exist.java-api.version>            <!-- The eXist-db XQuery Java Module API version -->
-        <exist.processor.version>6.1.0</exist.processor.version>          <!-- The version of eXist-db needed by this EXPath Module -->
+        <exist.java-api.version>7.0.0-SNAPSHOT</exist.java-api.version>            <!-- The eXist-db XQuery Java Module API version -->
+        <exist.processor.version>7.0.0-SNAPSHOT</exist.processor.version>          <!-- The version of eXist-db needed by this EXPath Module -->
 
         <jackson.version>2.19.1</jackson.version>
         <websocket.api.version>1.1</websocket.api.version>
