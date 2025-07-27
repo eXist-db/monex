@@ -21,27 +21,22 @@
  */
 
 /// <reference types="cypress" />
-beforeEach('log in', function () {
+
+beforeEach('log in', () => {
+    cy.loginApi()
     cy.visit('console.html')
-      .contains('Sign in as a dba user')
-      .get('.login-box-body')
-      .get(':nth-child(1) > .form-control').type('admin')
-      .get('.btn').click()
-      .url().should('include', '/monex/index.html')
   })
 
-describe('remote console', function () {
-    it ('should load remote dev console', function () {
-      cy.visit('console.html')
+describe('remote console', () => {
+    it('should load remote dev console', () => {
+      cy.get('h1')
+        .contains('Console')
         .wait(1000)
         .url().should('include', '/monex/console.html')
       cy.get('#status').should('be.visible').contains('Connected')
     })
 
-    it ('should show log message', function () {
-      cy.visit('/apps/monex/console.html')
-        .url().should('include', '/monex/console.html')
-        .wait(1000)
+    it('should show log message', () => {
       cy.get('#status').should('be.visible').contains('Connected')
       cy.request({
         method: 'GET',
@@ -53,8 +48,8 @@ describe('remote console', function () {
     })
   })
 
-  describe('remote console channels', function () {
-    it ('should show the message from the right channel', function () {
+  describe('remote console channels', () => {
+    it ('should show the message from the right channel', () => {
       // WebSocket connection 1.
       const ws1 = new WebSocket('ws://localhost:8080/exist/rconsole')
       ws1.onopen = () => {
