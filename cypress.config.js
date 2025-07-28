@@ -5,6 +5,7 @@ module.exports = defineConfig({
   fixturesFolder: 'src/test/cypress/fixtures',
   screenshotsFolder: 'src/test/cypress/screenshots',
   videosFolder: 'src/test/cypress/videos',
+  downloadsFolder: 'src/test/cypress/downloads',
   projectId: 'snavwf',
   e2e: {
     // We've imported your old cypress plugins here.
