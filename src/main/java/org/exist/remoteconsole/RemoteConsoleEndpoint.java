@@ -48,7 +48,7 @@ public class RemoteConsoleEndpoint {
 
     private static final Logger LOG = LoggerFactory.getLogger(RemoteConsoleEndpoint.class);
 
-    private final Map<Session, String> sessions = new ConcurrentHashMap();
+    private static final Map<Session, String> sessions = new ConcurrentHashMap();
 
     public RemoteConsoleEndpoint() {
         ConsoleModule.setAdapter(new RemoteConsoleAdapter(this::sendAll, this::sendAll));
