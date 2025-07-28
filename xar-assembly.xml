@@ -1,4 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    eXist-db Open Source Native XML Database
+    Copyright (C) 2014 The eXist-db Authors
+
+    info@exist-db.org
+    https://www.exist-db.org
+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+-->
 <package xmlns="http://expath.org/ns/pkg" name="${package-name}" abbrev="${package-abbrev}" version="${project.version}"
     spec="1.0">
     <title>${package-title}</title>
@@ -8,9 +31,7 @@
     <license>GNU Lesser General Public License, version 2.1</license>
     <copyright>true</copyright>
 
-    <!-- should be either "application" or "library" -->
     <type>application</type>
-    <!-- type>library</type -->
 
     <status>stable</status>
 
@@ -18,7 +39,9 @@
     <tag>application</tag>
     <category id="apps">Applications</category>
 
-    <dependency processor="http://exist-db.org" semver-min="${exist.processor.version}" semver-max="6"/>
+    <dependency processor="http://exist-db.org" semver-min="${db.api.6.impl.version}"/>
+    <dependency processor="http://elemental.xyz" semver-min="${db.api.6.impl.version}"/>
+
     <dependency package="http://exist-db.org/html-templating" semver-min="${templating.version}"/>
 
     <!-- Collection inside /db/apps where xar-resources will be copied to -->
@@ -28,7 +51,7 @@
     <finish>post-install.xql</finish>
     <permissions password="monex" user="monex" group="monex" mode="rw-rw-r--"/>
 
-    <!-- includes everything in src/main/xar-resources, README.md, and LICENSE -->
+    <!-- includes everything in README.md, and LICENSE, target/xar-resources, and target/generated-resources/frontend/xar-resources -->
     <fileSets>
         <fileSet>
             <directory>${basedir}</directory>
@@ -38,7 +61,7 @@
             </includes>
         </fileSet>
         <fileSet>
-            <directory>${basedir}/src/main/xar-resources</directory>
+            <directory>${project.build.outputDirectory}/xar-resources</directory>
             <excludes>
               <!--
                 These are not needed from this fileSet,
@@ -59,23 +82,18 @@
     <dependencySets>
         <dependencySet>
             <groupId>${project.groupId}</groupId>
-            <artifactId>${project.artifactId}</artifactId>
+            <artifactId>monex-db-api-common</artifactId>
             <version>${project.version}</version>
         </dependencySet>
         <dependencySet>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>${jackson.version}</version>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>monex-db-api-6</artifactId>
+            <version>${project.version}</version>
         </dependencySet>
         <dependencySet>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
-            <version>${jackson.version}</version>
-        </dependencySet>
-        <dependencySet>
-            <groupId>javax.websocket</groupId>
-            <artifactId>javax.websocket-api</artifactId>
-            <version>${websocket.api.version}</version>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>monex-db-api-7</artifactId>
+            <version>${project.version}</version>
         </dependencySet>
     </dependencySets>
 

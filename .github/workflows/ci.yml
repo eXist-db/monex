@@ -2,29 +2,53 @@ name: CI
 on: [push, pull_request]
 jobs:
   build:
-    name: Build and Test (${{ matrix.os }} / OpenJDK ${{ matrix.jdk }})
-    strategy:
-      fail-fast: true
-      matrix:
-        jdk: ['8', '11']
-        os: [ubuntu-latest]
-    runs-on: ${{ matrix.os }}
+    name: Build
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up JDK ${{ matrix.jdk }}
+      - name: Set up JDK
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: ${{ matrix.jdk }}
-      - name: Cache Maven packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
+          java-version: 21
+          cache: maven
       - name: Maven Build
         run: mvn clean package -DskipTests
-      - name: Test
-        env:
-          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-        run: mvn verify -P cypress-without-record
+      - uses: actions/upload-artifact@v4
+        with:
+          name: target
+          path: target/
+          retention-days: 1
+
+  integration-test:
+    name: Integration Test (DB API ${{ matrix.db-image }} ${{ matrix.db-api-version }})
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+    strategy:
+      fail-fast: false
+      matrix:
+        db-image: [existdb/existdb, evolvedbinary/elemental]
+        db-api-version: [6, 7]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+      - uses: actions/download-artifact@v4
+        with:
+          name: target
+      - name: "Maven Integration Test: ${{ matrix.db-image }} ${{ matrix.db-api-version }}"
+        run: mvn verify -Dgpg.skip -Ddocker.integration-test.db-image=${{ matrix.db-image }} -P docker-integration-test-db-api-${{ matrix.db-api-version }},cypress-with-recording-db-api-${{ matrix.db-api-version }}
+        if: ${{ (matrix.db-image  == 'existdb/existdb' && matrix.db-api-version == '6') || (matrix.db-image  == 'evolvedbinary/elemental' && matrix.db-api-version == '7') }}
+      - name: "Maven Integration Test: ${{ matrix.db-image }} ${{ matrix.db-api-version }}"
+        run: mvn verify -Dgpg.skip -Ddocker.integration-test.db-image=${{ matrix.db-image }} -Ddb.api.6.impl.version=6.6.1 -P docker-integration-test-db-api-${{ matrix.db-api-version }},cypress-with-recording-db-api-${{ matrix.db-api-version }}
+        if: ${{ matrix.db-image  == 'evolvedbinary/elemental' && matrix.db-api-version == '6' }}
+      - name: "Maven Integration Test: ${{ matrix.db-image }} ${{ matrix.db-api-version }}"
+        run: mvn verify -Dgpg.skip -Ddocker.integration-test.db-image=${{ matrix.db-image }} -Ddb.api.7.impl.version=latest -P docker-integration-test-db-api-${{ matrix.db-api-version }},cypress-with-recording-db-api-${{ matrix.db-api-version }}
+        if: ${{ matrix.db-image  == 'existdb/existdb' && matrix.db-api-version == '7' }}
+

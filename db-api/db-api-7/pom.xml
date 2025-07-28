@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    eXist-db Open Source Native XML Database
+    Copyright (C) 2014 The eXist-db Authors
+
+    info@exist-db.org
+    https://www.exist-db.org
+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.exist-db.apps</groupId>
+        <artifactId>monex-parent</artifactId>
+        <version>4.3.0-SNAPSHOT</version>
+        <relativePath>../../monex-parent</relativePath>
+    </parent>
+
+    <artifactId>monex-db-api-7</artifactId>
+
+    <name>Monex Database API 7.x.x</name>
+    <description>Monex Database API for eXist-db and Elemental versions 7.x.x</description>
+
+    <scm>
+        <url>https://github.com/eXist-db/monex.git</url>
+        <connection>scm:git:https://github.com/eXist-db/monex.git</connection>
+        <developerConnection>scm:git:https://github.com/eXist-db/monex.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.exist-db.apps</groupId>
+            <artifactId>monex-db-api-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <!-- NOTE(AR) (Inherited from monex-parent) Could be swapped out for eXist-db 7.0.0 if it is released, but leaving it as Elemental does no harm either -->
+            <groupId>xyz.elemental.fork.org.exist-db</groupId>
+            <artifactId>exist-core</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolvedbinary.thirdparty.xml-apis</groupId>
+            <artifactId>xml-apis</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.websocket</groupId>
+            <artifactId>jakarta.websocket-api</artifactId>
+            <version>2.0.0</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <configuration>
+                    <rules>
+                        <requireJavaVersion>
+                            <version>${db.api.7.java.version}</version>
+                        </requireJavaVersion>
+                    </rules>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <!-- NOTE(AR) at the moment we target Java 8 for
+                        our Java file as the code will be deployed into
+                        DB API versions 6.x.x and 7.x.x. Even if it is
+                        ignored in 6.x.x, Jetty 9 will throw an exception
+                        if it tries to scan for annotations in Java class
+                        files that are newer than `$db.api.6.java.version`.
+
+                        If support for DB API 6.x.x versions is removed
+                        from newer versions of monex, then $db.api.6.java.version`
+                        can be replaced below with `$db.api.7.java.version`.
+                    -->
+                    <source>${db.api.6.java.version}</source>
+                    <target>${db.api.6.java.version}</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

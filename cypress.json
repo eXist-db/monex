@@ -1,12 +1,13 @@
 {
-  "baseUrl": "http://localhost:8080/exist",
+  "baseUrl": "http://localhost:10086/exist",
   "fileServerFolder": "src/main/xar-resources",
   "ignoreTestFiles": "src/test/cypress/integration/examples/*.js",
   "fixturesFolder": "src/test/cypress/fixtures",
   "integrationFolder": "src/test/cypress/integration",
   "pluginsFile": "src/test/cypress/plugins/index.js",
-  "screenshotsFolder": "src/test/cypress/screenshots",
   "supportFile": "src/test/cypress/support/index.js",
-  "videosFolder": "src/test/cypress/videos",
+  "downloadsFolder": "target/cypress/downloads",
+  "videosFolder": "target/cypress/videos",
+  "screenshotsFolder": "target/cypress/screenshots",
   "projectId": "snavwf"
 }

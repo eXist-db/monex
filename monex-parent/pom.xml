@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    eXist-db Open Source Native XML Database
+    Copyright (C) 2014 The eXist-db Authors
+
+    info@exist-db.org
+    https://www.exist-db.org
+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.exist-db</groupId>
+        <artifactId>exist-apps-parent</artifactId>
+        <version>2.0.0</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>org.exist-db.apps</groupId>
+    <artifactId>monex-parent</artifactId>
+    <version>4.3.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <name>Monex Parent</name>
+    <description>An application for monitoring, profiling and inspecting a running eXist-db instance.</description>
+    <url>https://www.github.com/eXist-db/monex</url>
+    <inceptionYear>2014</inceptionYear>
+
+    <organization>
+        <name>The eXist-db Open Source project</name>
+        <url>https://www.exist-db.org</url>
+    </organization>
+
+    <contributors>
+        <contributor>
+            <organization>eXist Solutions</organization>
+            <organizationUrl>https://www.existsolutions.com</organizationUrl>
+        </contributor>
+        <contributor>
+            <organization>Evolved Binary</organization>
+            <organizationUrl>https://www.evolvedbinary.com</organizationUrl>
+        </contributor>
+    </contributors>
+
+    <licenses>
+        <license>
+            <name>GNU Lesser General Public License, version 2.1</name>
+            <url>http://opensource.org/licenses/LGPL-2.1</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <url>https://github.com/eXist-db/monex.git</url>
+        <connection>scm:git:https://github.com/eXist-db/monex.git</connection>
+        <developerConnection>scm:git:https://github.com/eXist-db/monex.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://www.github.com/eXist-db/monex/issues</url>
+    </issueManagement>
+
+    <properties>
+        <!-- Version of eXist-db and Elemental 6.x.x that Monex is compatible with -->
+        <db.api.6.version>6.0.0</db.api.6.version>
+        <db.api.6.impl.version>6.1.0</db.api.6.impl.version>
+        <db.api.6.java.version>1.8</db.api.6.java.version>
+
+        <!-- Version of eXist-db and Elemental 7.x.x that Monex is compatible with -->
+        <db.api.7.version>7.0.0</db.api.7.version>
+        <db.api.7.impl.version>7.2.1</db.api.7.impl.version>
+        <db.api.7.java.version>21</db.api.7.java.version>
+
+        <!-- NOTE(AR) Needed just for the license-maven-plugin in this module! -->
+        <project.parent.relativePath>.</project.parent.relativePath>
+
+        <project.copyright.name>The eXist-db Authors</project.copyright.name>
+        <contact.email>info@exist-db.org</contact.email>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.exist-db</groupId>
+                <artifactId>exist-core</artifactId>
+                <version>${db.api.6.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>xml-apis</groupId>
+                <artifactId>xml-apis</artifactId>
+                <version>1.4.01</version>
+            </dependency>
+            <dependency>
+                <!-- NOTE(AR) Could be swapped out for eXist-db 7.0.0 if it is released, but leaving it as Elemental does no harm either -->
+                <groupId>xyz.elemental.fork.org.exist-db</groupId>
+                <artifactId>exist-core</artifactId>
+                <version>${db.api.7.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.evolvedbinary.thirdparty.xml-apis</groupId>
+                <artifactId>xml-apis</artifactId>
+                <version>1.4.02</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.code.findbugs</groupId>
+                <artifactId>jsr305</artifactId>
+                <version>3.0.2</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <version>3.5.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>3.5.1</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <configuration>
+                    <rules>
+                        <requireJavaVersion>
+                            <version>${db.api.6.java.version}</version>
+                        </requireJavaVersion>
+                    </rules>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>enforce-versions</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <configuration>
+                    <failIfMissing>true</failIfMissing>
+                    <aggregate>true</aggregate>
+                    <strictCheck>true</strictCheck>
+                    <headerDefinitions>
+                        <headerDefinition>${project.parent.relativePath}/xquery-license-style.xml</headerDefinition>
+                    </headerDefinitions>
+                    <mapping>
+                        <java>SLASHSTAR_STYLE</java>
+                        <xconf>XML_STYLE</xconf>
+                        <xq>XQUERY_STYLE</xq>
+                        <xql>XQUERY_STYLE</xql>
+                        <xqm>XQUERY_STYLE</xqm>
+                        <xsl>XML_STYLE</xsl>
+                        <xslt>XML_STYLE</xslt>
+                    </mapping>
+                    <licenseSets>
+                        <licenseSet>
+                            <header>${project.parent.relativePath}/LGPL-21-license.template.txt</header>
+                            <properties>
+                                <copyright.year>${project.inceptionYear}</copyright.year>
+                                <copyright.name>${project.copyright.name}</copyright.name>
+                                <email>${contact.email}</email>
+                                <url>${project.organization.url}</url>
+                            </properties>
+                            <excludes>
+                                <exclude>.gitignore</exclude>
+                                <exclude>.idea/</exclude>
+                                <exclude>.nvmrc</exclude>
+                                <exclude>README.md</exclude>
+                                <exclude>LICENSE</exclude>
+                                <exclude>**/LGPL-21-license.template.txt</exclude>
+                                <exclude>**/xquery-license-style.xml</exclude>
+                                <exclude>xar-assembly.xml</exclude>
+                                <exclude>**/vendor/scripts/**</exclude>
+                                <exclude>**/indexes-test/data/**</exclude>
+                            </excludes>
+                        </licenseSet>
+                    </licenseSets>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

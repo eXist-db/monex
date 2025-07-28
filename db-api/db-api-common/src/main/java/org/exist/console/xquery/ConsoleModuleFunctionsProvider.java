@@ -1,6 +1,6 @@
 /*
  * eXist-db Open Source Native XML Database
- * Copyright (C) 2017 The eXist-db Authors
+ * Copyright (C) 2014 The eXist-db Authors
  *
  * info@exist-db.org
  * https://www.exist-db.org
@@ -19,17 +19,26 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
-package org.exist.console;
+package org.exist.console.xquery;
 
-public interface ConsoleAdapter {
+import org.exist.xquery.FunctionDef;
 
-    void log(String channel, String message);
+import javax.annotation.Nullable;
 
-    void log(String channel, boolean json, String message);
+/**
+ * A Service that may provide functions for the {@link ConsoleModule}.
+ *
+ * @author <a href="mailto:adam@evolvedbinary.com">Adam Retter</a>
+ */
+public interface ConsoleModuleFunctionsProvider {
 
-    void log(String channel, String source, int line, int column, String message);
-
-    void log(String channel, String source, int line, int column, boolean json, String message);
-
-    void send(String channel, String message);
+    /**
+     * Returns the Function Defs for the Console Module.
+     *
+     * @param dbImplName the DB implementation name.
+     * @param dbImplVersion the DB implementation version.
+     *
+     * @return Any function defs that are relevant for the DB Implementation, or null if no applicable functions can be provided.
+     */
+    @Nullable FunctionDef[] getFunctionDefs(final String dbImplName, final String dbImplVersion);
 }
