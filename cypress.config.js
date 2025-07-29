@@ -3,8 +3,9 @@ const { defineConfig } = require('cypress')
 module.exports = defineConfig({
   fileServerFolder: 'src/main/xar-resources',
   fixturesFolder: 'src/test/cypress/fixtures',
-  screenshotsFolder: 'src/test/cypress/screenshots',
-  videosFolder: 'src/test/cypress/videos',
+  downloadsFolder: 'target/cypress/downloads',
+  screenshotsFolder: 'target/cypress/screenshots',
+  videosFolder: 'target/cypress/videos',
   projectId: 'snavwf',
   e2e: {
     // We've imported your old cypress plugins here.
