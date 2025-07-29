@@ -27,4 +27,4 @@ jobs:
       - name: Test
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-        run: mvn verify -P cypress-without-record
+        run: mvn verify -P cypress-with-record

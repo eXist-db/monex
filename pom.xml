@@ -397,7 +397,7 @@
           <images>
             <image>
               <alias>existdb-docs-tests</alias>
-              <name>duncdrum/existdb:${exist.processor.version}</name>
+              <name>existdb/existdb:${exist.processor.version}</name>
               <run>
                 <ports>
                   <port>8080:8080</port>
@@ -463,10 +463,7 @@
     <profile>
       <id>cypress-without-record</id>
       <activation>
-        <property>
-          <name>env.GITHUB_BASE_REF</name>
-          <value>master</value>
-        </property>
+          <activeByDefault>true</activeByDefault>
       </activation>
       <build>
         <plugins>
@@ -475,6 +472,7 @@
             <artifactId>exec-maven-plugin</artifactId>
             <executions>
               <execution>
+                <id>cypress-without-record</id>
                 <phase>integration-test</phase>
                 <goals>
                   <goal>exec</goal>
@@ -494,12 +492,6 @@
     </profile>
     <profile>
       <id>cypress-with-record</id>
-      <activation>
-        <property>
-          <name>env.GITHUB_REF</name>
-          <value>refs/heads/master</value>
-        </property>
-      </activation>
       <build>
         <plugins>
           <plugin>
@@ -507,6 +499,7 @@
             <artifactId>exec-maven-plugin</artifactId>
             <executions>
               <execution>
+                <id>cypress-with-record</id>
                 <phase>integration-test</phase>
                 <goals>
                   <goal>exec</goal>

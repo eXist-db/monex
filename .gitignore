@@ -89,6 +89,3 @@ nb-configuration.xml
 ## Node / JS
 ##############################
 node_modules/
-
-src/test/cypress/videos/*
-src/test/cypress/screenshots/*
