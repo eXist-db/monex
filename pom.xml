@@ -397,7 +397,7 @@
           <images>
             <image>
               <alias>existdb-docs-tests</alias>
-              <name>duncdrum/existdb:${exist.processor.version}</name>
+              <name>existdb/existdb:${exist.processor.version}</name>
               <run>
                 <ports>
                   <port>8080:8080</port>
