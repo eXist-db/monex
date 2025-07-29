@@ -475,6 +475,7 @@
             <artifactId>exec-maven-plugin</artifactId>
             <executions>
               <execution>
+                <id>cypress-without-record</id>
                 <phase>integration-test</phase>
                 <goals>
                   <goal>exec</goal>
@@ -507,6 +508,7 @@
             <artifactId>exec-maven-plugin</artifactId>
             <executions>
               <execution>
+                <id>cypress-with-record</id>
                 <phase>integration-test</phase>
                 <goals>
                   <goal>exec</goal>
