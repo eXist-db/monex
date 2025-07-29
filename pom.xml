@@ -463,10 +463,7 @@
     <profile>
       <id>cypress-without-record</id>
       <activation>
-        <property>
-          <name>env.GITHUB_BASE_REF</name>
-          <value>master</value>
-        </property>
+          <activeByDefault>true</activeByDefault>
       </activation>
       <build>
         <plugins>
@@ -495,12 +492,6 @@
     </profile>
     <profile>
       <id>cypress-with-record</id>
-      <activation>
-        <property>
-          <name>env.GITHUB_REF</name>
-          <value>refs/heads/master</value>
-        </property>
-      </activation>
       <build>
         <plugins>
           <plugin>
