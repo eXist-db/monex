@@ -461,7 +461,7 @@
   -->
   <profiles>
     <profile>
-      <id>cypress-without-record</id>
+      <id>e2e-tests</id>
       <activation>
           <activeByDefault>true</activeByDefault>
       </activation>
@@ -472,7 +472,7 @@
             <artifactId>exec-maven-plugin</artifactId>
             <executions>
               <execution>
-                <id>cypress-without-record</id>
+                <id>run cypress without recording</id>
                 <phase>integration-test</phase>
                 <goals>
                   <goal>exec</goal>
@@ -491,7 +491,7 @@
       </build>
     </profile>
     <profile>
-      <id>cypress-with-record</id>
+      <id>e2e-tests-with-recording</id>
       <build>
         <plugins>
           <plugin>
@@ -499,7 +499,7 @@
             <artifactId>exec-maven-plugin</artifactId>
             <executions>
               <execution>
-                <id>cypress-with-record</id>
+                <id>run cypress with recording</id>
                 <phase>integration-test</phase>
                 <goals>
                   <goal>exec</goal>
