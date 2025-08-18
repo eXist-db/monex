@@ -56,7 +56,7 @@ public class RemoteConsoleAdapter implements ConsoleAdapter {
     }
 
     @Override
-    public void log(String channel, String source, int line, int column, String message) {
+    public void log(final String channel, final String source, final int line, final int column, final String message) {
         log(channel, source, line, column, false, message);
     }
 
@@ -82,7 +82,7 @@ public class RemoteConsoleAdapter implements ConsoleAdapter {
     private String getTimestamp() {
         try {
             return new DateTimeValue().getStringValue();
-        } catch (XPathException e) {
+        } catch (final XPathException e) {
             return null;
         }
     }

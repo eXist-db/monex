@@ -48,27 +48,27 @@ public class ConsoleModule extends AbstractInternalModule {
 
     private static ConsoleAdapter adapter = null;
 
-    public static void log(String channel, String message) {
+    public static void log(final String channel, final String message) {
         log(channel, false, message);
     }
 
-    public static void log(String channel, boolean json, String message) {
+    public static void log(final String channel, final boolean json, final String message) {
         if (adapter != null) {
             adapter.log(channel, json, message);
         }
     }
 
-    public static void log(String channel, String source, int line, int column, String message) {
+    public static void log(final String channel, final String source, final int line, final int column, final String message) {
         log(channel, source, line, column, false, message);
     }
 
-    public static void log(String channel, String source, int line, int column, boolean json, String message) {
+    public static void log(final String channel, final String source, final int line, final int column, final boolean json, final String message) {
         if (adapter != null) {
             adapter.log(channel, source, line, column, json, message);
         }
     }
 
-    public static void send(String channel, String json) {
+    public static void send(final String channel, final String json) {
         if (adapter != null) {
             adapter.send(channel, json);
         }
@@ -82,7 +82,7 @@ public class ConsoleModule extends AbstractInternalModule {
         adapter = consoleAdapter;
     }
 
-    public ConsoleModule(Map<String, List<? extends Object>> parameters) {
+    public ConsoleModule(final Map<String, List<?>> parameters) {
         super(functions, parameters, false);
     }
 
