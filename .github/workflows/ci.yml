@@ -2,13 +2,13 @@ name: CI
 on: [push, pull_request]
 jobs:
   build:
-    name: Build and Test (${{ matrix.os }} / OpenJDK ${{ matrix.jdk }})
+    name: Build and Test (${{ matrix.exist }} / OpenJDK ${{ matrix.jdk }})
     strategy:
       fail-fast: true
       matrix:
+        exist: ['6.1.0', '6.4.0']
         jdk: ['8', '11']
-        os: [ubuntu-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: 'ubuntu-latest'
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK ${{ matrix.jdk }}
@@ -27,4 +27,4 @@ jobs:
       - name: Test
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-        run: mvn verify -P cypress-without-record
+        run: mvn verify -P e2e-tests-with-recording -Dexist.processor.version=${{ matrix.exist }}
