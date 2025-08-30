@@ -1,3 +1,7 @@
+/*
+ * SPDX LGPL-2.1-or-later
+ * Copyright (C) 2017 The eXist-db Authors
+ */
 /// <reference types="cypress" />
 
 describe('indexes', () => {
