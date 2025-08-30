@@ -1,4 +1,17 @@
 (:
+ : SPDX LGPL-2.1-or-later
+ : Copyright (C) 2017 The eXist-db Authors
+ :)
+(:
+ : SPDX LGPL-2.1
+ : Copyright (C) 2017 The eXist-db Authors
+ :)
+(:
+ : eXist-db Open Source Native XML Database
+ : Copyright (C) 2017 The eXist-db Authors
+ : SPDX LGPL-2.1
+ :)
+(:
  : eXist-db Open Source Native XML Database
  : Copyright (C) 2017 The eXist-db Authors
  :
