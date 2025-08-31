@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    SPDX LGPL-2.1-or-later
+    Copyright (C) 2017 The eXist-db Authors
+
+-->
 <additionalHeaders>
     <xquery_style>
         <firstLine>(:</firstLine>
         <beforeEachLine> : </beforeEachLine>
         <endLine> :)</endLine>
-        <afterEachLine>EOL</afterEachLine>
-        <skipLine> </skipLine>
-        <firstLineDetectionPattern>"(\\s|\\t)*/\\*.*$"</firstLineDetectionPattern>
-        <lastLineDetectionPattern>".*\\*/(\\s|\\t)*$"</lastLineDetectionPattern>
+        <firstLineDetectionPattern>\(:.*$</firstLineDetectionPattern>
+        <lastLineDetectionPattern> :\)$</lastLineDetectionPattern>
         <allowBlankLines>false</allowBlankLines>
         <isMultiline>true</isMultiline>
         <padLines>false</padLines>

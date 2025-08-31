@@ -190,8 +190,13 @@
             <headerDefinition>xquery-license-style.xml</headerDefinition>
           </headerDefinitions>
           <mapping>
+            <form>XML_STYLE</form>
+            <g>SLASHSTAR_STYLE</g>
             <java>SLASHSTAR_STYLE</java>
+            <plist>XML_STYLE</plist>
+            <xconf.init>XML_STYLE</xconf.init>
             <xconf>XML_STYLE</xconf>
+            <xml>XML_STYLE</xml>
             <xq>XQUERY_STYLE</xq>
             <xql>XQUERY_STYLE</xql>
             <xqm>XQUERY_STYLE</xqm>
@@ -214,7 +219,6 @@
                 <exclude>README.md</exclude>
                 <exclude>LICENSE</exclude>
                 <exclude>**/LGPL-21-license.template.txt</exclude>
-                <exclude>**/xquery-license-style.xml</exclude>
                 <exclude>xar-assembly.xml</exclude>
                 <exclude>**/vendor/scripts/**</exclude>
                 <exclude>**/indexes-test/data/**</exclude>
