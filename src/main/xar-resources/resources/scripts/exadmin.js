@@ -1,6 +1,6 @@
 /*
  * SPDX LGPL-2.1-or-later
- * Copyright (C) 2017 The eXist-db Authors
+ * Copyright (C) 2014 The eXist-db Authors
  */
 // util.js must be loaded first, otherwise JMX is undefined
 function findByName(nodes, name) {

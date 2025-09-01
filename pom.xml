@@ -2,7 +2,7 @@
 <!--
 
     SPDX LGPL-2.1-or-later
-    Copyright (C) 2017 The eXist-db Authors
+    Copyright (C) 2014 The eXist-db Authors
 
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -19,6 +19,7 @@
     <groupId>org.exist-db.apps</groupId>
     <artifactId>monex</artifactId>
     <version>4.2.1-SNAPSHOT</version>
+    <inceptionYear>2014</inceptionYear>
 
     <name>Monex</name>
     <description>An application for monitoring, profiling and inspecting a running eXist-db instance.</description>
