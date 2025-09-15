@@ -1,25 +1,8 @@
 <?xml version="1.0"?>
 <!--
 
-    eXist-db Open Source Native XML Database
-    Copyright (C) 2017 The eXist-db Authors
-
-    info@exist-db.org
-    https://www.exist-db.org
-
-    This library is free software; you can redistribute it and/or
-    modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
-
-    This library is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-    Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with this library; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+    SPDX LGPL-2.1-or-later
+    Copyright (C) 2014 The eXist-db Authors
 
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -36,6 +19,7 @@
     <groupId>org.exist-db.apps</groupId>
     <artifactId>monex</artifactId>
     <version>4.2.1-SNAPSHOT</version>
+    <inceptionYear>2014</inceptionYear>
 
     <name>Monex</name>
     <description>An application for monitoring, profiling and inspecting a running eXist-db instance.</description>
@@ -207,8 +191,13 @@
             <headerDefinition>xquery-license-style.xml</headerDefinition>
           </headerDefinitions>
           <mapping>
+            <form>XML_STYLE</form>
+            <g>SLASHSTAR_STYLE</g>
             <java>SLASHSTAR_STYLE</java>
+            <plist>XML_STYLE</plist>
+            <xconf.init>XML_STYLE</xconf.init>
             <xconf>XML_STYLE</xconf>
+            <xml>XML_STYLE</xml>
             <xq>XQUERY_STYLE</xq>
             <xql>XQUERY_STYLE</xql>
             <xqm>XQUERY_STYLE</xqm>
@@ -231,7 +220,6 @@
                 <exclude>README.md</exclude>
                 <exclude>LICENSE</exclude>
                 <exclude>**/LGPL-21-license.template.txt</exclude>
-                <exclude>**/xquery-license-style.xml</exclude>
                 <exclude>xar-assembly.xml</exclude>
                 <exclude>**/vendor/scripts/**</exclude>
                 <exclude>**/indexes-test/data/**</exclude>

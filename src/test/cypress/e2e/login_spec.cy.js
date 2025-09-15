@@ -1,3 +1,7 @@
+/*
+ * SPDX LGPL-2.1-or-later
+ * Copyright (C) 2014 The eXist-db Authors
+ */
 describe('Login page', () => {
     beforeEach('log in', () => {
     cy.visit('/')
