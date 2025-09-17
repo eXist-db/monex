@@ -32,8 +32,8 @@
 
     <licenses>
         <license>
-            <name>GNU Lesser General Public License, version 2.1</name>
-            <url>https://opensource.org/licenses/LGPL-2.1</url>
+            <name>GNU Lesser General Public License v2.1 or later</name>
+            <url>https://spdx.org/licenses/LGPL-2.1-or-later.html</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
