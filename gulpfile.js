@@ -52,6 +52,7 @@ const paths = {
     styles: [
       'src/main/xar-resources/resources/vendor/styles/*',
       'node_modules/ionicons/dist/css/ionicons.min.css',
+      'node_modules/ionicons/dist/css/ionicons.min.css.map',
       'node_modules/ion-rangeslider/css/ion.rangeSlider.min.css',
       'node_modules/bootstrap/dist/css/bootstrap.min.*',
       'node_modules/prismjs/themes/prism.css',
@@ -65,7 +66,7 @@ const paths = {
     fonts: [
       'node_modules/bootstrap/dist/fonts/*',
       'node_modules/font-awesome/fonts/*',
-      'node_modules/ionicons/fonts/*'
+      'node_modules/ionicons/dist/fonts/*'
     ]
   }
 }
