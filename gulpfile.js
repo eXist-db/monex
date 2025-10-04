@@ -2,12 +2,8 @@
  * SPDX LGPL-2.1-or-later
  * Copyright (C) 2014 The eXist-db Authors
  */
-/**
- * an example gulpfile to make ant-less existdb package builds a reality
- */
 const { src, dest, series, parallel } = require("gulp");
 const del = require("delete");
-// const gulpEsbuild = require("gulp-esbuild");
 
 const paths = {
   input: 'src/main/xar-resources/resources',
@@ -39,8 +35,8 @@ const paths = {
       'node_modules/knockout/build/output/knockout-latest.js',
       'node_modules/bootstrap-daterangepicker/daterangepicker.js',
       'node_modules/bootstrap-daterangepicker/moment.min.js',
-      'node_modules/datatables.net/js/jquery.dataTables.min.js',      
-      'node_modules/datatables.net-bs/js/dataTables.bootstrap.min.js',      
+      'node_modules/datatables.net/js/jquery.dataTables.min.js',
+      'node_modules/datatables.net-bs/js/dataTables.bootstrap.min.js',
       'node_modules/datatables.net-responsive/js/dataTables.responsive.min.js',
       'node_modules/datatables.net-responsive-bs/js/responsive.bootstrap.min.js',
       'node_modules/admin-lte/dist/js/adminlte.min.js',
@@ -71,9 +67,6 @@ const paths = {
   }
 }
 
-/**
- * Use the `delete` module directly, instead of using gulp-rimraf
- */
 function clean(cb) {
   del(paths.output, cb);
 }
@@ -86,11 +79,10 @@ function styles() {
 exports.styles = styles;
 
 /**
- * minify EcmaSript files and put them into 'build/app/js'
+ * minify EcmaSript files
  */
 function minifyEs() {
   return src(paths.scripts.input)
-    // .pipe(gulpEsbuild())
     .pipe(dest(paths.scripts.output));
 }
 exports.minify = minifyEs;
