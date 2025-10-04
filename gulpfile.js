@@ -46,7 +46,6 @@ const paths = {
       'node_modules/fastclick/lib/fastclick.js'
     ],
     styles: [
-      'src/main/xar-resources/resources/vendor/styles/*',
       'node_modules/ionicons/dist/css/ionicons.min.css',
       'node_modules/ionicons/dist/css/ionicons.min.css.map',
       'node_modules/ion-rangeslider/css/ion.rangeSlider.min.css',
@@ -101,7 +100,7 @@ function copyVendorStyles() {
 
 // copy vendor fonts
 function copyVendorFonts () {
-  return src(paths.vendor.fonts)
+  return src(paths.vendor.fonts, {encoding: false})
     .pipe(dest(paths.fonts.output))
 }
 
