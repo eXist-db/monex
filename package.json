@@ -3,7 +3,7 @@
   "version": "4.2.1-SNAPSHOT",
   "description": "Monitoring Application for eXist-db",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "npm run cypress",
     "cypress": "cypress run"
   },
   "repository": {
@@ -35,6 +35,6 @@
   "devDependencies": {
     "cypress": "^14.5.3",
     "delete": "^1.1.0",
-    "gulp": "^4.0.2"
+    "gulp": "^5.0.1"
   }
 }
