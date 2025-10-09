@@ -1,6 +1,5 @@
 {
   "name": "monex",
-  "version": "4.2.1-SNAPSHOT",
   "description": "Monitoring Application for eXist-db",
   "scripts": {
     "test": "npm run cypress",
