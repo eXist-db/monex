@@ -94,6 +94,12 @@
                 <li>Store last ping status in db; send alerts only if status changed</li>
             </ul>
         </change>
+        <change version="0.4">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Send alerts only to receivers watching the affected instance</li>
+                <li>Store last ping status in db; send alerts only if status changed</li>
+            </ul>
+        </change>
         <change version="0.5">
             <ul xmlns="http://www.w3.org/1999/xhtml">
                 <li>New function console:dump prints all variables in the local variable stack, which are visible at the point the statement appears in the code.</li>
@@ -255,6 +261,31 @@
             <ul xmlns="http://www.w3.org/1999/xhtml">
                 <li>Breaking: Due to internal API changes this version of monex requires eXist-db version 6.1.0 or later - <a href="https://github.com/eXist-db/monex/pull/210">#210</a>, <a href="https://github.com/eXist-db/monex/pull/223">#223</a></li>
                 <li>Fixed: Added missing release notes for 3.0.5 release - <a href="https://github.com/eXist-db/monex/issues/217">#217</a></li>
+            </ul>
+        </change>
+        <change version="4.0.1">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Fixes issues with xs:int to xs:integer conversion</li>
+                <li>Fix issues with incorrect parameter types on function callbacks</li>
+            </ul>
+        </change>
+        <change version="4.2.0">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Feature: Extend Indexes pane to display new range index field data - <a href="https://github.com/eXist-db/monex/issues/243">#243</a></li>
+            </ul>
+        </change>
+        <change version="4.2.2">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Fixed: handling of $data when not defined - <a href="https://github.com/eXist-db/monex/issues/266">#266</a></li>
+            </ul>
+        </change>
+        <change version="4.2.3">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Monex console can handle more than one open tab - <a href="https://github.com/eXist-db/monex/pull/306">#306</a></li>
+                <li>Fix order of column headings on profiling page - <a href="https://github.com/eXist-db/monex/pull/283">#283</a></li>
+                <li>Fix missing fonts and CSS maps - <a href="https://github.com/eXist-db/monex/pull/328">#328</a></li>
+                <li>All source files have SPDX headers - <a href="https://github.com/eXist-db/monex/pull/323">#323</a></li>
+                <li>Improved build - <a href="https://github.com/eXist-db/monex/pull/317">#317</a></li>
             </ul>
         </change>
     </changelog>
