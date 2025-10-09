@@ -18,7 +18,7 @@
 
     <groupId>org.exist-db.apps</groupId>
     <artifactId>monex</artifactId>
-    <version>4.2.1-SNAPSHOT</version>
+    <version>4.2.3</version>
     <inceptionYear>2014</inceptionYear>
 
     <name>Monex</name>
@@ -42,7 +42,7 @@
         <url>https://github.com/eXist-db/monex.git</url>
         <connection>scm:git:https://github.com/eXist-db/monex.git</connection>
         <developerConnection>scm:git:https://github.com/eXist-db/monex.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>v4.2.3</tag>
     </scm>
 
     <issueManagement>
