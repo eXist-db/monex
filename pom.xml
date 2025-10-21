@@ -18,7 +18,7 @@
 
   <groupId>org.exist-db.apps</groupId>
   <artifactId>monex</artifactId>
-  <version>4.2.4</version>
+  <version>4.2.5-SNAPSHOT</version>
   <inceptionYear>2014</inceptionYear>
 
   <name>Monex</name>
