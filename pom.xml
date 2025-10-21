@@ -406,9 +406,6 @@
           <execution>
             <id>attach-sources</id>
             <phase>package</phase>
-            <goals>
-              <goal>jar-no-fork</goal>
-            </goals>
           </execution>
         </executions>
       </plugin>
