@@ -42,7 +42,7 @@
         <url>https://github.com/eXist-db/monex.git</url>
         <connection>scm:git:https://github.com/eXist-db/monex.git</connection>
         <developerConnection>scm:git:https://github.com/eXist-db/monex.git</developerConnection>
-        <tag>v4.2.3</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <issueManagement>
