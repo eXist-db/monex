@@ -7,134 +7,134 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-    <modelVersion>4.0.0</modelVersion>
+  <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>org.exist-db</groupId>
-        <artifactId>exist-apps-parent</artifactId>
-        <version>2.0.0</version>
-        <relativePath />
-    </parent>
+  <parent>
+    <groupId>org.exist-db</groupId>
+    <artifactId>exist-apps-parent</artifactId>
+    <version>2.0.0</version>
+    <relativePath />
+  </parent>
 
-    <groupId>org.exist-db.apps</groupId>
-    <artifactId>monex</artifactId>
-    <version>4.2.4-SNAPSHOT</version>
-    <inceptionYear>2014</inceptionYear>
+  <groupId>org.exist-db.apps</groupId>
+  <artifactId>monex</artifactId>
+  <version>4.2.4-SNAPSHOT</version>
+  <inceptionYear>2014</inceptionYear>
 
-    <name>Monex</name>
-    <description>An application for monitoring, profiling and inspecting a running eXist-db instance.</description>
-    <url>https://www.github.com/eXist-db/monex</url>
+  <name>Monex</name>
+  <description>An application for monitoring, profiling and inspecting a running eXist-db instance.</description>
+  <url>https://www.github.com/eXist-db/monex</url>
 
-    <organization>
-        <name>The eXist-db Open Source project</name>
-        <url>https://www.exist-db.org</url>
-    </organization>
+  <organization>
+    <name>The eXist-db Open Source project</name>
+    <url>https://www.exist-db.org</url>
+  </organization>
 
-    <licenses>
-        <license>
-            <name>GNU Lesser General Public License v2.1 or later</name>
-            <url>https://spdx.org/licenses/LGPL-2.1-or-later.html</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
+  <licenses>
+    <license>
+      <name>GNU Lesser General Public License v2.1 or later</name>
+      <url>https://spdx.org/licenses/LGPL-2.1-or-later.html</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
 
-    <scm>
-        <url>https://github.com/eXist-db/monex.git</url>
-        <connection>scm:git:https://github.com/eXist-db/monex.git</connection>
-        <developerConnection>scm:git:https://github.com/eXist-db/monex.git</developerConnection>
-        <tag>HEAD</tag>
-    </scm>
+  <scm>
+    <url>https://github.com/eXist-db/monex.git</url>
+    <connection>scm:git:https://github.com/eXist-db/monex.git</connection>
+    <developerConnection>scm:git:https://github.com/eXist-db/monex.git</developerConnection>
+    <tag>HEAD</tag>
+  </scm>
 
-    <issueManagement>
-        <system>GitHub</system>
-        <url>https://www.github.com/eXist-db/monex/issues</url>
-    </issueManagement>
+  <issueManagement>
+    <system>GitHub</system>
+    <url>https://www.github.com/eXist-db/monex/issues</url>
+  </issueManagement>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.build.source>1.8</project.build.source>
-        <project.build.target>1.8</project.build.target>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.build.source>1.8</project.build.source>
+    <project.build.target>1.8</project.build.target>
 
-        <exist.java-api.version>5.4.0</exist.java-api.version>            <!-- The eXist-db XQuery Java Module API version -->
-        <exist.processor.version>6.1.0</exist.processor.version>          <!-- The version of eXist-db needed by this EXPath Module -->
+    <exist.java-api.version>5.4.0</exist.java-api.version>            <!-- The eXist-db XQuery Java Module API version -->
+    <exist.processor.version>6.1.0</exist.processor.version>          <!-- The version of eXist-db needed by this EXPath Module -->
 
-        <jackson.version>2.19.1</jackson.version>
-        <websocket.api.version>1.1</websocket.api.version>
-        <templating.version>1.0.2</templating.version>
+    <jackson.version>2.19.1</jackson.version>
+    <websocket.api.version>1.1</websocket.api.version>
+    <templating.version>1.0.2</templating.version>
 
-        <node.version>v22.17.0</node.version>
-        <npm.version>11.4.2</npm.version>
-    
-        <!-- used in the EXPath Package Descriptor -->
-        <package-name>http://exist-db.org/apps/monex</package-name>
+    <node.version>v22.17.0</node.version>
+    <npm.version>11.4.2</npm.version>
 
-        <console.module.namespace>http://exist-db.org/xquery/console</console.module.namespace>
-        <console.module.java.classname>org.exist.console.xquery.ConsoleModule</console.module.java.classname>
+    <!-- used in the EXPath Package Descriptor -->
+    <package-name>http://exist-db.org/apps/monex</package-name>
 
-        <!-- NOTE(AR) Needed just for the license-maven-plugin in this module! -->
-        <project.copyright.name>The eXist-db Authors</project.copyright.name>
-        <contact.email>info@exist-db.org</contact.email>
-    </properties>
+    <console.module.namespace>http://exist-db.org/xquery/console</console.module.namespace>
+    <console.module.java.classname>org.exist.console.xquery.ConsoleModule</console.module.java.classname>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.exist-db</groupId>
-            <artifactId>exist-core</artifactId>
-            <version>${exist.java-api.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>2.0.17</version><!-- maven will use 2.x.x when provided -->
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.google.code.findbugs</groupId>
-            <artifactId>jsr305</artifactId>
-            <version>3.0.2</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>xml-apis</groupId>
-            <artifactId>xml-apis</artifactId>
-            <version>1.4.01</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>${jackson.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>javax.websocket</groupId>
-            <artifactId>javax.websocket-api</artifactId>
-            <version>${websocket.api.version}</version>
-        </dependency>
-    </dependencies>
+    <!-- NOTE(AR) Needed just for the license-maven-plugin in this module! -->
+    <project.copyright.name>The eXist-db Authors</project.copyright.name>
+    <contact.email>info@exist-db.org</contact.email>
+  </properties>
 
-    <reporting>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-changes-plugin</artifactId>
-                <version>2.12.1</version>
-                <configuration>
-                    <onlyCurrentVersion>true</onlyCurrentVersion>
-                    <columnNames>Type, Summary</columnNames>
-                </configuration>
-                <reportSets>
-                    <reportSet>
-                        <reports>
-                            <report>github-report</report>
-                        </reports>
-                    </reportSet>
-                </reportSets>
-            </plugin>
-        </plugins>
-    </reporting>
+  <dependencies>
+    <dependency>
+      <groupId>org.exist-db</groupId>
+      <artifactId>exist-core</artifactId>
+      <version>${exist.java-api.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>2.0.17</version><!-- maven will use 2.x.x when provided -->
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
+      <version>3.0.2</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>xml-apis</groupId>
+      <artifactId>xml-apis</artifactId>
+      <version>1.4.01</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>javax.websocket</groupId>
+      <artifactId>javax.websocket-api</artifactId>
+      <version>${websocket.api.version}</version>
+    </dependency>
+  </dependencies>
 
-      <build>
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-changes-plugin</artifactId>
+        <version>2.12.1</version>
+        <configuration>
+          <onlyCurrentVersion>true</onlyCurrentVersion>
+          <columnNames>Type, Summary</columnNames>
+        </configuration>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>github-report</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+    </plugins>
+  </reporting>
+
+  <build>
     <resources>
       <resource>
         <directory>src/main/xar-resources</directory>
@@ -255,13 +255,13 @@
         <groupId>de.jutzig</groupId>
         <artifactId>github-release-plugin</artifactId>
         <version>1.6.0</version>
-	<dependencies>
+        <dependencies>
           <dependency>
             <groupId>org.codehaus.plexus</groupId>
             <artifactId>plexus-utils</artifactId>
             <version>4.0.2</version>
           </dependency>
-	</dependencies>
+        </dependencies>
         <executions>
           <execution>
             <id>github-upload</id>
@@ -434,16 +434,16 @@
   </build>
 
   <!--
-    Cypress is used for integration tests
-
-    First profile enables to run Cypress without record (cypress.io) support.
-    Second profile enables to run Cypress with record support, e.g. for CI.
+      Cypress is used for integration tests
+      
+      First profile enables to run Cypress without record (cypress.io) support.
+      Second profile enables to run Cypress with record support, e.g. for CI.
   -->
   <profiles>
     <profile>
       <id>e2e-tests</id>
       <activation>
-          <activeByDefault>true</activeByDefault>
+        <activeByDefault>true</activeByDefault>
       </activation>
       <build>
         <plugins>
