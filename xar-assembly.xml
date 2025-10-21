@@ -288,6 +288,12 @@
                 <li>Improved build - <a href="https://github.com/eXist-db/monex/pull/317">#317</a></li>
             </ul>
         </change>
+        <change version="4.2.4">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Track packages version only in POM - <a href="https://github.com/eXist-db/monex/pull/332">#332</a></li>
+                <li>Attach javadoc and sources to bundle - <a href="https://github.com/eXist-db/monex/pull/331">#331</a></li>
+            </ul>
+        </change>
     </changelog>
 
 </package>
