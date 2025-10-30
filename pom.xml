@@ -57,6 +57,7 @@
 
     <exist.java-api.version>5.4.0</exist.java-api.version>            <!-- The eXist-db XQuery Java Module API version -->
     <exist.processor.version>6.1.0</exist.processor.version>          <!-- The version of eXist-db needed by this EXPath Module -->
+    <existdb.docker.tag>6.1.0</existdb.docker.tag>                    <!-- The tag of the eXist-db Docker image used to run integration tests on -->
 
     <jackson.version>2.19.1</jackson.version>
     <websocket.api.version>1.1</websocket.api.version>
@@ -360,7 +361,7 @@
           <images>
             <image>
               <alias>existdb-docs-tests</alias>
-              <name>existdb/existdb:${exist.processor.version}</name>
+              <name>existdb/existdb:${existdb.docker.tag}</name>
               <run>
                 <ports>
                   <port>8080:8080</port>
