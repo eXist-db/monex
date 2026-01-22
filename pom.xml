@@ -62,8 +62,8 @@
     <websocket.api.version>1.1</websocket.api.version>
     <templating.version>1.0.2</templating.version>
 
-    <node.version>v22.17.0</node.version>
-    <npm.version>11.4.2</npm.version>
+    <node.version>v24.11.1</node.version>
+    <npm.version>11.7.0</npm.version>
 
     <!-- used in the EXPath Package Descriptor -->
     <package-name>http://exist-db.org/apps/monex</package-name>
@@ -432,7 +432,7 @@
 
   <!--
       Cypress is used for integration tests
-      
+
       First profile enables to run Cypress without record (cypress.io) support.
       Second profile enables to run Cypress with record support, e.g. for CI.
   -->
@@ -505,4 +505,3 @@
     </pluginRepository>
   </pluginRepositories>
 </project>
-
