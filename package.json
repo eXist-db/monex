@@ -26,7 +26,7 @@
   "dependencies": {
     "admin-lte": "^2.4.18",
     "datatables.net-responsive": "^2.5.1",
-    "datatables.net-responsive-bs": "^2.5.1",
+    "datatables.net-responsive-bs": "^3.0.7",
     "knockout": "^3.5.1",
     "knockout.mapping": "^2.4.3",
     "prismjs": "^1.30.0"
