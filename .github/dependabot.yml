@@ -4,6 +4,13 @@ updates:
   directory: "/"
   schedule:
     interval: "daily"
+- package-ecosystem: npm
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "03:00"
+  open-pull-requests-limit: 10
+  versioning-strategy: increase
 - package-ecosystem: maven
   directory: "/"
   schedule:
