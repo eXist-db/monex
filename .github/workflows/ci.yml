@@ -27,4 +27,4 @@ jobs:
       - name: Test
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-        run: mvn verify -P e2e-tests-with-recording -Dexist.processor.version=${{ matrix.exist }}
+        run: mvn verify -P e2e-tests-with-recording -Dexist.docker.tag=${{ matrix.exist }}
