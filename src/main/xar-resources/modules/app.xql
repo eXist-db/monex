@@ -29,8 +29,8 @@ declare variable $app:get-scheduled-jobs := function-lookup(xs:QName("scheduler:
 
 declare variable $app:jmx-token :=
     try {
-        util:import-module(xs:anyURI("http://exist-db.org/xquery/console"), "console", xs:anyURI("java:org.exist.console.xquery.ConsoleModule")),
-        function-lookup(xs:QName("console:jmx-token"), 0)()
+        util:import-module(xs:anyURI("http://exist-db.org/xquery/monex"), "monex", xs:anyURI("modules/monex.xqm")),
+        function-lookup(xs:QName("monex:jmx-token"), 0)()
     } catch * {
         false()
     };

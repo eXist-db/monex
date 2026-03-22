@@ -8,7 +8,7 @@
 <div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
     <!-- Content Header (Page header) -->
     <section class="content-header">
-        <h1> Console <small>Remote Development Console</small>
+        <h1> Console <small>Query Execution &amp; Remote Console</small>
         </h1>
         <ol class="breadcrumb">
             <li>
@@ -21,25 +21,106 @@
     </section>
     <!-- Main content -->
     <section class="content">
-        <div class="box">
+        <!-- Query Editor -->
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <h3 class="box-title">Query</h3>
+                <div class="box-tools pull-right">
+                    <button id="run-query" class="btn btn-sm btn-success" title="Execute (Ctrl+Enter)">
+                        <i class="fa fa-play"/> Run</button>
+                    <button id="close-cursor" class="btn btn-sm btn-default" title="Close cursor" style="display:none;">
+                        <i class="fa fa-stop"/> Close</button>
+                </div>
+            </div>
             <div class="box-body">
-                <div class="form-group col-md-1">
-                    <label id="status" class="label label-info control-label"/>
-                </div>
-                <div class="form-group col-md-1 pull-right">
-                    <button id="clear" class="btn btn-default">
-                        <i class="fa fa-eraser"/> Clear</button>
-                </div>
-                <div class="form-group col-md-4 pull-right">
-                    <div class="input-group">
-                        <span class="input-group-addon">Channel: </span>
-                        <input type="text" class="form-control" name="channel" value="default"/>
-                        <span class="input-group-btn">
-                            <button id="set-channel" class="btn btn-primary" type="submit">
-                                <i class="fa fa-refresh"/> Set</button>
-                        </span>
+                <textarea id="query-input" class="form-control" rows="6" placeholder="Enter XQuery..." style="font-family: monospace; font-size: 13px;">for $i in 1 to 10 return $i</textarea>
+            </div>
+        </div>
+
+        <!-- Results Panel -->
+        <div class="box box-success" id="results-box" style="display:none;">
+            <div class="box-header with-border">
+                <h3 class="box-title" id="results-title">Results</h3>
+                <div class="box-tools pull-right">
+                    <span id="result-meta" class="label label-info" style="margin-right: 10px;"/>
+                    <span id="result-elapsed" class="label label-default" style="margin-right: 10px;"/>
+                    <div class="btn-group btn-group-sm">
+                        <button id="page-first" class="btn btn-default" title="First page">
+                            <i class="fa fa-fast-backward"/></button>
+                        <button id="page-prev" class="btn btn-default" title="Previous page">
+                            <i class="fa fa-step-backward"/></button>
+                        <span id="page-indicator" class="btn btn-default disabled" style="min-width:80px;"/>
+                        <button id="page-next" class="btn btn-default" title="Next page">
+                            <i class="fa fa-step-forward"/></button>
+                        <button id="page-last" class="btn btn-default" title="Last page">
+                            <i class="fa fa-fast-forward"/></button>
                     </div>
                 </div>
+            </div>
+            <div class="box-body">
+                <pre id="results-output" style="max-height: 400px; overflow-y: auto; white-space: pre-wrap; font-size: 13px;"></pre>
+            </div>
+        </div>
+
+        <!-- Error Panel -->
+        <div class="box box-danger" id="error-box" style="display:none;">
+            <div class="box-header with-border">
+                <h3 class="box-title">Error</h3>
+            </div>
+            <div class="box-body">
+                <pre id="error-output" class="text-danger" style="white-space: pre-wrap;"></pre>
+            </div>
+        </div>
+
+        <!-- Query History -->
+        <div class="box box-info" id="history-box" style="display:none;">
+            <div class="box-header with-border">
+                <h3 class="box-title">Query History</h3>
+                <div class="box-tools pull-right">
+                    <button id="clear-history" class="btn btn-box-tool" title="Clear history">
+                        <i class="fa fa-eraser"/>
+                    </button>
+                    <button class="btn btn-box-tool" data-widget="collapse">
+                        <i class="fa fa-minus"/>
+                    </button>
+                </div>
+            </div>
+            <div class="box-body no-padding" style="max-height: 250px; overflow-y: auto;">
+                <table class="table table-condensed table-hover" id="history-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 80px;">Time</th>
+                            <th>Query</th>
+                            <th style="width: 70px;">Items</th>
+                            <th style="width: 80px;">Elapsed</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-rows"/>
+                </table>
+            </div>
+        </div>
+
+        <!-- WebSocket Console Log -->
+        <div class="box">
+            <div class="box-header with-border">
+                <h3 class="box-title">Console Log</h3>
+                <div class="box-tools pull-right">
+                    <label id="status" class="label label-info" style="margin-right: 10px;"/>
+                    <div class="form-inline" style="display: inline-block;">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">Channel:</span>
+                            <input type="text" class="form-control" name="channel" value="default" style="width: 120px;"/>
+                            <span class="input-group-btn">
+                                <button id="set-channel" class="btn btn-primary" type="submit">
+                                    <i class="fa fa-refresh"/> Set</button>
+                            </span>
+                        </div>
+                    </div>
+                    <button id="clear" class="btn btn-sm btn-default" style="margin-left: 5px;">
+                        <i class="fa fa-eraser"/> Clear</button>
+                </div>
+            </div>
+            <div class="box-body no-padding">
                 <table class="table table-striped">
                     <thead>
                         <tr>
@@ -58,6 +139,7 @@
                 </table>
             </div>
         </div>
+
         <div class="box box-info note">
             <div class="box-header">
                 <h3 class="box-title">Note</h3>

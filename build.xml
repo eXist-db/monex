@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project default="xar" name="monex">
+    <target name="dependencies">
+        <exec executable="npm"><arg value="install"/></exec>
+    </target>
+    <target name="xar" depends="dependencies">
+        <exec executable="npm"><arg value="run"/><arg value="build"/></exec>
+    </target>
+</project>
