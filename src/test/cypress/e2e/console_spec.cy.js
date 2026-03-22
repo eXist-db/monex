@@ -97,3 +97,171 @@ describe('remote console channels', () => {
     })
   })
 })
+
+describe('query execution', () => {
+  it('should show query editor with run button', () => {
+    cy.get('#query-input').should('be.visible')
+    cy.get('#run-query').should('be.visible').contains('Run')
+  })
+
+  it('should execute a simple query and show results', () => {
+    cy.get('#query-input').clear().type('1 + 1')
+    cy.get('#run-query').click()
+
+    cy.get('#results-box').should('be.visible')
+    cy.get('#results-output').should('contain', '2')
+    cy.get('#result-meta').should('contain', 'item')
+    cy.get('#result-elapsed').should('not.be.empty')
+    cy.get('#error-box').should('not.be.visible')
+  })
+
+  it('should execute the default placeholder query and show 10 items', () => {
+    // The textarea is pre-filled with "for $i in 1 to 10 return $i"
+    cy.get('#query-input').should('have.value', 'for $i in 1 to 10 return $i')
+    cy.get('#run-query').click()
+
+    cy.get('#results-box').should('be.visible')
+    cy.get('#result-meta').should('contain', '10 items')
+    cy.get('#results-title').should('contain', '1-10 of 10 items')
+    cy.get('#results-output').should('contain', '1')
+    cy.get('#results-output').should('contain', '10')
+    cy.get('#error-box').should('not.be.visible')
+  })
+
+  it('should execute a sequence and show item count', () => {
+    cy.get('#query-input').clear().type('for $i in 1 to 10 return $i')
+    cy.get('#run-query').click()
+
+    cy.get('#results-box').should('be.visible')
+    cy.get('#result-meta').should('contain', '10 items')
+  })
+
+  it('should display error for invalid query', () => {
+    cy.get('#query-input').clear().type('this is not valid xquery !!!')
+    cy.get('#run-query').click()
+
+    cy.get('#error-box').should('be.visible')
+    cy.get('#error-output').should('not.be.empty')
+    cy.get('#results-box').should('not.be.visible')
+  })
+
+  it('should show empty result message for zero-hit query', () => {
+    cy.get('#query-input').clear().type('()')
+    cy.get('#run-query').click()
+
+    cy.get('#results-box').should('be.visible')
+    cy.get('#results-output').should('contain', '(empty result)')
+  })
+
+  it('should close cursor and hide results', () => {
+    cy.get('#query-input').clear().type('1 to 5')
+    cy.get('#run-query').click()
+
+    cy.get('#results-box').should('be.visible')
+    cy.get('#close-cursor').should('be.visible').click()
+    cy.get('#results-box').should('not.be.visible')
+    cy.get('#close-cursor').should('not.be.visible')
+  })
+})
+
+describe('query pagination', () => {
+  it('should paginate results exceeding page size', () => {
+    // Default page size is 20, so 50 items = 3 pages
+    cy.get('#query-input').clear().type('for $i in 1 to 50 return $i')
+    cy.get('#run-query').click()
+
+    cy.get('#results-box').should('be.visible')
+    cy.get('#result-meta').should('contain', '50 items')
+    cy.get('#page-indicator').should('contain', '1 / 3')
+
+    // Navigate forward
+    cy.get('#page-next').click()
+    cy.get('#page-indicator').should('contain', '2 / 3')
+
+    // Navigate to last
+    cy.get('#page-last').click()
+    cy.get('#page-indicator').should('contain', '3 / 3')
+    cy.get('#page-next').should('be.disabled')
+
+    // Navigate back to first
+    cy.get('#page-first').click()
+    cy.get('#page-indicator').should('contain', '1 / 3')
+    cy.get('#page-prev').should('be.disabled')
+  })
+
+  it('should disable prev/first on first page', () => {
+    cy.get('#query-input').clear().type('1 to 25')
+    cy.get('#run-query').click()
+
+    cy.get('#results-box').should('be.visible')
+    cy.get('#page-first').should('be.disabled')
+    cy.get('#page-prev').should('be.disabled')
+    cy.get('#page-next').should('not.be.disabled')
+  })
+})
+
+describe('query history', () => {
+  beforeEach(() => {
+    // Clear any prior history
+    cy.window().then((win) => {
+      delete win.localStorage['monex.queryHistory']
+    })
+    cy.visit('console.html')
+  })
+
+  it('should record executed queries in history', () => {
+    cy.get('#query-input').clear().type('1 + 1')
+    cy.get('#run-query').click()
+    cy.get('#results-box').should('be.visible')
+
+    cy.get('#history-box').should('be.visible')
+    cy.get('#history-rows .history-row').should('have.length', 1)
+    cy.get('#history-rows .history-row').first().should('contain', '1 + 1')
+  })
+
+  it('should load query text when clicking a history entry', () => {
+    cy.get('#query-input').clear().type('"hello"')
+    cy.get('#run-query').click()
+    cy.get('#results-box').should('be.visible')
+
+    // Change the input, then click history to restore
+    cy.get('#query-input').clear().type('something else')
+    cy.get('#history-rows .history-row').first().click()
+    cy.get('#query-input').should('have.value', '"hello"')
+  })
+
+  it('should clear history', () => {
+    cy.get('#query-input').clear().type('1')
+    cy.get('#run-query').click()
+    cy.get('#results-box').should('be.visible')
+    cy.get('#history-box').should('be.visible')
+
+    cy.get('#clear-history').click()
+    cy.get('#history-box').should('not.be.visible')
+  })
+
+  it('should show item count and elapsed time in history', () => {
+    cy.get('#query-input').clear().type('1 to 5')
+    cy.get('#run-query').click()
+    cy.get('#results-box').should('be.visible')
+
+    cy.get('#history-rows .history-row').first().within(() => {
+      cy.get('td').eq(2).should('contain', '5')
+      // Elapsed column should have some value (e.g. "2ms", "0ms")
+      cy.get('td').eq(3).should('not.be.empty')
+    })
+  })
+})
+
+describe('results title range', () => {
+  it('should show range in results title', () => {
+    cy.get('#query-input').clear().type('for $i in 1 to 50 return $i')
+    cy.get('#run-query').click()
+    cy.get('#results-box').should('be.visible')
+
+    cy.get('#results-title').should('contain', '1-20 of 50 items')
+
+    cy.get('#page-next').click()
+    cy.get('#results-title').should('contain', '21-40 of 50 items')
+  })
+})
