@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    SPDX LGPL-2.1-or-later
+    Copyright (C) 2014 The eXist-db Authors
+
+-->
+<div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <h1> Live Monitor <small>Real-time query dashboard</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li>
+                <a href="#">
+                    <i class="fa fa-dashboard"/> Home</a>
+            </li>
+            <li class="active">
+                <i class="fa fa-heartbeat"/> Live Monitor</li>
+        </ol>
+    </section>
+    <!-- Main content -->
+    <section class="content">
+        <!-- Connection status -->
+        <div class="box box-success">
+            <div class="box-header with-border">
+                <h3 class="box-title">Active Queries</h3>
+                <div class="box-tools pull-right">
+                    <label id="monitor-status" class="label label-default">Connecting...</label>
+                </div>
+            </div>
+            <div class="box-body no-padding">
+                <table class="table table-striped" id="active-queries">
+                    <thead>
+                        <tr>
+                            <th class="hidden-xs">User</th>
+                            <th>Source</th>
+                            <th>Phase</th>
+                            <th class="hidden-xs">Items</th>
+                            <th>Elapsed</th>
+                            <th/>
+                        </tr>
+                    </thead>
+                    <tbody id="query-rows">
+                        <tr id="no-queries">
+                            <td colspan="6" class="text-muted text-center">No active queries</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Recent events log -->
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title">Recent Events</h3>
+                <div class="box-tools pull-right">
+                    <button id="clear-events" class="btn btn-box-tool" title="Clear">
+                        <i class="fa fa-eraser"/>
+                    </button>
+                </div>
+            </div>
+            <div class="box-body no-padding" style="max-height: 300px; overflow-y: auto;">
+                <table class="table table-condensed" id="event-log">
+                    <thead>
+                        <tr>
+                            <th style="width: 80px;">Time</th>
+                            <th style="width: 80px;">Event</th>
+                            <th class="hidden-xs">User</th>
+                            <th>Source</th>
+                            <th class="hidden-xs">Elapsed</th>
+                        </tr>
+                    </thead>
+                    <tbody id="event-rows">
+                        <tr id="no-events">
+                            <td colspan="5" class="text-muted text-center">No events yet</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <script type="text/javascript" src="resources/scripts/modernizr.custom.js"></script>
+    <script type="text/javascript" src="resources/scripts/knockout-latest.js"></script>
+    <script type="text/javascript" src="resources/scripts/knockout.mapping.js"></script>
+
+    <script type="text/javascript" src="resources/scripts/util.js"></script>
+    <script type="text/javascript" src="resources/scripts/exadmin.js"></script>
+    <script type="text/javascript" src="resources/scripts/monitor.js"></script>
+</div>
