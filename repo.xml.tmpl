@@ -1,92 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<package xmlns="http://expath.org/ns/pkg" name="${package-name}" abbrev="${package-abbrev}" version="${project.version}"
-    spec="1.0">
-    <title>${package-title}</title>
-    <description>${project.description}</description>
-    <author id="exist-db">${project.organization.name}</author>
-    <website>${project.url}</website>
-    <license>GNU Lesser General Public License, version 2.1</license>
+<meta xmlns="http://exist-db.org/xquery/repo">
+    <description>@description@</description>
+    <author>@author@</author>
+    <website>@website@</website>
+    <status>@status@</status>
+    <license>@license@</license>
     <copyright>true</copyright>
-
-    <!-- should be either "application" or "library" -->
     <type>application</type>
-    <!-- type>library</type -->
-
-    <status>stable</status>
-
-    <tag>${project.artifactId}</tag>
-    <tag>application</tag>
-    <category id="apps">Applications</category>
-
-    <dependency processor="http://exist-db.org" semver-min="${exist.processor.version}" semver-max="6"/>
-    <dependency package="http://exist-db.org/html-templating" semver-min="${templating.version}"/>
-
-    <!-- Collection inside /db/apps where xar-resources will be copied to -->
-    <target>${package-abbrev}</target>
-
+    <target>@target@</target>
     <prepare>pre-install.xql</prepare>
     <finish>post-install.xql</finish>
     <permissions password="monex" user="monex" group="monex" mode="rw-rw-r--"/>
-
-    <!-- includes everything in src/main/xar-resources, README.md, and LICENSE -->
-    <fileSets>
-        <fileSet>
-            <directory>${basedir}</directory>
-            <includes>
-                <include>README.md</include>
-                <include>LICENSE</include>
-            </includes>
-        </fileSet>
-        <fileSet>
-            <directory>${basedir}/src/main/xar-resources</directory>
-            <excludes>
-              <!--
-                These are not needed from this fileSet,
-                instead they are taken from the fileSet
-                of the Gulp transform output in ${project.build.directory}/generated-resources/frontend/xar-resources
-                see the fileSet below.
-              -->
-              <exclude>**.js</exclude>
-              <exclude>**.css</exclude>
-            </excludes>
-          </fileSet>
-          <fileSet>
-            <directory>${project.build.directory}/generated-resources/frontend/xar-resources</directory>
-          </fileSet>
-    </fileSets>
-
-    <!-- include the XQuery Library Module written in Java (JAR output) from this project -->
-    <dependencySets>
-        <dependencySet>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>${project.artifactId}</artifactId>
-            <version>${project.version}</version>
-        </dependencySet>
-        <dependencySet>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>${jackson.version}</version>
-        </dependencySet>
-        <dependencySet>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
-            <version>${jackson.version}</version>
-        </dependencySet>
-        <dependencySet>
-            <groupId>javax.websocket</groupId>
-            <artifactId>javax.websocket-api</artifactId>
-            <version>${websocket.api.version}</version>
-        </dependencySet>
-    </dependencySets>
-
-    <!-- register the Java module to eXist-db -->
-    <components>
-        <resource>
-            <public-uri>${console.module.namespace}</public-uri>
-            <file>urn:java:class:${console.module.java.classname}</file>
-        </resource>
-    </components>
-
     <changelog>
         <change version="0.4">
             <ul xmlns="http://www.w3.org/1999/xhtml">
@@ -295,5 +219,4 @@
             </ul>
         </change>
     </changelog>
-
-</package>
+</meta>

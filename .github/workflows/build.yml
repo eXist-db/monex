@@ -1,0 +1,65 @@
+name: Build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: Build XAR
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 'lts/*'
+      - run: npm ci --ignore-scripts
+      - run: npm run build
+      - name: Upload XAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: monex-xar
+          path: dist/*.xar
+
+  test:
+    name: Test (eXist ${{ matrix.exist-version }})
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        exist-version: [latest, release]
+    services:
+      exist:
+        image: existdb/existdb:${{ matrix.exist-version }}
+        ports:
+          - 8080:8080
+          - 8443:8443
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 'lts/*'
+      - run: npm ci --ignore-scripts
+      - run: npm run build
+      - name: Install XAR
+        run: npx --yes @existdb/xst package install dist/monex-*.xar
+        env:
+          EXISTDB_USER: admin
+          EXISTDB_PASS:
+      - name: Run Cypress tests
+        run: npx cypress run
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 'lts/*'
+      - run: npm ci --ignore-scripts
+      - run: npx semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

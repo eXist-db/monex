@@ -12,7 +12,7 @@ var RemoteConsole = (function() {
         connect: function() {
             var rootcontext = location.pathname.slice(0, location.pathname.indexOf("/apps"));
             var proto = window.location.protocol == "https:" ? "wss" : "ws";
-            var url = proto + "://" + location.host + rootcontext + "/rconsole";
+            var url = proto + "://" + location.host + rootcontext + "/ws";
             connection = new WebSocket(url);
 
             // Log errors

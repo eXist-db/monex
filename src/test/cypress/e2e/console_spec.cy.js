@@ -40,8 +40,8 @@ describe('remote console', () => {
 describe('remote console channels', () => {
   it('should deliver the correct messages to each WebSocket channel', () => {
     // Open two WebSocket connections (channels c1 and c2)
-    const ws1 = new WebSocket('ws://localhost:8080/exist/rconsole')
-    const ws2 = new WebSocket('ws://localhost:8080/exist/rconsole')
+    const ws1 = new WebSocket('ws://localhost:8080/exist/ws')
+    const ws2 = new WebSocket('ws://localhost:8080/exist/ws')
 
     // Wait for both sockets to connect
     cy.wrap(
