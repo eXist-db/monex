@@ -25,7 +25,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        exist-version: [latest, release]
+        # Only test against `latest` (eXist 7.0+ develop). monex now requires
+        # the WebSocket module from eXist-db/exist#6145, which isn't in any
+        # 6.x release.
+        exist-version: [latest]
     services:
       exist:
         image: existdb/existdb:${{ matrix.exist-version }}
@@ -38,6 +41,10 @@ jobs:
         with:
           node-version: 'lts/*'
       - run: npm ci --ignore-scripts
+      # npm ci --ignore-scripts skips Cypress's postinstall binary fetch,
+      # so download it explicitly. The binary is cached at ~/.cache/Cypress.
+      - name: Install Cypress binary
+        run: npx cypress install
       - run: npm run build
       - name: Install XAR
         run: npx --yes @existdb/xst package install dist/monex-*.xar
