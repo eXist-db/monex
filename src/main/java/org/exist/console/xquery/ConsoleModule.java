@@ -66,7 +66,7 @@ public class ConsoleModule extends AbstractInternalModule {
     }
 
     public ConsoleModule(Map<String, List<? extends Object>> parameters) {
-        super(functions, parameters, false);
+        super(functions, parameters);
     }
 
     @Override
