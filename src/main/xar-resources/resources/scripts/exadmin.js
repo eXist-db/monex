@@ -232,7 +232,7 @@ JMX.connection = (function() {
 
         var rootcontext = location.pathname.replace(/^(.*?)\/(apps\/)?monex\/.*$/, "$1");
         var proto = window.location.protocol == "https:" ? "wss" : "ws";
-        var url = proto + "://" + location.host + rootcontext + "/rconsole";
+        var url = proto + "://" + location.host + rootcontext + "/ws";
         var connection = new WebSocket(url);
 
         // Log errors

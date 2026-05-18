@@ -4,6 +4,15 @@
  */
 /// <reference types='cypress' />
 
+// Derive the eXist server URL from the Cypress baseUrl so the tests run
+// against whatever port the spec is configured for. cy.request needs
+// auth for /exist/rest/db calls (eXist 7.0+ rejects guest access to the
+// console module via REST), so we send Basic admin: credentials inline.
+const baseUrl = new URL(Cypress.config('baseUrl'))
+const existRoot = `${baseUrl.protocol}//${baseUrl.host}/exist`
+const wsRoot = `${baseUrl.protocol === 'https:' ? 'wss' : 'ws'}://${baseUrl.host}/exist`
+const adminAuth = { username: 'admin', password: '' }
+
 beforeEach('log in', () => {
   cy.loginApi()
   cy.visit('console.html')
@@ -26,7 +35,8 @@ describe('remote console', () => {
       .contains('Connected')
     cy.request({
       method: 'GET',
-      url: 'http://localhost:8080/exist/rest/db',
+      url: `${existRoot}/rest/db`,
+      auth: adminAuth,
       qs: {
         _query: 'import module namespace console="http://exist-db.org/xquery/console"; console:log("TEST")'
       }
@@ -40,8 +50,8 @@ describe('remote console', () => {
 describe('remote console channels', () => {
   it('should deliver the correct messages to each WebSocket channel', () => {
     // Open two WebSocket connections (channels c1 and c2)
-    const ws1 = new WebSocket('ws://localhost:8080/exist/rconsole')
-    const ws2 = new WebSocket('ws://localhost:8080/exist/rconsole')
+    const ws1 = new WebSocket(`${wsRoot}/ws`)
+    const ws2 = new WebSocket(`${wsRoot}/ws`)
 
     // Wait for both sockets to connect
     cy.wrap(
@@ -77,14 +87,16 @@ describe('remote console channels', () => {
     // Trigger the server to send messages
     cy.request({
       method: 'GET',
-      url: 'http://localhost:8080/exist/rest/db',
+      url: `${existRoot}/rest/db`,
+      auth: adminAuth,
       qs: {
         _query: 'import module namespace console="http://exist-db.org/xquery/console"; console:log("c1", "111")'
       }
     })
     cy.request({
       method: 'GET',
-      url: 'http://localhost:8080/exist/rest/db',
+      url: `${existRoot}/rest/db`,
+      auth: adminAuth,
       qs: {
         _query: 'import module namespace console="http://exist-db.org/xquery/console"; console:log("c2", "222")'
       }
