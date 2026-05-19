@@ -18,13 +18,6 @@ import module namespace scheduler="http://exist-db.org/xquery/scheduler" at "jav
 import module namespace templates="http://exist-db.org/xquery/html-templating";
 import module namespace config="http://exist-db.org/apps/admin/config" at "config.xqm";
 
-declare variable $app:OPTIMIZATIONS :=
-    <optimizations>
-        <opt n="0">No index</opt>
-        <opt n="1">Basic</opt>
-        <opt n="2">Full</opt>
-    </optimizations>;
-
 declare variable $app:get-scheduled-jobs := function-lookup(xs:QName("scheduler:get-scheduled-jobs"), 0);
 
 declare variable $app:jmx-token :=
@@ -358,20 +351,21 @@ function app:index-stats($node as node(), $model as map(*), $sort as xs:string) 
             return
                 $index
         for $index in subsequence($indexes, 1, 20)
-        let $optimization := $app:OPTIMIZATIONS/opt[@n = $index/@optimization]/string()
         return
             <tr>
                 <td>{app:truncate-source($index/@source)}</td>
                 <td class="trace-calls">{$index/@type/string()}</td>
                 <td class="trace-calls">
                 {
-                    switch ($optimization)
-                        case "No index" return
-                            <span class="label label-danger">{$optimization}</span>
-                        case "Full" return
-                            <span class="label label-success">{$optimization}</span>
+                    switch ($index/@optimization-level)
+                        case "NONE" return
+                            <span class="label label-danger">None</span>
+                        case "BASIC" return
+                            <span class="label label-warning">Basic</span>
+                        case "OPTIMIZED" return
+                            <span class="label label-success">Optimized</span>
                         default return
-                            <span class="label label-info">{$optimization}</span>
+                            <span class="label label-info">{$index/@optimization-level}</span>
                 }
                 </td>
                 <td class="trace-calls">{$index/@calls/string()}</td>
