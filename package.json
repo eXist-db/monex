@@ -50,7 +50,7 @@
   },
   "devDependencies": {
     "@commitlint/cli": "^20.4.2",
-    "@commitlint/config-conventional": "^20.4.2",
+    "@commitlint/config-conventional": "^21.0.1",
     "@existdb/gulp-exist": "^5.0.0",
     "@existdb/gulp-replace-tmpl": "^1.0.4",
     "@semantic-release/exec": "^7.1.0",
