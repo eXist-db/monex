@@ -604,23 +604,24 @@ declare function app:time-navigation-forward($node as node(), $model as map(*), 
         }
 };
 
-declare function app:time-to-milliseconds($dateTime as xs:dateTime) {
+declare function app:time-to-milliseconds($dateTime as xs:dateTime) as xs:integer {
     let $diff := $dateTime - xs:dateTime("1970-01-01T00:00:00Z")
-    return
+    return xs:integer(
         (days-from-duration($diff) * 60 * 60 * 24 +
         hours-from-duration($diff) * 60 * 60 +
         minutes-from-duration($diff) * 60 +
         seconds-from-duration($diff)) * 1000
+    )
 };
 
-declare function app:milliseconds-to-time($timestamp as xs:long) as xs:dateTime {
-    let $days := xs:int($timestamp div 1000 div 24 div 60 div 60)
+declare function app:milliseconds-to-time($timestamp as xs:integer) as xs:dateTime {
+    let $days := xs:integer($timestamp div 1000 div 24 div 60 div 60)
     let $remainder := $timestamp - ($days * 24 * 60 * 60 * 1000)
-    let $hours := xs:int($remainder div 1000 div 60 div 60)
+    let $hours := xs:integer($remainder div 1000 div 60 div 60)
     let $remainder := $remainder - ($hours * 60 * 60 * 1000)
-    let $minutes := xs:int($remainder div 1000 div 60)
+    let $minutes := xs:integer($remainder div 1000 div 60)
     let $remainder := $remainder - ($minutes * 60 * 1000)
-    let $seconds := xs:int($remainder div 1000)
+    let $seconds := xs:integer($remainder div 1000)
     let $millis := format-number($remainder - ($seconds * 1000), "000")
     return
         xs:dateTime("1970-01-01T00:00:00Z") + 
