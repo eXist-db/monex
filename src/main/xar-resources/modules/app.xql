@@ -416,15 +416,17 @@ declare %private function app:sort($function as element(), $sort as xs:string) {
         xs:double($function/@elapsed)
 };
 
-declare %private function app:truncate-source($source as xs:string) {
-    if (string-length($source) gt 60) then
-        let $analyze := analyze-string($source, "^(.*/)([^/]+)$")
+declare %private function app:truncate-source($source as xs:string) as element(span) {
+    if (string-length($source) gt 60) then (
+        let $analyze := analyze-string($source, "^(.*[/\\])([^/\\]+)$")
         let $path := $analyze//fn:group[1]
         let $filename := $analyze//fn:group[2]
+        let $display := substring($path, 1, 60 - string-length($filename)) || '[...]' || $filename
         return
-            <span title="{$source}">{substring($path, 1, 60 - string-length($filename)) || '[...]' || $filename}</span>
-    else
-        $source
+            <span title="{$source}">{$display}</span>
+    ) else (
+        <span>{$source}</span>
+    )
 };
 
 
