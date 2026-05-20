@@ -79,97 +79,49 @@ In the Monex Remote Monitoring tab click "Run" to start all remote monitoring jo
 
 ## Building
 
-If you wish to build Monex from source code you should follow these steps:
+Monex is built with Node.js + Gulp (Maven was removed in [#367](https://github.com/eXist-db/monex/pull/367); the Java pieces it used to ship now live in eXist-db core ≥ 7.x).
 
-1. Ensure you have Git, Apache Maven 3.3+, and Java JDK 8 installed and available:
-
-```bash
-$ git --version
-git version 2.20.0
-
-$ mvn --version
-
-Apache Maven 3.5.4 (1edded0938998edf8bf061f1ceb3cfdeccf443fe; 2018-06-18T02:33:14+08:00)
-Maven home: /usr/local/maven
-Java version: 1.8.0_192, vendor: Azul Systems, Inc., runtime: /Library/Java/JavaVirtualMachines/zulu8.33.0.1-jdk8.0.192-macosx_x64/jre
-Default locale: en_GB, platform encoding: UTF-8
-OS name: "mac os x", version: "10.14.1", arch: "x86_64", family: "mac"
-```
-
-1. Clone and build an EXPath package by running:
+Requirements: Git and Node.js LTS. The Node version is pinned in `.nvmrc`; run `nvm use` if you use [nvm](https://github.com/nvm-sh/nvm).
 
 ```bash
 git clone https://github.com/eXist-db/monex.git
 cd monex
-mvn package
+npm ci
+npm run build
 ```
 
-The resulting XAR will be in the `target/` folder.
+The resulting XAR is written to `dist/monex-<version>.xar`. On a fresh clone, `<version>` will be `0.0.0-development` (see [Release procedure](#release-procedure) for why).
+
+For local development against a running eXist-db, see also `npm run develop` (live-reload) and `npm run deploy` (install the built XAR into the configured eXist-db instance — set credentials in `.env`, see `.env.example`).
 
 ## Release Procedure
 
-This project is configured to use the [Maven Release Plugin](https://maven.apache.org/maven-release/maven-release-plugin/) to make creating and subsequently publishing a release easy.
+Releases are fully automated: every push to `master` triggers [semantic-release](https://semantic-release.gitbook.io/), which computes the next version from [Conventional Commits](https://www.conventionalcommits.org/) since the last tag, builds the XAR, and publishes a GitHub Release with the XAR attached.
 
-The release plugin will take care of:
+The pipeline takes care of:
 
-1. Testing the project (all tests must pass)
-2. Verifying all rules, e.g. license declarations present, etc.
-3. Creating a Git Tag and pushing the Tag to GitHub
-4. Building and signing the artifacts (e.g. EXPath Pkg `.xar` file).
+1. Analyzing the commit history since the previous Git tag to determine the next SemVer-bumped version.
+2. Writing that version into `package.json` (in-memory on the CI runner) so Gulp builds `dist/monex-<version>.xar` with the right filename.
+3. Inserting a new `<change version="X.Y.Z">` entry into `repo.xml.tmpl` based on the same commit history (via `scripts/update-repo-changelog.js`).
+4. Building the XAR (`npm run build`).
+5. Creating a Git tag (`vX.Y.Z`), creating a corresponding [GitHub Release](https://github.com/eXist-db/monex/releases), and uploading the XAR as a release asset.
 
-Before performing the release, in addition to the Build requirements you need an installed and functioning copy of GPG or [GnuPG](https://gnupg.org/) with your private key setup correctly for signing.
+### What contributors need to do
 
-Only users with push access to the GitHub repo can act as release manager.
+- **Write [Conventional Commits](https://www.conventionalcommits.org/).** A `commitlint` + `husky` `commit-msg` hook enforces this locally (`@commitlint/config-conventional`). The commit type determines the version bump:
+  - `feat:` → minor bump
+  - `fix:`, `perf:` → patch bump
+  - any commit with a `BREAKING CHANGE:` footer or a `!` after the type (e.g. `feat!:`) → major bump
+  - `chore:`, `docs:`, `ci:`, `build:`, `style:`, `refactor:`, `test:` → no release (cosmetic / housekeeping)
+- That's it. No version bump, no tag creation, no manual release commit.
 
-### Preparation
+### Why `package.json` always says `0.0.0-development` on `master`
 
-Before creating the release, check if:
+Intentional, and matches the convention used by [`@existdb/xst`](https://github.com/eXist-db/xst), [`@existdb/node-exist`](https://github.com/eXist-db/node-exist), and [`@existdb/gulp-exist`](https://github.com/eXist-db/gulp-exist). The real version is set in-memory on the CI runner during the release pipeline; nothing is pushed back to `master`, which keeps branch protection meaningful and avoids the need for a PAT or GitHub App to bypass it. See [#386](https://github.com/eXist-db/monex/issues/386) and [#396](https://github.com/eXist-db/monex/pull/396) for the history.
 
-- [ ] the changelog is up-to-date for the planned release?
-- [ ] the target versions for eXistdb are correctly declared in `pom.xml`?
-  
-   ```xml
-   <exist.java-api.version>5.4.0</exist.java-api.version>
-   <exist.processor.version>7.0.0-SNAPSHOT</exist.processor.version> 
-   ```
+### What release managers need to do
 
+Nothing routine — pushes to `master` are released automatically.
 
-#### Changelog
-
-To edit release notes for the planned release within `xar-assembly.xml` located in the root of this repo, e.g.:
-
-```xml
-<changelog>
-	<change version="4.0.0">
-		<ul xmlns="http://www.w3.org/1999/xhtml">
-			<li>Breaking: Due to internal API changes this version of monex requires eXist-db version 6.1.0 or later - <a href="https://github.com/eXist-db/monex/pull/210">#210</a>, <a href="https://github.com/eXist-db/monex/pull/223">#223</a></li>
-			<li>Fixed: Added missing release notes for 3.0.5 release - <a href="https://github.com/eXist-db/monex/issues/217">#217</a></li>
-		</ul>
-	</change>
-</changelog>
-```
-
-### Release
-
-To perform the release, from within your local Git cloned repository run:
-
-```bash
-mvn release:prepare && mvn release:perform
-```
-
-You will be prompted for the answers to a few questions along the way. The default response will be provided for you, and you can simply press "Enter" (or "Return") to accept it. Alternatively you may enter your own value and press "Enter" (or "Return").
-
-```bash
-What is the release version for "monex"? (org.exist-db.apps:monex) 2.3.1: : 2.4.0
-What is SCM release tag or label for "monex"? (org.exist-db.apps:monex) 2.4.0: :
-What is the new development version for "monex"? (org.exist-db.apps:monex) 2.4.1-SNAPSHOT: :
-```
-
-- For the `release version`, please sensibly consider using the next appropriate [SemVer 2.0.0](https://semver.org/) version number.
-- For the `SCM release tag`, please use the same value as the `release version`.
-- For the `new development version`, the default value should always suffice.
-
-Once the release process completes, there will be a `.xar` file in the `target/` sub-folder. This file may be published to:
-
-1. [GitHub Releases](https://github.com/eXist-db/monex/releases)
+If the release pipeline fails (check the `Release` job in the [Actions tab](https://github.com/eXist-db/monex/actions)) the commit history is still intact and re-running the job is safe: semantic-release is idempotent.
 2. [The eXist-db Public EXPath Repository](https://exist-db.org/exist/apps/public-repo/admin)
