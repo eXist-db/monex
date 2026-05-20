@@ -1,6 +1,6 @@
 {
   "name": "monex",
-  "version": "4.2.4",
+  "version": "0.0.0-development",
   "type": "module",
   "private": true,
   "description": "Monitoring Application for eXist-db",
