@@ -1,0 +1,9 @@
+{
+  "instance": "localhost",
+  "timestamp": 1779814800000,
+  "timelineStart": "2026-05-26T00:00:00.000Z",
+  "timelineEnd": "2026-05-26T23:59:59.999Z",
+  "uriLabel": "REST · db · XQuery",
+  "uriFull": "/exist/rest/db?_query=import module namespace util=\"http://exist-db.org/xquery/util\"; util:wait(1)",
+  "stackSnippet": "org.exist.test.Main.run"
+}

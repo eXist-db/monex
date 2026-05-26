@@ -133,6 +133,113 @@ Cypress.Commands.add('skipUnlessConsoleModule', () => {
     }
   })
 })
+
+function parseExistInteger (body) {
+  const text = String(body || '').trim()
+  const match = text.match(/<exist:value[^>]*>(\d+)<\/exist:value>/)
+  if (match) {
+    return parseInt(match[1], 10)
+  }
+  const parsed = parseInt(text, 10)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+Cypress.Commands.add('ensureMonexDetailsSnapshot', (instance) => {
+  return cy.fixture('monex-details-snapshot.json').then((meta) => {
+    const targetInstance = instance || meta.instance
+      return cy.fixture('monex-details-snapshot.xq').then((queryTemplate) => {
+      const query = queryTemplate.replace(/__INSTANCE__/g, targetInstance)
+      return cy.request({
+        method: 'POST',
+        url: `${existRootUrl()}/rest/db`,
+        auth: { username: 'admin', password: '' },
+        form: true,
+        body: { _query: query }
+      }).then((response) => {
+        const timestamp = parseExistInteger(response.body)
+        expect(timestamp, 'snapshot timestamp').to.eq(meta.timestamp)
+        const verifyQuery = [
+          'xquery version "3.1";',
+          'declare namespace jmx = "http://exist-db.org/jmx";',
+          `if (exists(collection("/db/apps/monex/data/${targetInstance}")/jmx:jmx)) then "ok" else error(QName("", "missing-snapshot"))`
+        ].join(' ')
+        return cy.request({
+          method: 'POST',
+          url: `${existRootUrl()}/rest/db`,
+          auth: { username: 'admin', password: '' },
+          form: true,
+          body: { _query: verifyQuery },
+          retryOnStatusCodeFailure: true,
+          timeout: 30000
+        }).then((verifyResponse) => {
+          expect(String(verifyResponse.body || '')).to.contain('ok')
+          return cy.wrap({ ...meta, instance: targetInstance, timestamp })
+        })
+      })
+    })
+  })
+})
+
+Cypress.Commands.add('visitMonexDetailsPage', ({ timestamp, instance = 'localhost' } = {}) => {
+  cy.visit(`details.html?timestamp=${timestamp}&instance=${instance}`)
+})
+
+Cypress.Commands.add('visitMonexTimelinesPage', ({ instance = 'localhost', start, end, timelineStart, timelineEnd } = {}) => {
+  const rangeStart = start || timelineStart
+  const rangeEnd = end || timelineEnd
+  const qs = { instance }
+  if (rangeStart && rangeEnd) {
+    qs.start = rangeStart
+    qs.end = rangeEnd
+  }
+  cy.visit({ url: 'timelines.html', qs })
+})
+
+Cypress.Commands.add('latestMonexSnapshotTimestamp', (instance = 'localhost') => {
+  const existRoot = existRootUrl()
+  const query = [
+    'xquery version "3.1";',
+    'import module namespace app="http://exist-db.org/apps/admin/templates" at "/db/apps/monex/modules/app.xql";',
+    'declare namespace jmx = "http://exist-db.org/jmx";',
+    `let $col := "/db/apps/monex/data/${instance}" return`,
+    'if (not(util:collection-available($col))) then () else (',
+    '  for $rec in collection($col)/jmx:jmx',
+    '  order by xs:dateTime($rec/jmx:timestamp) descending',
+    '  return app:time-to-milliseconds(xs:dateTime($rec/jmx:timestamp))',
+    ')[1]'
+  ].join(' ')
+
+  return cy.request({
+    method: 'GET',
+    url: `${existRoot}/rest/db`,
+    auth: { username: 'admin', password: '' },
+    qs: { _query: query },
+    failOnStatusCode: false
+  }).then((response) => {
+    if (response.status !== 200) {
+      return null
+    }
+    const body = String(response.body || '').trim()
+    if (!body || body === '()' || body === 'null') {
+      return null
+    }
+    const parsed = parseInt(body, 10)
+    return Number.isFinite(parsed) ? parsed : null
+  })
+})
+
+Cypress.Commands.add('visitLatestDetailsPage', (instance = 'localhost') => {
+  cy.latestMonexSnapshotTimestamp(instance).then((timestamp) => {
+    if (!timestamp) {
+      cy.log(`No stored Monex snapshots for ${instance}; skipping details page test`)
+      cy.wrap(null, { log: false }).then(function () {
+        this.skip()
+      })
+      return
+    }
+    cy.visit(`details.html?timestamp=${timestamp}&instance=${instance}`)
+  })
+})
 // Cypress.Commands.add("drag", { prevSubject: 'element'}, (subject, options) => { ... })
 //
 //
