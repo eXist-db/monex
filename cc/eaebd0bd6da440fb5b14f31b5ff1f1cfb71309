@@ -1,0 +1,21 @@
+package.json
+  s_12ba9537e61ac7::t_2cd1a463716584 9-10
+gulpfile.js
+  s_12ba9537e61ac7::t_c08902cc0da2db 20-23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "cceaebd0bd6da440fb5b14f31b5ff1f1cfb71309",
+  "prompts": {},
+  "sessions": {
+    "s_12ba9537e61ac7": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "844524c2-10c0-461d-af7c-9e33465ffc79",
+        "model": "composer-2.5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
