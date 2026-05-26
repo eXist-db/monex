@@ -646,58 +646,119 @@ function app:timeline($node as node(), $model as map(*), $instance as xs:string,
             attribute data-data { "[]" }
 };
 
+declare function app:details-timestamp-ms($timestamp as xs:string) as xs:long? {
+    if ($timestamp != "") then xs:long($timestamp) else ()
+};
+
 declare
     %templates:wrap
     %templates:default("instance", "localhost")
-function app:load-record($node as node(), $model as map(*), $instance as xs:string, $timestamp as xs:long) {
-    let $date := app:milliseconds-to-time($timestamp)
-    let $jmx := collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:timestamp = $date]
+    %templates:default("timestamp", "")
+function app:load-record($node as node(), $model as map(*), $instance as xs:string, $timestamp as xs:string) {
+    let $ms := app:details-timestamp-ms($timestamp)
     return
-        serialize($jmx)
+        if (empty($ms)) then
+            ""
+        else
+            let $date := app:milliseconds-to-time($ms)
+            let $jmx := collection($config:data-root || "/" || $instance)/jmx:jmx[xs:dateTime(jmx:timestamp) = xs:dateTime($date)]
+            return
+                if (empty($jmx)) then
+                    ""
+                else
+                    serialize($jmx)
 };
 
 declare
     %templates:wrap
-function app:timestamp($node as node(), $model as map(*), $timestamp as xs:long) {
-    app:milliseconds-to-time($timestamp)
-};
-
-declare function app:time-navigation-back($node as node(), $model as map(*), $instance as xs:string, $timestamp as xs:long) {
-    let $date := app:milliseconds-to-time($timestamp)
-    let $jmx := 
-        (
-            for $rec in collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:timestamp < xs:dateTime($date)]
-            order by xs:dateTime($rec/jmx:timestamp)
-            return
-                $rec
-        )
-        [last()]
-    return
+    %templates:default("timestamp", "")
+function app:timestamp($node as node(), $model as map(*), $timestamp as xs:string) {
+    if ($timestamp = "") then
         element { node-name($node) } {
             $node/@*,
-            attribute href { "?timestamp=" || app:time-to-milliseconds(xs:dateTime($jmx/jmx:timestamp)) || 
-                "&amp;instance=" || $instance },
-            templates:process($node/*, $model)
+            attribute class { "details-timestamp-empty" },
+            "Select a snapshot"
         }
+    else
+        app:milliseconds-to-time(xs:long($timestamp))
 };
 
-declare function app:time-navigation-forward($node as node(), $model as map(*), $instance as xs:string, $timestamp as xs:long) {
-    let $date := app:milliseconds-to-time($timestamp)
-    let $jmx :=
-        (
-            for $rec in collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:timestamp > xs:dateTime($date)]
-            order by xs:dateTime($rec/jmx:timestamp)
-            return
-                $rec
-        )
-        [1]
+declare
+    %templates:wrap
+    %templates:default("instance", "localhost")
+    %templates:default("timestamp", "")
+function app:time-navigation-back($node as node(), $model as map(*), $instance as xs:string, $timestamp as xs:string) {
+    let $ms := app:details-timestamp-ms($timestamp)
     return
-        element { node-name($node) } {
-            $node/@*,
-            attribute href { "?timestamp=" || app:time-to-milliseconds(xs:dateTime($jmx/jmx:timestamp)) || 
-                "&amp;instance=" || $instance },
-            templates:process($node/*, $model)
-        }
+        if (empty($ms)) then
+            element { node-name($node) } {
+                $node/@*,
+                attribute disabled { "disabled" },
+                templates:process($node/*, $model)
+            }
+        else
+            let $date := app:milliseconds-to-time($ms)
+            let $jmx := 
+                (
+                    for $rec in collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:timestamp < xs:dateTime($date)]
+                    order by xs:dateTime($rec/jmx:timestamp)
+                    return
+                        $rec
+                )
+                [last()]
+            return
+                if (empty($jmx)) then
+                    element { node-name($node) } {
+                        $node/@*,
+                        attribute disabled { "disabled" },
+                        templates:process($node/*, $model)
+                    }
+                else
+                    element { node-name($node) } {
+                        $node/@*,
+                        attribute href { "?timestamp=" || app:time-to-milliseconds(xs:dateTime($jmx/jmx:timestamp)) || 
+                            "&amp;instance=" || $instance },
+                        templates:process($node/*, $model)
+                    }
+};
+
+declare
+    %templates:wrap
+    %templates:default("instance", "localhost")
+    %templates:default("timestamp", "")
+function app:time-navigation-forward($node as node(), $model as map(*), $instance as xs:string, $timestamp as xs:string) {
+    let $ms := app:details-timestamp-ms($timestamp)
+    return
+        if (empty($ms)) then
+            element { node-name($node) } {
+                $node/@*,
+                attribute disabled { "disabled" },
+                templates:process($node/*, $model)
+            }
+        else
+            let $date := app:milliseconds-to-time($ms)
+            let $jmx :=
+                (
+                    for $rec in collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:timestamp > xs:dateTime($date)]
+                    order by xs:dateTime($rec/jmx:timestamp)
+                    return
+                        $rec
+                )
+                [1]
+            return
+                if (empty($jmx)) then
+                    element { node-name($node) } {
+                        $node/@*,
+                        attribute disabled { "disabled" },
+                        templates:process($node/*, $model)
+                    }
+                else
+                    element { node-name($node) } {
+                        $node/@*,
+                        attribute href { "?timestamp=" || app:time-to-milliseconds(xs:dateTime($jmx/jmx:timestamp)) || 
+                            "&amp;instance=" || $instance },
+                        templates:process($node/*, $model)
+                    }
 };
 
 declare function app:time-to-milliseconds($dateTime as xs:dateTime) as xs:integer {
@@ -724,16 +785,37 @@ declare function app:milliseconds-to-time($timestamp as xs:integer) as xs:dateTi
         xs:dayTimeDuration("P" || $days || "DT" || $hours || "H" || $minutes || "M" || $seconds || "." || $millis || "S")
 };
 
-declare function app:edit-source($node as node(), $model as map(*), $instance as xs:string, $timestamp as xs:long) as node()* {
-    let $date := app:milliseconds-to-time($timestamp)
-    let $doc := collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:timestamp = xs:dateTime($date)]
-    let $link := $model?eXide || "/index.html?open=" || document-uri(root($doc))
+declare
+    %templates:wrap
+    %templates:default("instance", "localhost")
+    %templates:default("timestamp", "")
+function app:edit-source($node as node(), $model as map(*), $instance as xs:string, $timestamp as xs:string) as node()* {
+    let $ms := app:details-timestamp-ms($timestamp)
     return
-        element { node-name($node) } {
-            attribute href { $link },
-            attribute target { "eXide" },
-            attribute class { $node/@class || " eXide-open" },
-            attribute data-exide-open { document-uri(root($doc)) },
-            $node/node()
-        }
+        if (empty($ms)) then
+            element { node-name($node) } {
+                $node/@*,
+                attribute disabled { "disabled" },
+                attribute title { "Select a snapshot from Timelines" },
+                $node/node()
+            }
+        else
+            let $date := app:milliseconds-to-time($ms)
+            let $doc := collection($config:data-root || "/" || $instance)/jmx:jmx[xs:dateTime(jmx:timestamp) = xs:dateTime($date)]
+            return
+                if (empty($doc)) then
+                    element { node-name($node) } {
+                        $node/@*,
+                        attribute disabled { "disabled" },
+                        attribute title { "Snapshot source not found" },
+                        $node/node()
+                    }
+                else
+                    element { node-name($node) } {
+                        attribute href { ($model?eXide, "/index.html?open=" || document-uri(root($doc)))[1] },
+                        attribute target { "eXide" },
+                        attribute class { $node/@class || " eXide-open" },
+                        attribute data-exide-open { document-uri(root($doc)) },
+                        $node/node()
+                    }
 };

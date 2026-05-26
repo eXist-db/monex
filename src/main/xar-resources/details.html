@@ -32,6 +32,24 @@
     </section>
     <!-- Main content -->
     <section id="details" class="content">
+        <div id="details-empty-state" class="details-empty-state" style="display: none;" aria-live="polite">
+            <div class="box box-default">
+                <div class="box-body">
+                    <p class="details-empty-title">No stored snapshot for this timestamp</p>
+                    <p class="details-empty-hint">
+                        Detailed Status shows a frozen JMX snapshot from Monex polling storage.
+                        Open it from <strong>Remote Monitoring → Timelines</strong> by clicking a chart data point,
+                        after configuring an instance with <code>store="yes"</code> on its <code>&lt;poll&gt;</code> element in
+                        <a href="instances.xml" target="eXide" class="eXide-open" data-exide-open="/db/apps/monex/instances.xml">instances.xml</a>.
+                    </p>
+                    <p class="details-empty-actions">
+                        <a href="remotes.html" class="btn btn-default">Remote Monitoring</a>
+                        <a id="details-timelines-link" href="timelines.html" class="btn btn-primary">Timelines</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div id="details-dashboard">
         <div class="kpi-strip">
             <div class="kpi-cell" data-bind="css: kpiCellClass('activeBrokers', activeBrokerCount($data.jmx), $data.jmx)">
                 <span class="kpi-label">Brokers</span>
@@ -50,7 +68,7 @@
             </div>
             <div class="kpi-cell kpi-neutral">
                 <span class="kpi-label">Uptime</span>
-                <span class="kpi-value" id="jmx-uptime" data-bind="text: uptime($data.jmx.Database.Uptime())">?</span>
+                <span class="kpi-value" id="jmx-uptime" data-bind="text: uptime($data?.jmx?.Database?.Uptime() ?? '')">?</span>
             </div>
             <!-- ko if: sharedPoolKpiVisible($data.jmx) -->
             <div class="kpi-cell" data-bind="css: sharedPoolKpiClass($data.jmx)">
@@ -117,7 +135,7 @@
                         </div>
                         <!-- /ko -->
                         <p class="panel-subhead cache-index-subhead" title="Used / max pages held in cache for each index file">Index page caches</p>
-                        <!-- ko foreach: sortedDbxCacheGroups($data.jmx.Cache()) -->
+                        <!-- ko foreach: sortedDbxCacheGroups($data?.jmx?.Cache?.() ?? []) -->
                         <div class="cache-file-row">
                             <span class="cache-file-name" data-bind="text: file, attr: { title: file + ': pages held in cache (used / max slots)' }"/>
                             <div class="cache-pair">
@@ -166,31 +184,36 @@
                         <i class="fa fa-tasks"/>
                         <h3 class="box-title">Activity</h3>
                     </div>
-                    <div class="box-body no-padding">
+                    <div class="box-body no-padding activity-panel-body">
                         <div class="activity-section" data-bind="visible: runningQueryCount($data.jmx) &gt; 0">
                             <h4 class="activity-section-title">Running queries</h4>
-                            <table class="table table-striped running-queries">
-                                <thead>
-                                    <tr>
-                                        <th>Id</th>
-                                        <th>Source</th>
-                                        <th>URI</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody data-bind="foreach: jmx.ProcessReport.RunningQueries">
-                                    <tr>
-                                        <td class="thread" data-bind="text: $data.thread ? $data.thread : $data.id"/>
-                                        <td>
-                                            <span class="source-key" data-bind="text: $data.sourceKey().replace(/^.*\/([^\/]+)$/, '$1'), attr: { title: sourceKey }" data-toggle="tooltip"/>
-                                        </td>
-                                        <td data-bind="text: ($data.requestURI ? $data.requestURI : '')"/>
-                                        <td>
-                                            <span class="label" data-bind="text: $data.terminating() == 'false' ? 'running' : 'terminating', css: { 'label-success': $data.terminating() == 'false', 'label-warning': $data.terminating() == 'true' }"/>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                            <div class="scrollable activity-table-scroll">
+                                <table class="table table-striped running-queries activity-query-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Id</th>
+                                            <th>Source</th>
+                                            <th>Status</th>
+                                            <th>URI</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody data-bind="foreach: { data: jmx.ProcessReport.RunningQueries, afterRender: initActivityRow }">
+                                        <tr>
+                                            <td class="activity-id-cell thread" data-bind="text: ( $data?.thread?.() ?? $data?.thread ?? $data?.id?.() ?? $data?.id ?? '' )"/>
+                                            <td class="activity-source-cell">
+                                                <span class="source-key" data-bind="text: ( $data?.sourceKey?.() ?? $data?.sourceKey ?? '' )?.replace(/^.*\/([^\/]+)$/, '$1') ?? '???', attr: { title: ( $data?.sourceKey?.() ?? $data?.sourceKey ?? '' ) }" data-toggle="tooltip"/>
+                                            </td>
+                                            <td class="activity-status-cell">
+                                                <span class="label" data-bind="text: ( $data?.terminating?.() ?? $data?.terminating ?? 'false' ) == 'false' ? 'running' : 'terminating', css: { 'label-success': ( $data?.terminating?.() ?? $data?.terminating ?? 'false' ) == 'false', 'label-warning': ( $data?.terminating?.() ?? $data?.terminating ?? 'false' ) == 'true' }"/>
+                                            </td>
+                                            <td class="activity-uri-cell">
+                                                <a class="activity-uri-link" href="#" role="button" aria-label="Show full request URI" data-bind="visible: activityUriLabel($data) !== '—', attr: { 'data-uri-full': activityUriTitle($data), 'data-uri-href': activityUriHref($root.url, $data) }, text: activityUriLabel($data)"/>
+                                                <span class="text-muted" data-bind="visible: activityUriLabel($data) === '—'">—</span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
 
                         <div class="activity-section" data-bind="visible: waitingThreadCount($data.jmx) &gt; 0">
@@ -228,18 +251,18 @@
                                 </thead>
                                 <tbody data-bind="foreach: jmx.ProcessReport.RunningJobs">
                                     <tr>
-                                        <td data-bind="text: action"/>
-                                        <td data-bind="text: id"/>
-                                        <td data-bind="text: info"/>
+                                        <td data-bind="text: ( $data?.action?.() ?? $data?.action ?? '' )"/>
+                                        <td data-bind="text: ( $data?.id?.() ?? $data?.id ?? '' )"/>
+                                        <td data-bind="text: ( $data?.info?.() ?? $data?.info ?? '' )"/>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
 
-                        <div class="activity-section" data-bind="visible: $data.jmx.Database.ActiveBrokersMap().length &gt; 0">
+                        <div class="activity-section" data-bind="visible: ($data?.jmx?.Database?.ActiveBrokersMap?.()?.length ?? 0) &gt; 0">
                             <h4 class="activity-section-title">
                                 Active threads
-                                <span class="workload-count">(<span data-bind="text: $data.jmx.Database.ActiveBrokersMap().length">0</span>)</span>
+                                <span class="workload-count">(<span data-bind="text: $data?.jmx?.Database?.ActiveBrokersMap?.()?.length ?? 0">0</span>)</span>
                             </h4>
                             <table class="table table-striped">
                                 <thead>
@@ -252,7 +275,7 @@
                                     <tr>
                                         <td class="thread" data-bind="text: owner"/>
                                         <td>
-                                            <button class="btn btn-default btn-xs pull-right stack" data-bind="attr: { 'data-content': stack, title: owner }" data-toggle="popover">
+                                            <button type="button" class="btn btn-default btn-xs pull-right stack" aria-label="Show stack trace" data-bind="attr: { 'data-stack-title': stackTraceTitle($data), 'data-stack-text': stackTraceText($data) }">
                                                 <i class="fa fa-code"/> Stack
                                             </button>
                                         </td>
@@ -266,26 +289,52 @@
                                 Recent queries
                                 <small data-bind="visible: $data.jmx.ProcessReport.MinTimeRecorded">(&gt; <span data-bind="text: jmx.ProcessReport.MinTimeRecorded"/> ms)</small>
                             </h4>
-                            <table class="table table-striped" id="recentQueries">
-                                <thead>
-                                    <tr>
-                                        <th>Time</th>
-                                        <th>Source</th>
-                                        <th>Elapsed</th>
-                                        <th>URI</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="jmx-recent-queries" data-bind="foreach: {data: jmx.ProcessReport.RecentQueryHistory, afterRender: function(node) { $('.source-key', node).tooltip(); }}">
-                                    <tr>
-                                        <td data-bind="text: new Date(parseInt($data.mostRecentExecutionTime())).toISOString()"/>
-                                        <td>
-                                            <span class="source-key" data-bind="text: $data.sourceKey().replace(/^.*\/([^\/]+)$/, '$1'), attr: { title: sourceKey }" data-toggle="tooltip"/>
-                                        </td>
-                                        <td data-bind="text: mostRecentExecutionDuration"/>
-                                        <td data-bind="text: ($data.requestURI ? $data.requestURI : '')"/>
-                                    </tr>
-                                </tbody>
-                            </table>
+                            <div class="scrollable activity-table-scroll">
+                                <table class="table table-striped activity-query-table activity-recent-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Time</th>
+                                            <th>Source</th>
+                                            <th>Elapsed</th>
+                                            <th>URI</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody data-bind="visible: ( $data?.jmx?.ProcessReport?.RecentQueryHistory?.()?.length ?? 0) == 0">
+                                        <tr>
+                                            <td colspan="4">No recent queries</td>
+                                        </tr>
+                                    </tbody>
+                                    <tbody id="jmx-recent-queries" data-bind="visible: ( $data?.jmx?.ProcessReport?.RecentQueryHistory?.()?.length ?? 0 ) &gt; 0, foreach: { data: $data.jmx.ProcessReport.RecentQueryHistory, afterRender: initActivityRow }">
+                                        <tr>
+                                            <td class="activity-time-cell" data-bind="text: new Date(parseInt( $data?.mostRecentExecutionTime?.() ?? $data?.mostRecentExecutionTime ?? 0 )).toISOString()"/>
+                                            <td class="activity-source-cell">
+                                                <span class="source-key" data-bind="text: ( $data?.sourceKey?.() ?? $data?.sourceKey ?? '' )?.replace(/^.*\/([^\/]+)$/, '$1') ?? '???', attr: { title: ( $data?.sourceKey?.() ?? $data?.sourceKey ?? '' ) }" data-toggle="tooltip"/>
+                                            </td>
+                                            <td class="activity-elapsed-cell" data-bind="text: ( $data?.mostRecentExecutionDuration?.() ?? $data?.mostRecentExecutionDuration ?? '' )"/>
+                                            <td class="activity-uri-cell">
+                                                <a class="activity-uri-link" href="#" role="button" aria-label="Show full request URI" data-bind="visible: activityUriLabel($data) !== '—', attr: { 'data-uri-full': activityUriTitle($data), 'data-uri-href': activityUriHref($root.url, $data) }, text: activityUriLabel($data)"/>
+                                                <span class="text-muted" data-bind="visible: activityUriLabel($data) === '—'">—</span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div id="activity-uri-flyout" class="activity-uri-flyout" style="display: none;" aria-hidden="true" role="dialog" aria-label="Request URI">
+                            <button type="button" class="close activity-uri-flyout-close" aria-label="Close">
+                                <span aria-hidden="true">×</span>
+                            </button>
+                            <pre class="activity-uri-flyout-text"/>
+                            <a class="activity-uri-flyout-open" target="_blank" rel="noopener">Open in new tab ↗</a>
+                        </div>
+
+                        <div id="activity-stack-flyout" class="activity-uri-flyout activity-stack-flyout" style="display: none;" aria-hidden="true" role="dialog" aria-label="Stack trace">
+                            <button type="button" class="close activity-stack-flyout-close" aria-label="Close">
+                                <span aria-hidden="true">×</span>
+                            </button>
+                            <div class="activity-stack-flyout-title"/>
+                            <pre class="activity-stack-flyout-text"/>
                         </div>
                     </div>
                 </div>
@@ -311,16 +360,12 @@
                 </dl>
             </div>
         </div>
+        </div>
     </section>
     <pre id="jmx-data" style="display: none" data-template="app:load-record"/>
-    <link rel="stylesheet" type="text/css" href="resources/DataTables-1.10.7/media/css/dataTables.bootstrap.css"/>
-    <link rel="stylesheet" type="text/css" href="resources/DataTables-1.10.7/media/css/jquery.dataTables.min.css"/>
     <script type="text/javascript" src="resources/scripts/modernizr.custom.js"></script>
     <script type="text/javascript" src="resources/scripts/knockout-latest.js"></script>
     <script type="text/javascript" src="resources/scripts/knockout.mapping.js"></script>
-    <script type="text/javascript" src="resources/scripts/jquery.dataTables.min.js"></script>
-    <script type="text/javascript" src="resources/scripts/dataTables.bootstrap.min.js"></script>
-    <script type="text/javascript" src="resources/DataTables-1.10.7/media/js/dataTables.responsive.js"></script>
     <script type="text/javascript" src="resources/scripts/util.js"></script>
     <script type="text/javascript" src="resources/scripts/exadmin.js"></script>
     <script type="text/javascript" src="resources/scripts/details.js"></script>
