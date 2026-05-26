@@ -35,8 +35,8 @@
         <div class="row">
             <div class="col-lg-3 col-xs-6">
                 <!-- small box -->
-                <div class="info-box">
-                    <span class="info-box-icon bg-aqua">
+                <div class="info-box" data-bind="css: kpiBoxClass('activeBrokers', activeBrokerCount($data.jmx), $data.jmx)">
+                    <span class="info-box-icon" data-bind="css: kpiIconClass('activeBrokers', activeBrokerCount($data.jmx), $data.jmx)">
                         <i class="ion ion-android-storage"/>
                     </span>
                     <div class="info-box-content">
@@ -61,22 +61,22 @@
             </div><!-- ./col -->
             <div class="col-lg-3 col-xs-6">
                 <!-- small box -->
-                <div class="info-box">
-                    <div class="info-box-icon bg-yellow">
+                <div class="info-box" data-bind="css: kpiBoxClass('runningQueries', runningQueryCount($data.jmx), $data.jmx)">
+                    <div class="info-box-icon" data-bind="css: kpiIconClass('runningQueries', runningQueryCount($data.jmx), $data.jmx)">
                         <i class="ion ion-ios7-search"/>
                     </div>
                     <div class="info-box-content">
                         <span class="info-box-text"> Running Queries </span>
                         <span class="info-box-number">
-                            <span id="jmx-queries" data-bind="text: $data.jmx.ProcessReport.RunningQueries().length || 0">?</span>
+                            <span id="jmx-queries" data-bind="text: runningQueryCount($data.jmx)">?</span>
                         </span>
                     </div>
                 </div>
             </div><!-- ./col -->
             <div class="col-lg-3 col-xs-6">
                 <!-- small box -->
-                <div class="info-box">
-                    <span class="info-box-icon bg-red">
+                <div class="info-box" data-bind="css: kpiBoxClass('waitingThreads', waitingThreadCount($data.jmx), $data.jmx)">
+                    <span class="info-box-icon" data-bind="css: kpiIconClass('waitingThreads', waitingThreadCount($data.jmx), $data.jmx)">
                         <i class="ion ion-pie-graph"/>
                     </span>
                     <div class="info-box-content">

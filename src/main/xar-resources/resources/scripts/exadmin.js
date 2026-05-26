@@ -90,6 +90,98 @@ function waitingThreadsList(jmx) {
     return ko.isObservable(waiting) ? waiting() : waiting;
 }
 
+var JMX_KPI_THRESHOLDS = {
+    runningQueries: { warn: 3, critical: 10 },
+    waitingThreads: { warn: 5, critical: 30 },
+    activeBrokers: { warnRatio: 0.75, criticalRatio: 0.9 }
+};
+
+function jmxValue(value) {
+    if (value && typeof ko !== "undefined" && ko.isObservable(value)) {
+        return value();
+    }
+    return value;
+}
+
+function activeBrokerCount(jmx) {
+    if (!jmx || !jmx.Database) {
+        return 0;
+    }
+    return parseInt(jmxValue(jmx.Database.ActiveBrokers), 10) || 0;
+}
+
+function maxBrokerCount(jmx) {
+    if (!jmx || !jmx.Database) {
+        return 0;
+    }
+    var max = parseInt(jmxValue(jmx.Database.MaxBrokers), 10) || 0;
+    if (max > 0) {
+        return max;
+    }
+    return parseInt(jmxValue(jmx.Database.TotalBrokers), 10) || 0;
+}
+
+function runningQueryCount(jmx) {
+    if (!jmx || !jmx.ProcessReport || !jmx.ProcessReport.RunningQueries) {
+        return 0;
+    }
+    var queries = jmx.ProcessReport.RunningQueries;
+    return (ko.isObservable(queries) ? queries() : queries).length || 0;
+}
+
+function kpiLevel(metric, value, jmx) {
+    if (metric === "activeBrokers") {
+        var max = maxBrokerCount(jmx);
+        if (max <= 0) {
+            return "ok";
+        }
+        var ratio = value / max;
+        if (ratio >= JMX_KPI_THRESHOLDS.activeBrokers.criticalRatio) {
+            return "critical";
+        }
+        if (ratio >= JMX_KPI_THRESHOLDS.activeBrokers.warnRatio) {
+            return "warn";
+        }
+        return "ok";
+    }
+    var thresholds = JMX_KPI_THRESHOLDS[metric];
+    if (!thresholds) {
+        return "ok";
+    }
+    if (value >= thresholds.critical) {
+        return "critical";
+    }
+    if (value >= thresholds.warn) {
+        return "warn";
+    }
+    return "ok";
+}
+
+function kpiIconClass(metric, value, jmx) {
+    var level = kpiLevel(metric, value, jmx);
+    var classes = {
+        "kpi-ok": level === "ok",
+        "kpi-warn": level === "warn",
+        "kpi-critical": level === "critical"
+    };
+    if (metric === "activeBrokers") {
+        classes["bg-aqua"] = true;
+    } else if (metric === "runningQueries") {
+        classes["bg-yellow"] = true;
+    } else if (metric === "waitingThreads") {
+        classes["bg-red"] = true;
+    }
+    return classes;
+}
+
+function kpiBoxClass(metric, value, jmx) {
+    var level = kpiLevel(metric, value, jmx);
+    return {
+        "kpi-box-warn": level === "warn",
+        "kpi-box-critical": level === "critical"
+    };
+}
+
 function vectorStatusClass(status) {
     switch (status) {
         case "available":
@@ -209,20 +301,60 @@ JMX.TimeSeries = (function() {
         var components = property.split(".");
         var prop = data;
         for (var i = 0; i < components.length; i++) {
-            if (prop.hasOwnProperty(components[i])) {
+            if (prop && prop.hasOwnProperty(components[i])) {
                 prop = prop[components[i]];
             } else {
-                break;
+                return 0;
             }
         }
+        if (prop && typeof prop === "object" && typeof ko !== "undefined" && ko.isObservable(prop)) {
+            prop = prop();
+        }
         return prop || 0;
-    };
+    }
+
+    function numericValue(value, unitY) {
+        var num = parseInt(value, 10) || 0;
+        if (unitY === "mb") {
+            num = num / 1024 / 1024;
+        }
+        return num;
+    }
+
+    function seriesPeak(dataset) {
+        var peak = 0;
+        for (var i = 0; i < dataset.length; i++) {
+            var points = dataset[i].data;
+            for (var j = 0; j < points.length; j++) {
+                if (points[j][1] > peak) {
+                    peak = points[j][1];
+                }
+            }
+        }
+        return peak;
+    }
+
+    function computeYMax(scaleMode, unitY, heapCap, peak) {
+        if (scaleMode === "pressure") {
+            var headroom = Math.max(peak * 0.15, unitY === "mb" ? 256 : 1);
+            var zoomed = Math.max(peak + headroom, unitY === "mb" ? 512 : 2);
+            if (heapCap > 0) {
+                return Math.min(heapCap, zoomed);
+            }
+            return zoomed;
+        }
+        if (heapCap > 0) {
+            return heapCap;
+        }
+        return Math.max(peak + 1, 1);
+    }
 
     Constr = function(container, labels, properties, propertyMaxY, unitY) {
         this.container = $(container);
         this.properties = properties;
         this.propertyMaxY = propertyMaxY;
-        this.unitY = unitY;
+        this.unitY = unitY || "";
+        this.scaleMode = container.attr("data-scale") || "fixed";
         this.dataset = [];
         for (var i = 0; i < labels.length; i++) {
             this.dataset.push({
@@ -233,11 +365,7 @@ JMX.TimeSeries = (function() {
     };
 
     Constr.prototype.update = function(data) {
-        var max = parseInt(getProperty(data, this.propertyMaxY));
-        if (this.unitY == "mb") {
-            max = max / 1024 / 1024;
-        }
-        options.yaxis.max = max;
+        var heapCap = numericValue(getProperty(data, this.propertyMaxY), this.unitY);
         if (this.dataset[0].data.length > 100) {
             for (var i = 0; i < this.dataset.length; i++) {
                 this.dataset[i].data.shift();
@@ -245,12 +373,12 @@ JMX.TimeSeries = (function() {
         }
         var now = new Date().getTime();
         for (var i = 0; i < this.properties.length; i++) {
-            var val = getProperty(data, this.properties[i]);
-            if (this.unitY == "mb") {
-                val = parseInt(val) / 1024 / 1024;
-            }
-            this.dataset[i].data.push([now, parseInt(val)]);
+            var val = numericValue(getProperty(data, this.properties[i]), this.unitY);
+            this.dataset[i].data.push([now, val]);
         }
+
+        var peak = seriesPeak(this.dataset);
+        options.yaxis.max = computeYMax(this.scaleMode, this.unitY, heapCap, peak);
 
         $.plot(this.container, this.dataset, options);
     };

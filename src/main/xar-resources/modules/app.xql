@@ -32,7 +32,14 @@ declare variable $app:default-timeline-xpaths := map {
     "brokers-graph": ("$jmx//jmx:ActiveBrokers", "count($jmx//jmx:RunningQueries/jmx:row)"),
     "threads-graph": ("count($jmx//jmx:WaitingThreads/jmx:row)"),
     "cpu-graph": ("$jmx//jmx:ProcessCpuLoad", "$jmx//jmx:SystemCpuLoad"), 
-    "memory-graph": ("$jmx//jmx:HeapMemoryUsage/jmx:used", "$jmx//jmx:HeapMemoryUsage/jmx:committed"), 
+    "memory-graph": (
+        "($jmx//jmx:HeapMemoryUsage/jmx:used)[1] div (1024 * 1024)",
+        "($jmx//jmx:HeapMemoryUsage/jmx:committed)[1] div (1024 * 1024)"
+    ), 
+    "vector-cache-graph": (
+        "($jmx//jmx:Cache[contains(@name, 'name=vector.dbx,cache-type=BTREE')]/jmx:Used)[1]",
+        "($jmx//jmx:Cache[contains(@name, 'name=vector.dbx,cache-type=DATA')]/jmx:Used)[1]"
+    ),
     "slow-queries-graph": ("max($jmx//jmx:mostRecentExecutionDuration)",
             "avg($jmx//jmx:mostRecentExecutionDuration)")
     (: full path is $jmx/jmx:ProcessReport/jmx:RecentQueryHistory/jmx:row/jmx:mostRecentExecutionDuration :)
@@ -42,7 +49,8 @@ declare variable $app:default-timeline-labels := map {
     "brokers-graph": ("Active brokers", "Running queries"),
     "threads-graph": ("Waiting Threads"),
     "cpu-graph": ("Process CPU Load", "System CPU Load"), 
-    "memory-graph": ("Used Memory", "Committed Memory"), 
+    "memory-graph": ("Used Memory (MB)", "Committed Memory (MB)"), 
+    "vector-cache-graph": ("vector.dbx BTREE Used (pages)", "vector.dbx DATA Used (pages)"),
     "slow-queries-graph": ("Slowest Query", "Average Query")
 };
 

@@ -131,3 +131,19 @@ body > .header .logo {
     max-height: 400px;
     overflow-y: auto;
 }
+
+.info-box-icon.kpi-warn {
+    background-color: #f39c12 !important;
+}
+
+.info-box-icon.kpi-critical {
+    background-color: #c23321 !important;
+}
+
+.info-box.kpi-box-warn {
+    box-shadow: inset 0 0 0 2px #f39c12;
+}
+
+.info-box.kpi-box-critical {
+    box-shadow: inset 0 0 0 2px #c23321;
+}

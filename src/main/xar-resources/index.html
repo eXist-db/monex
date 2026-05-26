@@ -32,8 +32,8 @@
         </div><!-- Small boxes (Stat box) -->
         <div class="row">
             <div class="col-lg-3 col-xs-6"><!-- small box -->
-                <div class="info-box">
-                    <span class="info-box-icon bg-aqua">
+                <div class="info-box" data-bind="css: kpiBoxClass('activeBrokers', activeBrokerCount($data.jmx), $data.jmx)">
+                    <span class="info-box-icon" data-bind="css: kpiIconClass('activeBrokers', activeBrokerCount($data.jmx), $data.jmx)">
                         <i class="ion ion-android-storage"/>
                     </span>
                     <div class="info-box-content">
@@ -61,8 +61,8 @@
                 </div>
             </div><!-- ./col -->
             <div class="col-lg-3 col-xs-6"><!-- small box -->
-                <div class="info-box">
-                    <div class="info-box-icon bg-yellow">
+                <div class="info-box" data-bind="css: kpiBoxClass('runningQueries', runningQueryCount($data.jmx), $data.jmx)">
+                    <div class="info-box-icon" data-bind="css: kpiIconClass('runningQueries', runningQueryCount($data.jmx), $data.jmx)">
                         <i class="ion ion-ios7-search"/>
                     </div>
                     <div class="info-box-content">
@@ -70,14 +70,14 @@
                             Running Queries
                         </span>
                         <span class="info-box-number">
-                          <span id="jmx-queries" data-bind="text: $data?.jmx?.ProcessReport?.RunningQueries?.()?.length ?? '???'">?</span>
+                          <span id="jmx-queries" data-bind="text: runningQueryCount($data.jmx)">?</span>
                         </span>
                     </div>
                 </div>
             </div><!-- ./col -->
             <div class="col-lg-3 col-xs-6"><!-- small box -->
-                <div class="info-box">
-                    <span class="info-box-icon bg-red">
+                <div class="info-box" data-bind="css: kpiBoxClass('waitingThreads', waitingThreadCount($data.jmx), $data.jmx)">
+                    <span class="info-box-icon" data-bind="css: kpiIconClass('waitingThreads', waitingThreadCount($data.jmx), $data.jmx)">
                         <i class="ion ion-pie-graph"/>
                     </span>
                     <div class="info-box-content">
@@ -104,7 +104,7 @@
                     <div class="box-body no-padding">
                         <div class="row">
                             <div class="col-sm-7">
-                                <div class="chart" id="memory-graph" style="height: 250px;" data-labels="Used memory (mb),Committed memory (mb)" data-properties="jmx.MemoryImpl.HeapMemoryUsage.used,jmx.MemoryImpl.HeapMemoryUsage.committed" data-max-y="jmx.MemoryImpl.HeapMemoryUsage.max" data-unit-y="mb"/>
+                                <div class="chart" id="memory-graph" style="height: 250px;" data-scale="pressure" data-labels="Used memory (mb),Committed memory (mb)" data-properties="jmx.MemoryImpl.HeapMemoryUsage.used,jmx.MemoryImpl.HeapMemoryUsage.committed" data-max-y="jmx.MemoryImpl.HeapMemoryUsage.max" data-unit-y="mb"/>
                             </div>
                             <div class="col-sm-5" data-bind="with: jmx.MemoryImpl.HeapMemoryUsage">
                                 <div class="pad"><!-- Progress bars -->
