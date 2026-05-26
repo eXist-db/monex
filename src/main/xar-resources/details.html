@@ -271,7 +271,7 @@
                                         <th/>
                                     </tr>
                                 </thead>
-                                <tbody data-bind="foreach: jmx.Database.ActiveBrokersMap">
+                                <tbody data-bind="foreach: { data: jmx.Database.ActiveBrokersMap, afterRender: initActivityRow }">
                                     <tr>
                                         <td class="thread" data-bind="text: owner"/>
                                         <td>

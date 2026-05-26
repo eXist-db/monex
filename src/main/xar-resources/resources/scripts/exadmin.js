@@ -457,14 +457,32 @@ function findActivityFlyoutAnchor(state) {
         return $();
     }
     var selector = state.type === "uri" ? ".activity-uri-link" : ".stack";
-    return $("#dashboard, #details").find(selector).filter(function() {
+    var $root = $("#dashboard, #details");
+    var $match = $root.find(selector).filter(function() {
         return $(this).attr("data-flyout-key") === state.key;
     }).first();
+    if ($match.length) {
+        return $match;
+    }
+    if (state.type === "stack" && state.stackTitle) {
+        return $root.find(selector).filter(function() {
+            return $(this).attr("data-stack-title") === state.stackTitle;
+        }).first();
+    }
+    if (state.type === "uri" && state.uriFull) {
+        return $root.find(selector).filter(function() {
+            return $(this).attr("data-uri-full") === state.uriFull;
+        }).first();
+    }
+    return $();
 }
 
 var activityFlyoutState = null;
 var activityFlyoutAnchors = {};
 var activityFlyoutSuppressDismissUntil = 0;
+var activityFlyoutReconcileTimer = null;
+var activityFlyoutReconcileAttempts = 0;
+var ACTIVITY_FLYOUT_RECONCILE_MAX_ATTEMPTS = 12;
 
 function suppressActivityFlyoutDismiss() {
     activityFlyoutSuppressDismissUntil = Date.now() + 250;
@@ -475,6 +493,11 @@ function shouldSuppressActivityFlyoutDismiss() {
 }
 
 function dismissActivityFlyouts() {
+    if (activityFlyoutReconcileTimer) {
+        clearTimeout(activityFlyoutReconcileTimer);
+        activityFlyoutReconcileTimer = null;
+    }
+    activityFlyoutReconcileAttempts = 0;
     $("#activity-uri-flyout, #activity-stack-flyout").each(function() {
         var $flyout = $(this);
         $flyout.hide().attr("aria-hidden", "true");
@@ -526,7 +549,12 @@ function rememberActivityFlyout($flyout, $anchor, type) {
     activityFlyoutState = {
         id: $flyout.attr("id"),
         type: type,
-        key: key
+        key: key,
+        open: true,
+        uriFull: $anchor.attr("data-uri-full") || "",
+        uriHref: $anchor.attr("data-uri-href") || "",
+        stackTitle: $anchor.attr("data-stack-title") || "",
+        stackText: $anchor.attr("data-stack-text") || ""
     };
     activityFlyoutAnchors[$flyout.attr("id")] = $anchor[0];
 }
@@ -555,29 +583,59 @@ function showActivityStackFlyout($anchor) {
     suppressActivityFlyoutDismiss();
 }
 
-function refreshActivityFlyoutAnchors() {
-    if (!activityFlyoutState) {
-        return;
+function refreshActivityFlyoutAnchors(options) {
+    options = options || {};
+    if (!activityFlyoutState || !activityFlyoutState.open) {
+        return false;
     }
     var $flyout = $("#" + activityFlyoutState.id);
-    if (!$flyout.length || !$flyout.is(":visible")) {
-        return;
+    if (!$flyout.length) {
+        return false;
     }
+    $flyout.show().attr("aria-hidden", "false");
     var $anchor = findActivityFlyoutAnchor(activityFlyoutState);
     if (!$anchor.length) {
-        dismissActivityFlyouts();
-        return;
+        if (options.dismissIfMissing) {
+            dismissActivityFlyouts();
+        }
+        return false;
     }
+    activityFlyoutReconcileAttempts = 0;
     activityFlyoutAnchors[activityFlyoutState.id] = $anchor[0];
     positionActivityFlyout($flyout, $anchor);
+    return true;
+}
+
+function scheduleActivityFlyoutReconcile() {
+    if (!activityFlyoutState || !activityFlyoutState.open) {
+        return;
+    }
+    if (activityFlyoutReconcileTimer) {
+        clearTimeout(activityFlyoutReconcileTimer);
+    }
+    activityFlyoutReconcileAttempts = 0;
+    activityFlyoutReconcileTimer = setTimeout(function retryActivityFlyoutReconcile() {
+        activityFlyoutReconcileTimer = null;
+        if (!activityFlyoutState || !activityFlyoutState.open) {
+            return;
+        }
+        if (refreshActivityFlyoutAnchors()) {
+            return;
+        }
+        activityFlyoutReconcileAttempts++;
+        if (activityFlyoutReconcileAttempts < ACTIVITY_FLYOUT_RECONCILE_MAX_ATTEMPTS) {
+            activityFlyoutReconcileTimer = setTimeout(retryActivityFlyoutReconcile, 50);
+            return;
+        }
+        refreshActivityFlyoutAnchors({ dismissIfMissing: true });
+    }, 0);
 }
 
 function reconcileActivityFlyouts() {
-    refreshActivityFlyoutAnchors();
+    scheduleActivityFlyoutReconcile();
 }
 
-function cleanupActivityOverlays() {
-    reconcileActivityFlyouts();
+function cleanupActivityTooltips() {
     $(".source-key").each(function() {
         var $el = $(this);
         if ($el.data("bs.tooltip")) {
@@ -586,6 +644,11 @@ function cleanupActivityOverlays() {
     });
     $("body > .tooltip, #dashboard .tooltip, #details .tooltip").remove();
     $("body > .popover.in, #dashboard .popover.in, #details .popover.in").remove();
+}
+
+function cleanupActivityOverlays() {
+    cleanupActivityTooltips();
+    scheduleActivityFlyoutReconcile();
 }
 
 function initActivityFlyouts() {
@@ -651,7 +714,7 @@ function initActivityFlyouts() {
     });
 
     $(window).on("scroll.activityFlyout resize.activityFlyout", function() {
-        refreshActivityFlyoutAnchors();
+        refreshActivityFlyoutAnchors({ dismissIfMissing: false });
     });
 }
 
@@ -675,7 +738,6 @@ function initActivityRow(node, data) {
         }
         $el.tooltip({ container: "body", trigger: "hover" });
     });
-    refreshActivityFlyoutAnchors();
 }
 
 var JMX_KPI_THRESHOLDS = {
@@ -1255,8 +1317,9 @@ JMX.connection = (function() {
                                     });
                                 }
                             } else {
-                                cleanupActivityOverlays();
+                                cleanupActivityTooltips();
                                 ko.mapping.fromJS(data, viewModel);
+                                scheduleActivityFlyoutReconcile();
                             }
                             var liveRunning = runningQueryCount(data.jmx);
                             if (liveRunning > lastLiveRunningQueryCount) {

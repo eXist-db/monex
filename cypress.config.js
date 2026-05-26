@@ -17,6 +17,10 @@ module.exports = defineConfig({
     setupNodeEvents(on, config) {
       return require('./src/test/cypress/plugins/index.js')(on, config)
     },
+    retries: {
+      runMode: 2,
+      openMode: 0
+    },
     baseUrl: 'http://localhost:8080/exist/apps/monex',
     excludeSpecPattern: 'src/test/cypress/e2e/examples/*.js',
     specPattern: 'src/test/cypress/e2e/**/*.{js,jsx,ts,tsx}',
