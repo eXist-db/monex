@@ -1,0 +1,34 @@
+src/main/xar-resources/details.html
+  s_12ba9537e61ac7::t_ae441deeddc6f8 38-39
+  s_12ba9537e61ac7::t_a2129a34b3ba8e 64-65,71,78-79
+src/main/xar-resources/modules/app.xql
+  s_12ba9537e61ac7::t_2a88bd7678751d 35-42,52-53
+src/main/xar-resources/resources/css/style.css
+  s_12ba9537e61ac7::t_92b361ab5212f6 133-148
+src/main/xar-resources/index.html
+  s_12ba9537e61ac7::t_ea66cc934211a0 35-36
+  s_12ba9537e61ac7::t_f73f73ae7c47fa 64-65,73,79-80
+  s_12ba9537e61ac7::t_6bfe4614228d69 107
+src/main/xar-resources/resources/scripts/exadmin.js
+  s_12ba9537e61ac7::t_3dfb5ee7b3231a 93-184
+  s_12ba9537e61ac7::t_5aef50b2b6aff2 304,307,310-312,314-350,356-357
+  s_12ba9537e61ac7::t_0b40bdf0bd4f75 368,376-377,380-381
+src/main/xar-resources/timelines.html
+  s_12ba9537e61ac7::t_bd52e2611b1fb6 111-125
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "c05c55da0b934bd79ab856082ea10751fd2f4523",
+  "prompts": {},
+  "sessions": {
+    "s_12ba9537e61ac7": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "844524c2-10c0-461d-af7c-9e33465ffc79",
+        "model": "composer-2.5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
