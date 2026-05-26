@@ -1,0 +1,59 @@
+src/main/xar-resources/timelines.html
+  s_12ba9537e61ac7::t_307104ce5f6aa8 136
+src/main/xar-resources/resources/scripts/exadmin.js
+  s_12ba9537e61ac7::t_71c54f2e5257c3 85-92
+  s_12ba9537e61ac7::t_f816959e89bbf1 460-462
+  s_12ba9537e61ac7::t_4d6829afd3208f 473-480,484-486
+  s_12ba9537e61ac7::t_cf5c848b93f2b8 452-459,463-465
+  s_12ba9537e61ac7::t_7a49485cd13982 481-483
+  s_12ba9537e61ac7::t_9b288f3aa1d060 104-113,120-128
+  s_12ba9537e61ac7::t_68779891f96c48 114-119
+  s_12ba9537e61ac7::t_215c5382eb9e1f 435
+  s_12ba9537e61ac7::t_6c66bff44d4f7b 17-84,93-103
+src/main/xar-resources/details.html
+  s_12ba9537e61ac7::t_b5b9e9942fabd6 84
+  s_12ba9537e61ac7::t_ded2ad011d1747 202,205,212,215,218-219,221,223-228,233,236
+  s_12ba9537e61ac7::t_313a732a3f685d 352-353
+src/main/xar-resources/modules/vector.xqm
+  s_12ba9537e61ac7::t_c63fbc0804fe6f 8-9
+  s_12ba9537e61ac7::t_4131f5dc69ac21 1-7,10-47,50-52
+  s_12ba9537e61ac7::t_2526e2ae3f9969 48-49
+src/main/xar-resources/modules/indexes.xqm
+  s_12ba9537e61ac7::t_c81cd436d08c56 666
+  s_12ba9537e61ac7::t_bd2a66033fdcd5 712-719,722-724,727
+  s_12ba9537e61ac7::t_3f991517e2d104 740-754
+  s_12ba9537e61ac7::t_196fe71ce3fd05 720-721
+  s_12ba9537e61ac7::t_a7d61aee0be5a0 633,636-640
+src/main/xar-resources/templates/page.html
+  s_12ba9537e61ac7::t_adaa8b44143b36 49
+src/main/xar-resources/modules/vector.xql
+  s_12ba9537e61ac7::t_868ba94035a41e 1-8,11
+  s_12ba9537e61ac7::t_92016705e0487d 9-10,12
+src/main/xar-resources/resources/scripts/util.js
+  s_12ba9537e61ac7::t_be4869afded845 70,72-76
+src/main/xar-resources/index.html
+  s_12ba9537e61ac7::t_4061c69ecf23ff 344
+  s_12ba9537e61ac7::t_bde2166434a285 369,371,374
+  s_12ba9537e61ac7::t_2cc33aa55c08ba 546-547
+  s_12ba9537e61ac7::t_16a7ab2cd726a6 539,544,548-551
+  s_12ba9537e61ac7::t_d00cc21128b6fc 385
+  s_12ba9537e61ac7::t_75cade246833e3 311,321,324-325,327,333-334,339,342-343,345-349,351-355,358-368,370,372-373,375-384,386-392
+  s_12ba9537e61ac7::t_f5c7faa1532c48 105,109
+  s_12ba9537e61ac7::t_c82c1b0f7f0eba 87
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "b7644aeb8024be5241ae54bede10e25f7c91e59f",
+  "prompts": {},
+  "sessions": {
+    "s_12ba9537e61ac7": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "844524c2-10c0-461d-af7c-9e33465ffc79",
+        "model": "composer-2.5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
