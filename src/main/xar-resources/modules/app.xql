@@ -72,6 +72,12 @@ return
 
 declare
     %templates:wrap
+function app:java-version-inline($node as node(), $model as map(*)) as xs:string {
+    util:system-property("java.version")
+};
+
+declare
+    %templates:wrap
     %templates:default("instance", "localhost")
 function app:get-instance($node as node(), $model as map(*), $instance as xs:string) {
     $instance

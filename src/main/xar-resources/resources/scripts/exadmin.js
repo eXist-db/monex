@@ -14,13 +14,100 @@ function findByName(nodes, name) {
     return null;
 }
 
-function cacheManagerPercent(current, max) {
-    var used = parseInt(current, 10) || 0;
-    var total = parseInt(max, 10) || 0;
-    if (total <= 0) {
+function primaryCacheManager(jmx) {
+    if (!jmx || !jmx.CacheManager) {
+        return null;
+    }
+    var managers = ko.isObservable(jmx.CacheManager) ? jmx.CacheManager() : jmx.CacheManager;
+    if (managers instanceof Array) {
+        return findByName(managers, "org.exist.management.exist:type=CacheManager") || managers[0];
+    }
+    return managers;
+}
+
+function collectionCacheManager(jmx) {
+    if (!jmx || !jmx.CacheManager) {
+        return null;
+    }
+    var managers = ko.isObservable(jmx.CacheManager) ? jmx.CacheManager() : jmx.CacheManager;
+    if (managers instanceof Array) {
+        return findByName(managers, "org.exist.management.exist:type=CollectionCacheManager");
+    }
+    return null;
+}
+
+var SHARED_POOL_PAGE_SIZE = 4096;
+
+function sharedPoolUsedBytes(cacheManager) {
+    if (!cacheManager) {
         return 0;
     }
-    return Math.round(used / (total / 100));
+    return parseInt(jmxValue(cacheManager.CurrentSize), 10) || 0;
+}
+
+function sharedPoolMaxBytes(jmx) {
+    if (jmx && jmx.Database) {
+        var cacheMem = parseInt(jmxValue(jmx.Database.CacheMem), 10);
+        if (cacheMem > 0) {
+            return cacheMem;
+        }
+    }
+    var cacheManager = primaryCacheManager(jmx);
+    if (cacheManager) {
+        var pages = parseInt(jmxValue(cacheManager.MaxTotal), 10) || 0;
+        if (pages > 0) {
+            return pages * SHARED_POOL_PAGE_SIZE;
+        }
+    }
+    return 0;
+}
+
+function sharedPoolUsedMb(cacheManager) {
+    return Math.floor(sharedPoolUsedBytes(cacheManager) / 1024 / 1024);
+}
+
+function sharedPoolMaxMb(jmx) {
+    return Math.floor(sharedPoolMaxBytes(jmx) / 1024 / 1024);
+}
+
+function sharedPoolUsedPercent(cacheManager, jmx) {
+    var used = sharedPoolUsedBytes(cacheManager);
+    var max = sharedPoolMaxBytes(jmx);
+    if (max <= 0) {
+        return 0;
+    }
+    return Math.min(100, Math.round(used / (max / 100)));
+}
+
+function sharedPoolKpiPercent(jmx) {
+    return sharedPoolUsedPercent(primaryCacheManager(jmx), jmx);
+}
+
+function sharedPoolKpiVisible(jmx) {
+    return sharedPoolKpiPercent(jmx) >= 70;
+}
+
+function sharedPoolKpiClass(jmx) {
+    var percent = sharedPoolKpiPercent(jmx);
+    return {
+        "kpi-warn": percent >= 70 && percent < 90,
+        "kpi-critical": percent >= 90
+    };
+}
+
+var JMX_CAPACITY_THRESHOLDS = { warn: 80, critical: 90 };
+var DBX_CACHE_PRESSURE_THRESHOLD = 70;
+var DBX_CACHE_TOP_N = 3;
+
+function capacityBarClass(percent) {
+    var value = parseInt(percent, 10) || 0;
+    if (value >= JMX_CAPACITY_THRESHOLDS.critical) {
+        return "progress-bar-capacity-critical";
+    }
+    if (value >= JMX_CAPACITY_THRESHOLDS.warn) {
+        return "progress-bar-capacity-warn";
+    }
+    return "progress-bar-capacity";
 }
 
 function cacheUsedPercent(used, size) {
@@ -65,6 +152,183 @@ function dbxCaches(caches) {
     }).sort(function(a, b) {
         return cacheDisplayName(a.name()).localeCompare(cacheDisplayName(b.name()));
     });
+}
+
+function parseDbxCacheName(mbeanName) {
+    if (!mbeanName) {
+        return null;
+    }
+    var name = typeof mbeanName === "function" ? mbeanName() : mbeanName;
+    var match = name.match(/name=([^,]+),cache-type=(\w+)/i);
+    if (!match) {
+        return null;
+    }
+    return { file: match[1], type: match[2].toUpperCase() };
+}
+
+function groupDbxCaches(caches) {
+    var grouped = {};
+    var order = [];
+    dbxCaches(caches).forEach(function(cache) {
+        var parsed = parseDbxCacheName(cache.name);
+        if (!parsed) {
+            return;
+        }
+        if (!grouped[parsed.file]) {
+            grouped[parsed.file] = { file: parsed.file, btree: null, data: null };
+            order.push(parsed.file);
+        }
+        if (parsed.type === "BTREE") {
+            grouped[parsed.file].btree = cache;
+        } else if (parsed.type === "DATA") {
+            grouped[parsed.file].data = cache;
+        }
+    });
+    return order.map(function(file) {
+        return grouped[file];
+    });
+}
+
+function cacheGroupMaxPercent(group) {
+    var max = 0;
+    if (group && group.btree) {
+        max = Math.max(max, cacheUsedPercent(jmxValue(group.btree.Used), jmxValue(group.btree.Size)));
+    }
+    if (group && group.data) {
+        max = Math.max(max, cacheUsedPercent(jmxValue(group.data.Used), jmxValue(group.data.Size)));
+    }
+    return max;
+}
+
+function sortedDbxCacheGroups(caches) {
+    return groupDbxCaches(caches).slice().sort(function(a, b) {
+        return cacheGroupMaxPercent(b) - cacheGroupMaxPercent(a);
+    });
+}
+
+function dbxCacheGroupCount(caches) {
+    return sortedDbxCacheGroups(caches).length;
+}
+
+function visibleDbxCacheGroups(caches, showAll) {
+    var sorted = sortedDbxCacheGroups(caches);
+    var expanded = ko.isObservable(showAll) ? showAll() : !!showAll;
+    if (expanded) {
+        return sorted;
+    }
+    var visible = {};
+    var result = [];
+    sorted.forEach(function(group) {
+        if (cacheGroupMaxPercent(group) >= DBX_CACHE_PRESSURE_THRESHOLD && !visible[group.file]) {
+            visible[group.file] = true;
+            result.push(group);
+        }
+    });
+    sorted.slice(0, DBX_CACHE_TOP_N).forEach(function(group) {
+        if (!visible[group.file]) {
+            visible[group.file] = true;
+            result.push(group);
+        }
+    });
+    return result.sort(function(a, b) {
+        return cacheGroupMaxPercent(b) - cacheGroupMaxPercent(a);
+    });
+}
+
+function hiddenDbxCacheCount(caches, showAll) {
+    var total = dbxCacheGroupCount(caches);
+    return Math.max(0, total - visibleDbxCacheGroups(caches, showAll).length);
+}
+
+function cacheSegmentSummary(cache) {
+    if (!cache) {
+        return "";
+    }
+    var used = parseInt(jmxValue(cache.Used), 10) || 0;
+    var size = parseInt(jmxValue(cache.Size), 10) || 0;
+    return used + "/" + size;
+}
+
+function cacheShowHitRate(hits, fails) {
+    var h = parseInt(hits, 10) || 0;
+    var f = parseInt(fails, 10) || 0;
+    if (h + f === 0) {
+        return false;
+    }
+    return (h / (h + f)) < 0.95;
+}
+
+function brokerPoolPercent(jmx) {
+    var active = activeBrokerCount(jmx);
+    var max = maxBrokerCount(jmx);
+    if (max <= 0) {
+        return 0;
+    }
+    return Math.round(active / (max / 100));
+}
+
+function runningJobCount(jmx) {
+    if (!jmx || !jmx.ProcessReport || !jmx.ProcessReport.RunningJobs) {
+        return 0;
+    }
+    var jobs = jmx.ProcessReport.RunningJobs;
+    return (ko.isObservable(jobs) ? jobs() : jobs).length || 0;
+}
+
+function memoryUsedMb(heap) {
+    if (!heap) {
+        return 0;
+    }
+    return Math.floor(parseInt(jmxValue(heap.used), 10) / 1024 / 1024);
+}
+
+function memoryMaxMb(heap) {
+    if (!heap) {
+        return 0;
+    }
+    return Math.floor(parseInt(jmxValue(heap.max), 10) / 1024 / 1024);
+}
+
+function memoryUsedPercent(heap) {
+    if (!heap) {
+        return 0;
+    }
+    var used = parseInt(jmxValue(heap.used), 10) || 0;
+    var max = parseInt(jmxValue(heap.max), 10) || 0;
+    if (max <= 0) {
+        return 0;
+    }
+    return Math.round(used / (max / 100));
+}
+
+function readyVectorModels(vector) {
+    if (!vector || !vector.models) {
+        return [];
+    }
+    var models = ko.isObservable(vector.models) ? vector.models() : vector.models;
+    return models.filter(function(model) {
+        var status = ko.isObservable(model.status) ? model.status() : model.status;
+        return status === "available";
+    });
+}
+
+function vectorMissingCount(vector) {
+    if (!vector) {
+        return 0;
+    }
+    var ready = typeof vector.ready === "function" ? vector.ready() : vector.ready;
+    var total = typeof vector.total === "function" ? vector.total() : vector.total;
+    return Math.max(0, (total || 0) - (ready || 0));
+}
+
+function vectorModelLabel(model) {
+    if (!model) {
+        return "";
+    }
+    var id = ko.isObservable(model.id) ? model.id() : model.id;
+    var dimension = ko.isObservable(model.dimension) ? model.dimension() : model.dimension;
+    var provider = ko.isObservable(model.provider) ? model.provider() : model.provider;
+    return id + " · " + dimension + "d · " + provider;
 }
 
 function waitingThreadCount(jmx) {
@@ -182,6 +446,14 @@ function kpiBoxClass(metric, value, jmx) {
     };
 }
 
+function kpiCellClass(metric, value, jmx) {
+    var level = kpiLevel(metric, value, jmx);
+    return {
+        "kpi-warn": level === "warn",
+        "kpi-critical": level === "critical"
+    };
+}
+
 function vectorStatusClass(status) {
     switch (status) {
         case "available":
@@ -249,6 +521,9 @@ function uptime(data) {
 }
 
 JMX.TimeSeries = (function() {
+    var CHART_WARMUP_SAMPLES = 3;
+    var CHART_PLOT_SKIP = 2;
+
     var options = {
         series: {
             lines: {
@@ -291,6 +566,10 @@ JMX.TimeSeries = (function() {
         legend: {
             show: true,
             labelBoxBorderColor: "#fff"
+        },
+        grid: {
+            borderWidth: 1,
+            margin: 6
         }
     };
 
@@ -355,6 +634,10 @@ JMX.TimeSeries = (function() {
         this.propertyMaxY = propertyMaxY;
         this.unitY = unitY || "";
         this.scaleMode = container.attr("data-scale") || "fixed";
+        this.plotOptions = $.extend(true, {}, options);
+        if (container.attr("data-legend") === "false") {
+            this.plotOptions.legend.show = false;
+        }
         this.dataset = [];
         for (var i = 0; i < labels.length; i++) {
             this.dataset.push({
@@ -364,8 +647,35 @@ JMX.TimeSeries = (function() {
         }
     };
 
-    Constr.prototype.update = function(data) {
+    Constr.prototype.getPlotDataset = function() {
+        var len = this.dataset[0].data.length;
+        if (len < CHART_WARMUP_SAMPLES) {
+            return null;
+        }
+        var skip = Math.min(CHART_PLOT_SKIP, len - 1);
+        if (skip <= 0) {
+            return this.dataset;
+        }
+        return this.dataset.map(function(series) {
+            return {
+                label: series.label,
+                data: series.data.slice(skip)
+            };
+        });
+    };
+
+    Constr.prototype.renderPlot = function(data) {
+        var plotDataset = this.getPlotDataset();
+        if (!plotDataset) {
+            return;
+        }
         var heapCap = numericValue(getProperty(data, this.propertyMaxY), this.unitY);
+        var peak = seriesPeak(plotDataset);
+        this.plotOptions.yaxis.max = computeYMax(this.scaleMode, this.unitY, heapCap, peak);
+        $.plot(this.container, plotDataset, this.plotOptions);
+    };
+
+    Constr.prototype.update = function(data) {
         if (this.dataset[0].data.length > 100) {
             for (var i = 0; i < this.dataset.length; i++) {
                 this.dataset[i].data.shift();
@@ -376,11 +686,11 @@ JMX.TimeSeries = (function() {
             var val = numericValue(getProperty(data, this.properties[i]), this.unitY);
             this.dataset[i].data.push([now, val]);
         }
+        this.renderPlot(data);
+    };
 
-        var peak = seriesPeak(this.dataset);
-        options.yaxis.max = computeYMax(this.scaleMode, this.unitY, heapCap, peak);
-
-        $.plot(this.container, this.dataset, options);
+    Constr.prototype.replot = function() {
+        this.renderPlot(null);
     };
 
     return Constr;
@@ -564,6 +874,10 @@ JMX.connection = (function() {
                                 viewModel.gc = function() {
                                     JMX.connection.invoke("gc", "java.lang:type=Memory");
                                 };
+                                viewModel.showAllCaches = ko.observable(false);
+                                viewModel.expandAllCaches = function() {
+                                    viewModel.showAllCaches(true);
+                                };
                                 if (data.jmx.ProcessReport.TrackRequestURI) {
                                     $("#threshold").val(data.jmx.ProcessReport.MinTime);
                                     $("#track-uri").prop("checked", data.jmx.ProcessReport.TrackRequestURI == "true");
@@ -702,15 +1016,32 @@ $(function() {
     // the following block should only be run on the main dashboard page
     $("#dashboard").each(function() {
         var charts = [];
-        $(".chart").each(function() {
-            var node = $(this);
-            var labels = node.attr("data-labels");
-            var properties = node.attr("data-properties");
-            var unitY = node.attr("data-unit-y") || "";
-            var max = node.attr("data-max-y");
 
-            charts.push(new JMX.TimeSeries(node, labels.split(","), properties.split(","), max, unitY));
-        });
+        function initCharts() {
+            if (charts.length > 0) {
+                return;
+            }
+            $("#dashboard .chart").each(function() {
+                var node = $(this);
+                if (node.data("timeseries")) {
+                    return;
+                }
+                var labels = node.attr("data-labels");
+                var properties = node.attr("data-properties");
+                var unitY = node.attr("data-unit-y") || "";
+                var max = node.attr("data-max-y");
+                var chart = new JMX.TimeSeries(node, labels.split(","), properties.split(","), max, unitY);
+                node.data("timeseries", chart);
+                charts.push(chart);
+            });
+        }
+
+        function redrawCharts() {
+            for (var i = 0; i < charts.length; i++) {
+                charts[i].replot();
+            }
+        }
+
         $("#poll-period").ionRangeSlider({
             min: 0.5,
             max: 60.0,
@@ -727,6 +1058,7 @@ $(function() {
             JMX.connection.togglePolling();
         });
         JMX.connection.poll(function(data) {
+            initCharts();
             for (var i = 0; i < charts.length; i++) {
                 charts[i].update(data);
             }
@@ -737,6 +1069,12 @@ $(function() {
                 trigger: "focus",
                 template: '<div class="popover stacktrace" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><pre class="popover-content"></pre></div>'
             });
+        });
+        $("#dashboard").on("expanded.boxwidget", ".box", function() {
+            redrawCharts();
+        });
+        $(window).on("resize.dashboardCharts", function() {
+            redrawCharts();
         });
     });
 

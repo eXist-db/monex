@@ -193,47 +193,55 @@
                 <div class="box box-info">
                     <div class="box-header">
                         <i class="fa fa-download"/>
-                        <h3 class="box-title">Cache Usage</h3>
-                    </div><!-- /.box-header -->
-                    <div class="box-body jmx-cache-manager" data-bind="with: findByName($data.jmx.CacheManager(), 'org.exist.management.exist:type=CacheManager')">
-                        <div class="clearfix">
-                            <span class="pull-left">Cache Manager</span>
-                            <small class="pull-right">
-                                <span data-bind="text: CurrentSize">0</span> of <span data-bind="text: MaxTotal">0</span> pages</small>
-                        </div>
-                        <div class="progress xs">
-                            <div class="progress-bar progress-bar-success progress-cache" data-bind="style: {width: cacheManagerPercent(CurrentSize(), MaxTotal()) + '%'}"/>
-                        </div>
+                        <h3 class="box-title">Page Caches</h3>
                     </div>
-                    <div class="box-body jmx-cache-manager" data-bind="with: findByName($data.jmx.CacheManager(), 'org.exist.management.exist:type=CollectionCacheManager')">
-                        <div class="clearfix">
-                            <span class="pull-left">Collection Cache Manager</span>
-                            <small class="pull-right">
-                                <span data-bind="text: CurrentSize">0</span> of <span data-bind="text: MaxTotal">0</span> bytes</small>
+                    <div class="box-body no-padding">
+                        <p class="panel-subhead">Pool memory</p>
+                        <!-- ko with: primaryCacheManager($data.jmx) -->
+                        <div class="gauge-block cache-pool-row">
+                            <div class="gauge-headline">
+                                <strong>
+                                    <span data-bind="text: sharedPoolUsedMb($data)">0</span> /
+                                    <span data-bind="text: sharedPoolMaxMb($parent.jmx)">0</span> MB
+                                </strong>
+                                <span data-bind="text: sharedPoolUsedPercent($data, $parent.jmx) + '% of pool'">0%</span>
+                            </div>
+                            <div class="progress xs">
+                                <div class="progress-bar" data-bind="css: capacityBarClass(sharedPoolUsedPercent($data, $parent.jmx)), style: { width: sharedPoolUsedPercent($data, $parent.jmx) + '%' }"/>
+                            </div>
                         </div>
-                        <div class="progress xs">
-                            <div class="progress-bar progress-bar-success progress-cache" data-bind="style: {width: cacheManagerPercent(CurrentSize(), MaxTotal()) + '%'}"/>
+                        <!-- /ko -->
+                        <p class="panel-subhead cache-index-subhead" title="Used / max pages held in cache for each index file">Index page caches</p>
+                        <!-- ko foreach: sortedDbxCacheGroups($data.jmx.Cache()) -->
+                        <div class="cache-file-row">
+                            <span class="cache-file-name" data-bind="text: file, attr: { title: file + ': pages held in cache (used / max slots)' }"/>
+                            <div class="cache-pair">
+                                <!-- ko if: btree -->
+                                <div class="cache-segment" data-bind="with: btree">
+                                    <div class="cache-segment-label" title="BTREE pages in cache (used / max slots)">
+                                        <span class="cache-type">BTREE</span>
+                                        <span data-bind="text: cacheSegmentSummary($data)"/>
+                                    </div>
+                                    <div class="progress">
+                                        <div class="progress-bar" data-bind="css: capacityBarClass(cacheUsedPercent(Used(), Size())), style: { width: cacheUsedPercent(Used(), Size()) + '%' }"/>
+                                    </div>
+                                </div>
+                                <!-- /ko -->
+                                <!-- ko if: data -->
+                                <div class="cache-segment" data-bind="with: data">
+                                    <div class="cache-segment-label" title="DATA pages in cache (used / max slots)">
+                                        <span class="cache-type">DATA</span>
+                                        <span data-bind="text: cacheSegmentSummary($data)"/>
+                                    </div>
+                                    <div class="progress">
+                                        <div class="progress-bar" data-bind="css: capacityBarClass(cacheUsedPercent(Used(), Size())), style: { width: cacheUsedPercent(Used(), Size()) + '%' }"/>
+                                    </div>
+                                </div>
+                                <!-- /ko -->
+                            </div>
                         </div>
+                        <!-- /ko -->
                     </div>
-                    <!-- ko foreach: dbxCaches($data.jmx.Cache()) -->
-                    <div class="box-body jmx-cache">
-                        <div class="clearfix">
-                            <span class="pull-left" data-bind="text: cacheDisplayName(name())"/>
-                            <small class="pull-right">
-                                <span class="cache-stats">
-                                    Size: <span data-bind="text: Size">0</span> /
-                                    Used: <span data-bind="text: Used">0</span> /
-                                    Fails: <span data-bind="text: Fails">0</span> /
-                                    Hits: <span data-bind="text: Hits">0</span> /
-                                    Hit rate: <span data-bind="text: cacheHitRate(Hits(), Fails())">—</span>
-                                </span>
-                            </small>
-                        </div>
-                        <div class="progress xs">
-                            <div class="progress-bar progress-bar-info progress-cache" data-bind="style: {width: cacheUsedPercent(Used(), Size()) + '%'}"/>
-                        </div>
-                    </div>
-                    <!-- /ko -->
                 </div>
                 <div class="box box-info">
                     <div class="box-header">
