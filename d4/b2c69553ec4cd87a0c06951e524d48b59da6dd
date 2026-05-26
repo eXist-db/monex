@@ -1,0 +1,27 @@
+src/test/cypress/e2e/monitoring_spec.cy.js
+  s_12ba9537e61ac7::t_460e7268b67d3f 94-121,123-130
+  s_12ba9537e61ac7::t_3dfd77432394a2 122
+src/main/xar-resources/resources/scripts/exadmin.js
+  s_12ba9537e61ac7::t_837c1f361f5ed3 494,496-500,504,508
+src/main/xar-resources/resources/css/style.css
+  s_12ba9537e61ac7::t_d4594aae54fec6 39
+src/main/xar-resources/resources/scripts/util.js
+  s_12ba9537e61ac7::t_205ece857472b9 83-111
+  s_12ba9537e61ac7::t_51166c849318bd 194-196
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "d4b2c69553ec4cd87a0c06951e524d48b59da6dd",
+  "prompts": {},
+  "sessions": {
+    "s_12ba9537e61ac7": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "844524c2-10c0-461d-af7c-9e33465ffc79",
+        "model": "composer-2.5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
