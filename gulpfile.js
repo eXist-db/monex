@@ -17,7 +17,10 @@ const { version, license, app } = packageJson;
 const replacements = [app, { version, license }];
 
 const defaultOptions = { basic_auth: { user: "admin", pass: "" } };
-const connectionOptions = Object.assign(defaultOptions, readOptionsFromEnv());
+const envOptions = readOptionsFromEnv();
+const connectionOptions = Object.assign(defaultOptions, envOptions, {
+  secure: (envOptions.protocol || "https:") === "https:",
+});
 
 let existClient;
 try {

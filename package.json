@@ -6,8 +6,8 @@
   "description": "Monitoring Application for eXist-db",
   "scripts": {
     "build": "gulp build",
-    "deploy": "dotenv gulp install",
-    "develop": "dotenv gulp",
+    "deploy": "dotenv -- gulp install",
+    "develop": "dotenv -- gulp",
     "prepare": "husky",
     "test": "npm run cypress",
     "cypress": "cypress run"
