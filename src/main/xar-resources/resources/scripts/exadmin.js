@@ -14,6 +14,118 @@ function findByName(nodes, name) {
     return null;
 }
 
+function cacheManagerPercent(current, max) {
+    var used = parseInt(current, 10) || 0;
+    var total = parseInt(max, 10) || 0;
+    if (total <= 0) {
+        return 0;
+    }
+    return Math.round(used / (total / 100));
+}
+
+function cacheUsedPercent(used, size) {
+    var u = parseInt(used, 10) || 0;
+    var s = parseInt(size, 10) || 0;
+    if (s <= 0) {
+        return 0;
+    }
+    return Math.round(u / (s / 100));
+}
+
+function cacheHitRate(hits, fails) {
+    var h = parseInt(hits, 10) || 0;
+    var f = parseInt(fails, 10) || 0;
+    if (h + f === 0) {
+        return "—";
+    }
+    return Math.round((h / (h + f)) * 100) + "%";
+}
+
+function cacheDisplayName(mbeanName) {
+    if (!mbeanName) {
+        return "";
+    }
+    var match = mbeanName.match(/name=([^,]+),cache-type=(\w+)/);
+    if (match) {
+        return match[1] + " (" + match[2] + ")";
+    }
+    return mbeanName;
+}
+
+function dbxCaches(caches) {
+    if (!caches) {
+        return [];
+    }
+    var list = ko.isObservable(caches) ? caches() : caches;
+    if (!(list instanceof Array)) {
+        return [];
+    }
+    return list.filter(function(cache) {
+        return cache.name && cache.name().indexOf(".dbx") >= 0;
+    }).sort(function(a, b) {
+        return cacheDisplayName(a.name()).localeCompare(cacheDisplayName(b.name()));
+    });
+}
+
+function waitingThreadCount(jmx) {
+    if (!jmx) {
+        return 0;
+    }
+    if (jmx.LockManager && jmx.LockManager.WaitingThreads) {
+        var waiting = jmx.LockManager.WaitingThreads;
+        return (ko.isObservable(waiting) ? waiting() : waiting).length || 0;
+    }
+    if (jmx.LockTable && jmx.LockTable.Attempting) {
+        var attempting = jmx.LockTable.Attempting;
+        return (ko.isObservable(attempting) ? attempting() : attempting).length || 0;
+    }
+    return 0;
+}
+
+function waitingThreadsList(jmx) {
+    if (!jmx || !jmx.LockManager || !jmx.LockManager.WaitingThreads) {
+        return [];
+    }
+    var waiting = jmx.LockManager.WaitingThreads;
+    return ko.isObservable(waiting) ? waiting() : waiting;
+}
+
+function vectorStatusClass(status) {
+    switch (status) {
+        case "available":
+            return "label-success";
+        case "http":
+            return "label-info";
+        default:
+            return "label-danger";
+    }
+}
+
+function createVectorViewModel(data) {
+    var payload = data || { available: false, models: [], ready: 0, total: 0 };
+    return {
+        available: ko.observable(!!payload.available),
+        models: ko.observableArray(payload.models || []),
+        ready: ko.observable(payload.ready || 0),
+        total: ko.observable(payload.total || 0)
+    };
+}
+
+function updateVectorDiagnostics(model, data) {
+    if (!model) {
+        return;
+    }
+    var payload = data || { available: false, models: [], ready: 0, total: 0 };
+    if (!model.vector) {
+        model.vector = createVectorViewModel(payload);
+        return;
+    }
+    model.vector.available(!!payload.available);
+    model.vector.ready(payload.ready || 0);
+    model.vector.total(payload.total || 0);
+    model.vector.models(payload.models || []);
+}
+
 function addKillBtn(node, data) {
     $(node).find(".kill-query").on("click", function(ev) {
         ev.preventDefault();
@@ -320,6 +432,7 @@ JMX.connection = (function() {
                         if (rootDom) {
                             if (!viewModel) {
                                 viewModel = ko.mapping.fromJS(data);
+                                viewModel.vector = createVectorViewModel(null);
                                 viewModel.gc = function() {
                                     JMX.connection.invoke("gc", "java.lang:type=Memory");
                                 };
@@ -336,12 +449,40 @@ JMX.connection = (function() {
                                     viewModel.url = currentInstance.url().replace(/\/exist\/?$/, "");
                                 }
                                 ko.applyBindings(viewModel, rootDom);
+                                if (name === "localhost") {
+                                    $.ajax({
+                                        url: "modules/vector.xql",
+                                        type: "GET",
+                                        dataType: "json",
+                                        timeout: 10000,
+                                        success: function(vectorData) {
+                                            updateVectorDiagnostics(viewModel, vectorData);
+                                        },
+                                        error: function(xhr, status, error) {
+                                            console.warn("vector diagnostics poll failed:", status, error);
+                                        }
+                                    });
+                                }
                             } else {
                                 ko.mapping.fromJS(data, viewModel);
                             }
                         }
                         if (onUpdate) {
                             onUpdate(data);
+                        }
+                        if (viewModel && name === "localhost") {
+                            $.ajax({
+                                url: "modules/vector.xql",
+                                type: "GET",
+                                dataType: "json",
+                                timeout: 10000,
+                                success: function(vectorData) {
+                                    updateVectorDiagnostics(viewModel, vectorData);
+                                },
+                                error: function(xhr, status, error) {
+                                    console.warn("vector diagnostics poll failed:", status, error);
+                                }
+                            });
                         }
                         setTimeout(function() { JMX.connection.poll(onUpdate); }, pollPeriod);
                     } else {

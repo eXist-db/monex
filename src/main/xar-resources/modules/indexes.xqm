@@ -630,8 +630,14 @@ declare function indexes:term-callback($term as xs:anyAtomicType, $data as xs:un
 declare function indexes:analyze-lucene-indexes($xconf) {
     let $index-label := indexes:index-name-to-label('lucene-index')
     let $lucene := $xconf/cc:index/cc:lucene 
+    let $vector-store := $lucene/@vector-store/string()
     return if (not($lucene) or not($lucene/cc:text)) then () else 
         (
+        if ($vector-store ne "") then
+            <tr>
+                <td colspan="3">Lucene vector-store: <strong>{$vector-store}</strong></td>
+            </tr>
+        else (),
         (: TODO: complete report of default/other Lucene analyzers :)
         (:let $analyzers := $lucene/cc:analyzer
         return 
@@ -657,7 +663,7 @@ declare function indexes:analyze-lucene-indexes($xconf) {
             let $analyzer := if ($text/@analyzer) then $text/@analyzer/string() else ()
             let $collection := substring-after(util:collection-name($text), '/db/system/config')
             let $no-index := $text/@index eq "no"
-            let $facets-fields := $text/(cc:facet | cc:field)
+            let $facets-fields := $text/(cc:facet | cc:field | cc:vector-field)
 (:            let $nodeset := if ($qname) then indexes:get-nodeset-from-qname($collection, $qname) else indexes:get-nodeset-from-match($collection, $match):)
             return
             (
@@ -703,10 +709,22 @@ declare function indexes:analyze-lucene-indexes($xconf) {
                 for $f in $facets-fields
                 return
                     <tr>
-                        <td>{$f/name()}: "{$f/(@dimension | @name)/string()}"{
+                        <td>{if ($f instance of element(cc:vector-field)) then
+                            concat(
+                                'vector-field: "',
+                                $f/@name/string(),
+                                '" (dim: ',
+                                $f/@dimension/string(),
+                                ', ',
+                                $f/@similarity/string(),
+                                if ($f/@embedding) then concat(', embed: ', $f/@embedding/string()) else (),
+                                ')'
+                            )
+                        else
+                            concat($f/name(), ': "', $f/(@dimension | @name)/string(), '"',
                             if ($f/@hierarchical eq "yes") then " (hierarchical)" else (),
                             if ($f/@store eq "no") then " (not stored)" else (),
-                            if ($f/@analyzer) then concat(' (', $f/@analyzer, ' analyzer)') else ()
+                            if ($f/@analyzer) then concat(' (', $f/@analyzer, ' analyzer)') else ())
                         }</td>
                         <td>{
                             if ($f instance of element(cc:facet)) then
@@ -719,17 +737,21 @@ declare function indexes:analyze-lucene-indexes($xconf) {
                                     ,
                                     if ($f/@hierarchical) then concat('hierarchical=', $f/@hierarchical) else ()
                                 ))}">facet</a>
-                            else (: if ($f instance of element(cc:field)) then :)
-                                if ($f/@store eq "no") then 
-                                    "(not stored)"
-                                else
-                                    <a href="field.html{indexes:replace-parameters((
-                                        if ($qname) then concat('node-name=', $qname) else concat('match=', $match)
-                                        , 
-                                        concat('collection=', $collection)
-                                        ,
-                                        concat('field=', $f/@name)
-                                    ))}">field</a>
+                            else if ($f instance of element(cc:vector-field)) then
+                                concat(
+                                    "vector KNN",
+                                    if ($f/@model) then concat(" (", $f/@model/string(), ")") else ()
+                                )
+                            else if ($f/@store eq "no") then 
+                                "(not stored)"
+                            else
+                                <a href="field.html{indexes:replace-parameters((
+                                    if ($qname) then concat('node-name=', $qname) else concat('match=', $match)
+                                    , 
+                                    concat('collection=', $collection)
+                                    ,
+                                    concat('field=', $f/@name)
+                                ))}">field</a>
                         }</td>
                     </tr>
                 )

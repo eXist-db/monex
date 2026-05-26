@@ -81,7 +81,7 @@
                     </span>
                     <div class="info-box-content">
                         <span class="info-box-text"> Waiting Threads </span>
-                        <span class="info-box-number" data-bind="text: $data.jmx.LockManager.WaitingThreads().length || 0">?</span>
+                        <span class="info-box-number" data-bind="text: waitingThreadCount($data.jmx)">?</span>
                     </div>
                 </div>
             </div><!-- ./col -->
@@ -199,74 +199,41 @@
                         <div class="clearfix">
                             <span class="pull-left">Cache Manager</span>
                             <small class="pull-right">
-                                <span data-bind="text: MaxTotal">0</span>/<span data-bind="text: CurrentSize">0</span> pages</small>
+                                <span data-bind="text: CurrentSize">0</span> of <span data-bind="text: MaxTotal">0</span> pages</small>
                         </div>
                         <div class="progress xs">
-                            <div class="progress-bar progress-bar-success progress-cache" data-bind="style: {width: Math.round($data.CurrentSize() / ($data.MaxTotal() / 100)) + '%'}"/>
+                            <div class="progress-bar progress-bar-success progress-cache" data-bind="style: {width: cacheManagerPercent(CurrentSize(), MaxTotal()) + '%'}"/>
                         </div>
                     </div>
                     <div class="box-body jmx-cache-manager" data-bind="with: findByName($data.jmx.CacheManager(), 'org.exist.management.exist:type=CollectionCacheManager')">
                         <div class="clearfix">
                             <span class="pull-left">Collection Cache Manager</span>
                             <small class="pull-right">
-                                <span data-bind="text: MaxTotal">0</span>/<span data-bind="text: CurrentSize">0</span> bytes</small>
+                                <span data-bind="text: CurrentSize">0</span> of <span data-bind="text: MaxTotal">0</span> bytes</small>
                         </div>
                         <div class="progress xs">
-                            <div class="progress-bar progress-bar-success progress-cache" data-bind="style: {width: Math.round($data.CurrentSize() / ($data.MaxTotal() / 100)) + '%'}"/>
+                            <div class="progress-bar progress-bar-success progress-cache" data-bind="style: {width: cacheManagerPercent(CurrentSize(), MaxTotal()) + '%'}"/>
                         </div>
                     </div>
-                    <div class="box-body jmx-cache" data-bind="with: findByName($data.jmx.Cache(), 'org.exist.management.exist:type=CacheManager.Cache,name=dom.dbx,cache-type=BTREE')">
+                    <!-- ko foreach: dbxCaches($data.jmx.Cache()) -->
+                    <div class="box-body jmx-cache">
                         <div class="clearfix">
-                            <span class="pull-left">dom.dbx (BTree)</span>
+                            <span class="pull-left" data-bind="text: cacheDisplayName(name())"/>
                             <small class="pull-right">
-                                <span class="cache-stats"> Size: <span data-bind="text: Size">0</span> / Used: <span data-bind="text: Used">0</span> /
-                                    Fails: <span data-bind="text: Fails">0</span> / Hits: <span data-bind="text: Hits">0</span>
+                                <span class="cache-stats">
+                                    Size: <span data-bind="text: Size">0</span> /
+                                    Used: <span data-bind="text: Used">0</span> /
+                                    Fails: <span data-bind="text: Fails">0</span> /
+                                    Hits: <span data-bind="text: Hits">0</span> /
+                                    Hit rate: <span data-bind="text: cacheHitRate(Hits(), Fails())">—</span>
                                 </span>
                             </small>
                         </div>
                         <div class="progress xs">
-                            <div class="progress-bar progress-bar-info progress-cache" data-bind="style: {width: Math.round($data.Used() / ($data.Size() / 100)) + '%'}"/>
+                            <div class="progress-bar progress-bar-info progress-cache" data-bind="style: {width: cacheUsedPercent(Used(), Size()) + '%'}"/>
                         </div>
                     </div>
-                    <div class="box-body jmx-cache" data-bind="with: findByName($data.jmx.Cache(), 'org.exist.management.exist:type=CacheManager.Cache,name=structure.dbx,cache-type=BTREE')">
-                        <div class="clearfix">
-                            <span class="pull-left">structure.dbx (BTree)</span>
-                            <small class="pull-right">
-                                <span class="cache-stats"> Size: <span data-bind="text: Size">0</span> / Used: <span data-bind="text: Used">0</span> /
-                                    Fails: <span data-bind="text: Fails">0</span> / Hits: <span data-bind="text: Hits">0</span>
-                                </span>
-                            </small>
-                        </div>
-                        <div class="progress xs">
-                            <div class="progress-bar progress-bar-info progress-cache" data-bind="style: {width: Math.round($data.Used() / ($data.Size() / 100)) + '%'}"/>
-                        </div>
-                    </div>
-                    <div class="box-body jmx-cache" data-bind="with: findByName($data.jmx.Cache(), 'org.exist.management.exist:type=CacheManager.Cache,name=collections.dbx,cache-type=BTREE')">
-                        <div class="clearfix">
-                            <span class="pull-left">collections.dbx (BTree)</span>
-                            <small class="pull-right">
-                                <span class="cache-stats"> Size: <span data-bind="text: Size">0</span> / Used: <span data-bind="text: Used">0</span> /
-                                    Fails: <span data-bind="text: Fails">0</span> / Hits: <span data-bind="text: Hits">0</span>
-                                </span>
-                            </small>
-                        </div>
-                        <div class="progress xs">
-                            <div class="progress-bar progress-bar-info progress-cache" data-bind="style: {width: Math.round($data.Used() / ($data.Size() / 100)) + '%'}"/>
-                        </div>
-                    </div>
-                    <div class="box-body jmx-cache" data-bind="with: findByName($data.jmx.Cache(), 'org.exist.management.exist:type=CacheManager.Cache,name=values.dbx,cache-type=BTREE')">
-                        <div class="clearfix">
-                            <span class="pull-left">values.dbx (BTree)</span>
-                            <small class="pull-right">
-                                <span class="cache-stats"> Size: <span data-bind="text: Size">0</span> / Used: <span data-bind="text: Used">0</span> /
-                                    Fails: <span data-bind="text: Fails">0</span> / Hits: <span data-bind="text: Hits">0</span>
-                                </span>
-                            </small>
-                        </div>
-                        <div class="progress xs">
-                            <div class="progress-bar progress-bar-info progress-cache" data-bind="style: {width: Math.round($data.Used() / ($data.Size() / 100)) + '%'}"/>
-                        </div>
-                    </div>
+                    <!-- /ko -->
                 </div>
                 <div class="box box-info">
                     <div class="box-header">
@@ -382,8 +349,8 @@
         </div>
     </section>
     <pre id="jmx-data" style="display: none" data-template="app:load-record"/>
-    <link rel="stylesheet" type="text/css" href="resources/DataTables-1.10.7/media/css/dataTables.bootstrap.css"></script>
-    <link rel="stylehseet" type="text/css" href="resources/DataTables-1.10.7/media/css/jquery.dataTables.min.css"></script>
+    <link rel="stylesheet" type="text/css" href="resources/DataTables-1.10.7/media/css/dataTables.bootstrap.css"/>
+    <link rel="stylesheet" type="text/css" href="resources/DataTables-1.10.7/media/css/jquery.dataTables.min.css"/>
     <script type="text/javascript" src="resources/scripts/modernizr.custom.js"></script>
     <script type="text/javascript" src="resources/scripts/knockout-latest.js"></script>
     <script type="text/javascript" src="resources/scripts/knockout.mapping.js"></script>

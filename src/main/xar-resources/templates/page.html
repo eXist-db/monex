@@ -46,7 +46,7 @@
                             <li id="notifications" class="dropdown notifications-menu" data-bind="visible: $data.instances().length &gt; 0">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                                     <i class="fa" data-bind="css: { 'fa-warning': $data.warnings() &gt; 0, 'fa-check': $data.warnings() == 0}"/>
-                                    <span data-bind="text: warnings" class="label label-warning"/>
+                                    <span data-bind="visible: warnings, text: warnings" class="label label-warning"/>
                                 </a>
                                 <ul class="dropdown-menu">
                                     <li>
