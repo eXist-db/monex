@@ -1,0 +1,30 @@
+src/main/xar-resources/resources/scripts/exadmin.js
+  s_12ba9537e61ac7::t_837c1f361f5ed3 494,496-500,504,508
+src/main/xar-resources/resources/scripts/util.js
+  s_12ba9537e61ac7::t_205ece857472b9 83-111
+  s_12ba9537e61ac7::t_51166c849318bd 194-196
+src/test/cypress/support/commands.js
+  s_12ba9537e61ac7::t_58a79b3fd569de 64-77,79,88-96
+  s_12ba9537e61ac7::t_951a0aaa226361 59-63,78,80-87,97-117
+src/test/cypress/plugins/index.js
+  s_12ba9537e61ac7::t_8167eb378eb8a6 19-30
+src/test/cypress/e2e/monitoring_spec.cy.js
+  s_12ba9537e61ac7::t_460e7268b67d3f 94-107,110-112,116,120-125,131
+  s_12ba9537e61ac7::t_f2df537bd26204 108-109,113-115,117-119,126-130
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "a3eee0f4d95bdb9d6cfef5ab3838c1732219ec0f",
+  "prompts": {},
+  "sessions": {
+    "s_12ba9537e61ac7": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "844524c2-10c0-461d-af7c-9e33465ffc79",
+        "model": "composer-2.5"
+      },
+      "human_author": null
+    }
+  }
+}
