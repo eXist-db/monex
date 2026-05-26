@@ -1,0 +1,40 @@
+src/test/cypress/support/commands.js
+  s_12ba9537e61ac7::t_3afad87e55322b 58-76
+src/main/xar-resources/indexes-test/collection.xconf
+  s_12ba9537e61ac7::t_710ab12d51c652 11-16
+src/main/xar-resources/resources/scripts/util.js
+  s_12ba9537e61ac7::t_9adfc0e451f2c3 141-142
+  s_12ba9537e61ac7::t_a68524af876d27 163-165
+  s_12ba9537e61ac7::t_85749cb30dca2d 8-81
+src/test/cypress/e2e/console_spec.cy.js
+  s_12ba9537e61ac7::t_349aa826d14406 28-29,48-49,104
+src/main/xar-resources/timelines.html
+  s_12ba9537e61ac7::t_ec8e7fa8cddce7 111-141
+README.md
+  s_12ba9537e61ac7::t_dd862a7926f959 13,15,20
+src/main/xar-resources/modules/app.xql
+  s_12ba9537e61ac7::t_2e60b1bd8dc62d 62-63
+  s_12ba9537e61ac7::t_e3d8c7407ba186 43-50
+src/main/xar-resources/index.html
+  s_12ba9537e61ac7::t_2f419a2f2be097 383
+src/test/cypress/e2e/indexes_spec.cy.js
+  s_12ba9537e61ac7::t_48eb9fe82bb593 8-11,13-29
+src/main/xar-resources/details.html
+  s_12ba9537e61ac7::t_f777df5e2eadcb 35-60,62-66,68,71-94,97-99,128-133,144-149,162-164,166-167,170-289,294-312
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "c0e0318cee3d77ee64c03e1ea7df18d2be5600f8",
+  "prompts": {},
+  "sessions": {
+    "s_12ba9537e61ac7": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "844524c2-10c0-461d-af7c-9e33465ffc79",
+        "model": "composer-2.5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
