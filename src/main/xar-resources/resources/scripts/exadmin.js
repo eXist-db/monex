@@ -337,7 +337,10 @@ function waitingThreadCount(jmx) {
     }
     if (jmx.LockManager && jmx.LockManager.WaitingThreads) {
         var waiting = jmx.LockManager.WaitingThreads;
-        return (ko.isObservable(waiting) ? waiting() : waiting).length || 0;
+        var rows = ko.isObservable(waiting) ? waiting() : waiting;
+        return rows.filter(function(row) {
+            return !JMX.util.activityRowEnded(row);
+        }).length || 0;
     }
     if (jmx.LockTable && jmx.LockTable.Attempting) {
         var attempting = jmx.LockTable.Attempting;
@@ -352,6 +355,327 @@ function waitingThreadsList(jmx) {
     }
     var waiting = jmx.LockManager.WaitingThreads;
     return ko.isObservable(waiting) ? waiting() : waiting;
+}
+
+function bufferedWaitingThreadCount(jmx) {
+    return waitingThreadsList(jmx).length;
+}
+
+function runningQueriesList(jmx) {
+    if (!jmx || !jmx.ProcessReport || !jmx.ProcessReport.RunningQueries) {
+        return [];
+    }
+    var queries = jmx.ProcessReport.RunningQueries;
+    return ko.isObservable(queries) ? queries() : queries;
+}
+
+function activityRowEnded(row) {
+    return JMX.util.activityRowEnded(row);
+}
+
+function activityUriHref(baseUrl, row) {
+    var uri = JMX.util.activityRequestUri(row);
+    if (!uri) {
+        return "#";
+    }
+    if (/^https?:\/\//.test(uri)) {
+        return uri;
+    }
+    return (baseUrl || "") + uri;
+}
+
+function activityUriLabel(row) {
+    return JMX.util.formatActivityUri(JMX.util.activityRequestUri(row));
+}
+
+function activityUriTitle(row) {
+    return JMX.util.activityUriTitle(JMX.util.activityRequestUri(row));
+}
+
+function showKillQuery(row) {
+    if (activityRowEnded(row)) {
+        return false;
+    }
+    return JMX_INSTANCE.name === "localhost" || JMX_INSTANCE.version !== 0;
+}
+
+function buildActivityUriFlyoutContent(fullUri, openHref) {
+    var $flyout = $("#activity-uri-flyout");
+    if (!$flyout.length) {
+        return;
+    }
+    $flyout.find(".activity-uri-flyout-text").text(fullUri || "");
+    var $open = $flyout.find(".activity-uri-flyout-open");
+    if (openHref && openHref !== "#") {
+        $open.attr("href", openHref).show();
+    } else {
+        $open.hide().removeAttr("href");
+    }
+}
+
+function buildActivityStackFlyoutContent(title, stackText) {
+    var $flyout = $("#activity-stack-flyout");
+    if (!$flyout.length) {
+        return;
+    }
+    $flyout.find(".activity-stack-flyout-title").text(title || "Stack trace");
+    $flyout.find(".activity-stack-flyout-text").text(stackText || "");
+}
+
+function activityRowFlyoutKey(row) {
+    if (!row) {
+        return "";
+    }
+    var parts = [
+        JMX.util.jmxFieldText(JMX.util.runningQueryField(row, "id")),
+        JMX.util.jmxFieldText(JMX.util.runningQueryField(row, "thread")),
+        JMX.util.jmxFieldText(JMX.util.runningQueryField(row, "mostRecentExecutionTime")),
+        JMX.util.jmxFieldText(JMX.util.runningQueryField(row, "sourceKey")),
+        JMX.util.jmxFieldText(JMX.util.runningQueryField(row, "owner"))
+    ];
+    var key = "";
+    var i;
+    for (i = 0; i < parts.length; i++) {
+        if (parts[i]) {
+            key += (key ? "|" : "") + parts[i];
+        }
+    }
+    return key;
+}
+
+function applyActivityRowFlyoutKeys(node, data) {
+    var rowKey = activityRowFlyoutKey(data);
+    if (!rowKey) {
+        return;
+    }
+    $(node).find(".activity-uri-link").attr("data-flyout-key", "uri:" + rowKey);
+    $(node).find(".stack").attr("data-flyout-key", "stack:" + rowKey);
+}
+
+function findActivityFlyoutAnchor(state) {
+    if (!state || !state.key) {
+        return $();
+    }
+    var selector = state.type === "uri" ? ".activity-uri-link" : ".stack";
+    return $("#dashboard, #details").find(selector).filter(function() {
+        return $(this).attr("data-flyout-key") === state.key;
+    }).first();
+}
+
+var activityFlyoutState = null;
+var activityFlyoutAnchors = {};
+var activityFlyoutSuppressDismissUntil = 0;
+
+function suppressActivityFlyoutDismiss() {
+    activityFlyoutSuppressDismissUntil = Date.now() + 250;
+}
+
+function shouldSuppressActivityFlyoutDismiss() {
+    return Date.now() < activityFlyoutSuppressDismissUntil;
+}
+
+function dismissActivityFlyouts() {
+    $("#activity-uri-flyout, #activity-stack-flyout").each(function() {
+        var $flyout = $(this);
+        $flyout.hide().attr("aria-hidden", "true");
+    });
+    activityFlyoutAnchors = {};
+    activityFlyoutState = null;
+}
+
+function dismissActivityUriFlyout() {
+    dismissActivityFlyouts();
+}
+
+function positionActivityFlyout($flyout, $anchor) {
+    if (!$flyout.length || !$anchor.length) {
+        return;
+    }
+    var maxWidth = $flyout.hasClass("activity-stack-flyout") ? 640 : 480;
+    var rect = $anchor[0].getBoundingClientRect();
+    var flyoutWidth = Math.min(maxWidth, window.innerWidth - 24);
+    var left = Math.max(12, Math.min(rect.left, window.innerWidth - flyoutWidth - 12));
+    var top = rect.bottom + 6;
+    $flyout.css({
+        position: "fixed",
+        left: left + "px",
+        top: top + "px",
+        width: flyoutWidth + "px",
+        zIndex: 1050
+    });
+    $flyout.show().attr("aria-hidden", "false");
+    var flyoutBottom = $flyout[0].getBoundingClientRect().bottom;
+    if (flyoutBottom > window.innerHeight - 12) {
+        top = Math.max(12, rect.top - 6 - $flyout.outerHeight());
+        $flyout.css("top", top + "px");
+    }
+}
+
+function isActivityFlyoutOpen($flyout, $anchor) {
+    return $flyout.is(":visible") && activityFlyoutState &&
+        activityFlyoutState.id === $flyout.attr("id") &&
+        activityFlyoutState.key === ($anchor.attr("data-flyout-key") || "");
+}
+
+function rememberActivityFlyout($flyout, $anchor, type) {
+    var key = $anchor.attr("data-flyout-key");
+    if (!key) {
+        key = type + ":" + ($anchor.attr("data-uri-full") || $anchor.attr("data-stack-title") || $anchor.text());
+        $anchor.attr("data-flyout-key", key);
+    }
+    activityFlyoutState = {
+        id: $flyout.attr("id"),
+        type: type,
+        key: key
+    };
+    activityFlyoutAnchors[$flyout.attr("id")] = $anchor[0];
+}
+
+function showActivityUriFlyout($anchor) {
+    dismissActivityFlyouts();
+    buildActivityUriFlyoutContent(
+        $anchor.attr("data-uri-full") || "",
+        $anchor.attr("data-uri-href") || "#"
+    );
+    var $flyout = $("#activity-uri-flyout");
+    rememberActivityFlyout($flyout, $anchor, "uri");
+    positionActivityFlyout($flyout, $anchor);
+    suppressActivityFlyoutDismiss();
+}
+
+function showActivityStackFlyout($anchor) {
+    dismissActivityFlyouts();
+    buildActivityStackFlyoutContent(
+        $anchor.attr("data-stack-title") || "",
+        $anchor.attr("data-stack-text") || ""
+    );
+    var $flyout = $("#activity-stack-flyout");
+    rememberActivityFlyout($flyout, $anchor, "stack");
+    positionActivityFlyout($flyout, $anchor);
+    suppressActivityFlyoutDismiss();
+}
+
+function refreshActivityFlyoutAnchors() {
+    if (!activityFlyoutState) {
+        return;
+    }
+    var $flyout = $("#" + activityFlyoutState.id);
+    if (!$flyout.length || !$flyout.is(":visible")) {
+        return;
+    }
+    var $anchor = findActivityFlyoutAnchor(activityFlyoutState);
+    if (!$anchor.length) {
+        dismissActivityFlyouts();
+        return;
+    }
+    activityFlyoutAnchors[activityFlyoutState.id] = $anchor[0];
+    positionActivityFlyout($flyout, $anchor);
+}
+
+function reconcileActivityFlyouts() {
+    refreshActivityFlyoutAnchors();
+}
+
+function cleanupActivityOverlays() {
+    reconcileActivityFlyouts();
+    $(".source-key").each(function() {
+        var $el = $(this);
+        if ($el.data("bs.tooltip")) {
+            $el.tooltip("hide");
+        }
+    });
+    $("body > .tooltip, #dashboard .tooltip, #details .tooltip").remove();
+    $("body > .popover.in, #dashboard .popover.in, #details .popover.in").remove();
+}
+
+function initActivityFlyouts() {
+    if ($("body").data("activityFlyoutsInit")) {
+        return;
+    }
+    $("body").data("activityFlyoutsInit", true);
+
+    $(document).on("click.activityFlyout", ".activity-uri-link", function(ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        var $anchor = $(this);
+        var $flyout = $("#activity-uri-flyout");
+        if (isActivityFlyoutOpen($flyout, $anchor)) {
+            dismissActivityFlyouts();
+        } else {
+            showActivityUriFlyout($anchor);
+        }
+    });
+
+    $(document).on("click.activityFlyout", ".stack", function(ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        var $anchor = $(this);
+        var $flyout = $("#activity-stack-flyout");
+        if (isActivityFlyoutOpen($flyout, $anchor)) {
+            dismissActivityFlyouts();
+        } else {
+            showActivityStackFlyout($anchor);
+        }
+    });
+
+    $("#activity-uri-flyout, #activity-stack-flyout").on("click.activityFlyout", function(ev) {
+        ev.stopPropagation();
+    });
+
+    $("#activity-uri-flyout").on("click.activityFlyout", ".activity-uri-flyout-close", function(ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        dismissActivityFlyouts();
+    });
+
+    $("#activity-stack-flyout").on("click.activityFlyout", ".activity-stack-flyout-close", function(ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        dismissActivityFlyouts();
+    });
+
+    $(document).on("click.activityFlyout", function(ev) {
+        if (shouldSuppressActivityFlyoutDismiss()) {
+            return;
+        }
+        if ($(ev.target).closest("#activity-uri-flyout, .activity-uri-link, #activity-stack-flyout, .stack").length) {
+            return;
+        }
+        dismissActivityFlyouts();
+    });
+
+    $(document).on("keydown.activityFlyout", function(ev) {
+        if (ev.key === "Escape") {
+            dismissActivityFlyouts();
+        }
+    });
+
+    $(window).on("scroll.activityFlyout resize.activityFlyout", function() {
+        refreshActivityFlyoutAnchors();
+    });
+}
+
+function stackTraceText(row) {
+    return JMX.util.jmxFieldText(row && row.stack);
+}
+
+function stackTraceTitle(row) {
+    return JMX.util.jmxFieldText(row && row.owner) || "Stack trace";
+}
+
+function initActivityRow(node, data) {
+    if (data) {
+        addKillBtn(node, data);
+        applyActivityRowFlyoutKeys(node, data);
+    }
+    $(node).find(".source-key").each(function() {
+        var $el = $(this);
+        if ($el.data("bs.tooltip")) {
+            $el.tooltip("destroy");
+        }
+        $el.tooltip({ container: "body", trigger: "hover" });
+    });
+    refreshActivityFlyoutAnchors();
 }
 
 var JMX_KPI_THRESHOLDS = {
@@ -386,11 +710,40 @@ function maxBrokerCount(jmx) {
 }
 
 function runningQueryCount(jmx) {
-    if (!jmx || !jmx.ProcessReport || !jmx.ProcessReport.RunningQueries) {
+    var queries = runningQueriesList(jmx);
+    return queries.filter(function(row) {
+        return !activityRowEnded(row);
+    }).length || 0;
+}
+
+function bufferedRunningQueryCount(jmx) {
+    return runningQueriesList(jmx).length;
+}
+
+function bufferedRecentQueryCount(jmx) {
+    if (!jmx || !jmx.ProcessReport || !jmx.ProcessReport.RecentQueryHistory) {
         return 0;
     }
-    var queries = jmx.ProcessReport.RunningQueries;
-    return (ko.isObservable(queries) ? queries() : queries).length || 0;
+    var recent = jmx.ProcessReport.RecentQueryHistory;
+    return (ko.isObservable(recent) ? recent() : recent).length || 0;
+}
+
+function revealRunningQueries(liveCount) {
+    if (!liveCount || liveCount <= 0) {
+        return;
+    }
+    var panelScroll = document.querySelector(".activity-panel-scroll");
+    if (panelScroll) {
+        panelScroll.scrollTop = 0;
+    }
+    var workload = document.querySelector(".workload-panel");
+    if (workload && workload.scrollIntoView) {
+        workload.scrollIntoView({ block: "nearest", inline: "nearest" });
+    }
+    var liveRow = document.querySelector(".running-queries tbody tr:not(.activity-row-ended)");
+    if (liveRow && liveRow.scrollIntoView) {
+        liveRow.scrollIntoView({ block: "nearest", inline: "nearest" });
+    }
 }
 
 function kpiLevel(metric, value, jmx) {
@@ -491,8 +844,13 @@ function updateVectorDiagnostics(model, data) {
 }
 
 function addKillBtn(node, data) {
-    $(node).find(".kill-query").off("click.monexKill").on("click.monexKill", function(ev) {
+    if (data && activityRowEnded(data)) {
+        return;
+    }
+    var $row = $(node);
+    $row.find(".kill-query").off("click.monexKill").on("click.monexKill", function(ev) {
         ev.preventDefault();
+        ev.stopPropagation();
         var queryId = JMX.util.runningQueryKillId(data);
         if (queryId === null) {
             console.error("Cannot kill query: missing numeric id", data);
@@ -508,6 +866,13 @@ function addKillBtn(node, data) {
             JMX.connection.invoke("killQuery", "org.exist.management.exist:type=ProcessReport", [queryId]);
         }
     });
+    if (data && !activityRowEnded(data) && $row.find(".kill-query").length) {
+        var $scroll = $row.closest(".activity-table-scroll");
+        var $firstLive = $scroll.find(".running-queries tbody tr:not(.activity-row-ended)").first();
+        if ($firstLive.length && $firstLive[0] === $row[0] && $row[0].scrollIntoView) {
+            $row[0].scrollIntoView({ block: "nearest", inline: "nearest" });
+        }
+    }
 }
 
 function uptime(data) {
@@ -693,6 +1058,7 @@ JMX.connection = (function() {
     var onUpdateCb;
     var poll = true;
     var pollPeriod = 1000;
+    var lastLiveRunningQueryCount = 0;
 
     function Instance(config, schedulerActive) {
         this.name = ko.observable(config.name);
@@ -867,11 +1233,7 @@ JMX.connection = (function() {
                                 viewModel.expandAllCaches = function() {
                                     viewModel.showAllCaches(true);
                                 };
-                                if (data.jmx.ProcessReport && data.jmx.ProcessReport.TrackRequestURI !== undefined) {
-                                    JMX.util.initRecentQueryForm(data.jmx.ProcessReport);
-                                } else {
-                                    $("#configure-history-wrap").hide();
-                                }
+                                JMX.util.initActivityPanelSettings(data.jmx.ProcessReport);
                                 if (name == "localhost") {
                                     viewModel.url = "";
                                 } else {
@@ -893,8 +1255,14 @@ JMX.connection = (function() {
                                     });
                                 }
                             } else {
+                                cleanupActivityOverlays();
                                 ko.mapping.fromJS(data, viewModel);
                             }
+                            var liveRunning = runningQueryCount(data.jmx);
+                            if (liveRunning > lastLiveRunningQueryCount) {
+                                revealRunningQueries(liveRunning);
+                            }
+                            lastLiveRunningQueryCount = liveRunning;
                         }
                         if (onUpdate) {
                             onUpdate(data);
@@ -991,6 +1359,7 @@ JMX.connection = (function() {
 }());
 
 $(function() {
+    initActivityFlyouts();
     JMX.connection.init(JMX_INSTANCES, JMX_ACTIVE);
 
     // the following block should only be run on the main dashboard page
@@ -1042,13 +1411,6 @@ $(function() {
             for (var i = 0; i < charts.length; i++) {
                 charts[i].update(data);
             }
-            $(".stack").popover({
-                placement: "auto right",
-                html: true,
-                container: "#dashboard",
-                trigger: "focus",
-                template: '<div class="popover stacktrace" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><pre class="popover-content"></pre></div>'
-            });
         });
         $("#dashboard").on("expanded.boxwidget", ".box", function() {
             redrawCharts();

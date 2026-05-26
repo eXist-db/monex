@@ -5,8 +5,8 @@
 var JMX = {};
 
 JMX.util = (function() {
-    var RECENT_QUERY_MIN_DISPLAY_MS = 300000;
-    var recentQueryStore = {};
+    var DISPLAY_RETENTION_STORAGE_KEY = "monex.activityDisplayRetentionMs";
+    var DEFAULT_DISPLAY_RETENTION_MS = 300000;
 
     var THRESHOLD_PRESETS = [
         { label: "100 ms", ms: 100 },
@@ -22,11 +22,24 @@ JMX.util = (function() {
         { label: "10 minutes", ms: 600000 }
     ];
 
+    var DISPLAY_RETENTION_PRESETS = [
+        { label: "1 minute", ms: 60000 },
+        { label: "2 minutes", ms: 120000 },
+        { label: "5 minutes", ms: 300000 },
+        { label: "10 minutes", ms: 600000 }
+    ];
+
     var savedThresholdMs = 100;
     var savedServerHistoryTimespanMs = 120000;
     var savedTrackUri = false;
+    var savedDisplayRetentionMs = DEFAULT_DISPLAY_RETENTION_MS;
     var recentQueryFormBound = false;
+    var displayRetentionFormBound = false;
     var configureStatusTimer = null;
+
+    var runningQueryBuffer = createActivityBuffer();
+    var waitingThreadBuffer = createActivityBuffer();
+    var recentQueryBuffer = createActivityBuffer();
 
     function parsePositiveInt(value, fallback) {
         var parsed = parseInt(value, 10);
@@ -46,6 +59,109 @@ JMX.util = (function() {
         return "custom";
     }
 
+    function readStoredDisplayRetentionMs() {
+        if (typeof window === "undefined" || !window.localStorage) {
+            return DEFAULT_DISPLAY_RETENTION_MS;
+        }
+        try {
+            return parsePositiveInt(
+                window.localStorage.getItem(DISPLAY_RETENTION_STORAGE_KEY),
+                DEFAULT_DISPLAY_RETENTION_MS
+            );
+        } catch (err) {
+            return DEFAULT_DISPLAY_RETENTION_MS;
+        }
+    }
+
+    function persistDisplayRetentionMs(ms) {
+        savedDisplayRetentionMs = ms;
+        if (typeof window !== "undefined" && window.localStorage) {
+            try {
+                window.localStorage.setItem(DISPLAY_RETENTION_STORAGE_KEY, String(ms));
+            } catch (err) {
+                // ignore quota / privacy mode
+            }
+        }
+    }
+
+    function dashboardDisplayRetentionMs() {
+        return savedDisplayRetentionMs;
+    }
+
+    function createActivityBuffer() {
+        var store = {};
+
+        function purgeAndCollect(retentionMs, now) {
+            var merged = [];
+            for (var key in store) {
+                if (!Object.prototype.hasOwnProperty.call(store, key)) {
+                    continue;
+                }
+                var entry = store[key];
+                var anchor = entry.activityEnded ? entry.endedAt : entry.lastSeenAt;
+                if (now - anchor > retentionMs) {
+                    delete store[key];
+                    continue;
+                }
+                var out = {};
+                for (var field in entry.data) {
+                    if (Object.prototype.hasOwnProperty.call(entry.data, field)) {
+                        out[field] = entry.data[field];
+                    }
+                }
+                out.activityEnded = entry.activityEnded;
+                merged.push(out);
+            }
+            return merged;
+        }
+
+        return {
+            merge: function(incoming, keyFn, normalizeFn, sortFn) {
+                var retentionMs = dashboardDisplayRetentionMs();
+                var now = Date.now();
+                var incomingKeys = {};
+                var rows = incoming || [];
+
+                for (var i = 0; i < rows.length; i++) {
+                    var normalized = normalizeFn(rows[i]);
+                    if (!normalized) {
+                        continue;
+                    }
+                    var key = keyFn(normalized, rows[i]);
+                    if (!key) {
+                        continue;
+                    }
+                    incomingKeys[key] = true;
+                    store[key] = {
+                        data: normalized,
+                        lastSeenAt: now,
+                        endedAt: null,
+                        activityEnded: false
+                    };
+                }
+
+                for (var storeKey in store) {
+                    if (!Object.prototype.hasOwnProperty.call(store, storeKey)) {
+                        continue;
+                    }
+                    if (!incomingKeys[storeKey] && !store[storeKey].activityEnded) {
+                        store[storeKey].activityEnded = true;
+                        store[storeKey].endedAt = now;
+                    }
+                }
+
+                var merged = purgeAndCollect(retentionMs, now);
+                if (sortFn) {
+                    merged.sort(sortFn);
+                }
+                return merged;
+            },
+            reset: function() {
+                store = {};
+            }
+        };
+    }
+
     function recentQueryKey(row) {
         return [
             row.mostRecentExecutionTime,
@@ -54,60 +170,141 @@ JMX.util = (function() {
         ].join("\0");
     }
 
+    function jmxFieldText(value) {
+        value = observableValue(value);
+        if (value === undefined || value === null || value === "") {
+            return "";
+        }
+        if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+            return String(value);
+        }
+        if (typeof value === "object") {
+            if (typeof value["#text"] === "string") {
+                return value["#text"];
+            }
+            var keys = Object.keys(value);
+            for (var i = 0; i < keys.length; i++) {
+                var key = keys[i];
+                if (key.indexOf(":") === -1 && typeof value[key] === "string") {
+                    return value[key];
+                }
+            }
+        }
+        return "";
+    }
+
     function normalizeRecentQueryRow(row) {
         if (!row) {
             return null;
         }
-        var time = row.mostRecentExecutionTime;
-        if (time === undefined && row.value) {
-            time = row.value.mostRecentExecutionTime;
-        }
-        if (time === undefined || time === null || time === "") {
+        var time = jmxFieldText(runningQueryField(row, "mostRecentExecutionTime"));
+        if (!time) {
             return null;
         }
         return {
-            mostRecentExecutionTime: String(time),
-            mostRecentExecutionDuration: String(row.mostRecentExecutionDuration || (row.value && row.value.mostRecentExecutionDuration) || ""),
-            sourceKey: row.sourceKey || (row.value && row.value.sourceKey) || "",
-            requestURI: row.requestURI || (row.value && row.value.requestURI) || ""
+            mostRecentExecutionTime: time,
+            mostRecentExecutionDuration: jmxFieldText(runningQueryField(row, "mostRecentExecutionDuration")),
+            sourceKey: jmxFieldText(runningQueryField(row, "sourceKey")),
+            requestURI: jmxFieldText(runningQueryField(row, "requestURI"))
         };
     }
 
-    function recentQueryDisplayRetentionMs() {
-        return Math.max(savedServerHistoryTimespanMs, RECENT_QUERY_MIN_DISPLAY_MS);
+    function normalizeRunningQueryRow(row) {
+        if (!row) {
+            return null;
+        }
+        var id = runningQueryField(row, "id");
+        var thread = runningQueryField(row, "thread");
+        if ((id === undefined || id === null || id === "") && !thread) {
+            return null;
+        }
+        return {
+            id: id !== undefined && id !== null ? jmxFieldText(id) : "",
+            thread: thread !== undefined && thread !== null ? jmxFieldText(thread) : "",
+            sourceKey: jmxFieldText(runningQueryField(row, "sourceKey")),
+            requestURI: jmxFieldText(runningQueryField(row, "requestURI")),
+            terminating: jmxFieldText(runningQueryField(row, "terminating")) || "false"
+        };
+    }
+
+    function runningQueryBufferKey(normalized) {
+        if (normalized.id) {
+            return "rq:" + normalized.id;
+        }
+        if (normalized.thread) {
+            return "rq:t:" + normalized.thread;
+        }
+        return null;
+    }
+
+    function normalizeWaitingThreadRow(row) {
+        if (!row) {
+            return null;
+        }
+        var id = row.id;
+        if (id === undefined && row.value) {
+            id = row.value.id;
+        }
+        if (id === undefined || id === null || id === "") {
+            return null;
+        }
+        var owner = row.owner;
+        if (owner === undefined && row.value) {
+            owner = row.value.owner;
+        }
+        var waitingThread = row.waitingThread;
+        if (waitingThread === undefined && row.value) {
+            waitingThread = row.value.waitingThread;
+        }
+        return {
+            id: String(id),
+            owner: String(owner || ""),
+            waitingThread: waitingThread !== undefined && waitingThread !== null ? String(waitingThread) : ""
+        };
+    }
+
+    function waitingThreadBufferKey(normalized) {
+        return normalized.id ? "wt:" + normalized.id : null;
+    }
+
+    function sortEndedRowsLiveFirst(a, b) {
+        if (!!a.activityEnded !== !!b.activityEnded) {
+            return a.activityEnded ? 1 : -1;
+        }
+        return String(a.id || a.thread || "").localeCompare(String(b.id || b.thread || ""));
+    }
+
+    function sortRecentQueriesNewestFirst(a, b) {
+        return parseInt(b.mostRecentExecutionTime, 10) - parseInt(a.mostRecentExecutionTime, 10);
+    }
+
+    function mergeRunningQueries(incoming) {
+        return runningQueryBuffer.merge(
+            incoming,
+            runningQueryBufferKey,
+            normalizeRunningQueryRow,
+            sortEndedRowsLiveFirst
+        );
+    }
+
+    function mergeWaitingThreads(incoming) {
+        return waitingThreadBuffer.merge(
+            incoming,
+            waitingThreadBufferKey,
+            normalizeWaitingThreadRow,
+            sortEndedRowsLiveFirst
+        );
     }
 
     function mergeRecentQueryHistory(incoming) {
-        var retention = recentQueryDisplayRetentionMs();
-        var now = Date.now();
-        var rows = incoming || [];
-        for (var i = 0; i < rows.length; i++) {
-            var normalized = normalizeRecentQueryRow(rows[i]);
-            if (normalized) {
-                recentQueryStore[recentQueryKey(normalized)] = normalized;
-            }
-        }
-        var merged = [];
-        for (var key in recentQueryStore) {
-            if (!Object.prototype.hasOwnProperty.call(recentQueryStore, key)) {
-                continue;
-            }
-            var entry = recentQueryStore[key];
-            var executedAt = parseInt(entry.mostRecentExecutionTime, 10);
-            if (isNaN(executedAt)) {
-                delete recentQueryStore[key];
-                continue;
-            }
-            if (now - executedAt <= retention) {
-                merged.push(entry);
-            } else {
-                delete recentQueryStore[key];
-            }
-        }
-        merged.sort(function(a, b) {
-            return parseInt(b.mostRecentExecutionTime, 10) - parseInt(a.mostRecentExecutionTime, 10);
-        });
-        return merged;
+        return recentQueryBuffer.merge(
+            incoming,
+            function(normalized) {
+                return recentQueryKey(normalized);
+            },
+            normalizeRecentQueryRow,
+            sortRecentQueriesNewestFirst
+        );
     }
 
     function populatePresetSelect($select, presets) {
@@ -147,6 +344,33 @@ JMX.util = (function() {
 
     function readTrackUri() {
         return $("#track-uri").is(":checked");
+    }
+
+    function readDisplayRetentionMs() {
+        var preset = $("#display-retention-preset").val();
+        if (preset === "custom") {
+            var minutes = parsePositiveInt(
+                $("#display-retention-custom").val(),
+                Math.round(savedDisplayRetentionMs / 60000)
+            );
+            return minutes * 60000;
+        }
+        return parsePositiveInt(preset, savedDisplayRetentionMs);
+    }
+
+    function populateDisplayRetentionForm() {
+        if (typeof $ === "undefined") {
+            return;
+        }
+        $("#display-retention-preset").val(presetValueForMs(savedDisplayRetentionMs, DISPLAY_RETENTION_PRESETS));
+        if ($("#display-retention-preset").val() === "custom") {
+            $("#display-retention-custom").val(Math.max(1, Math.round(savedDisplayRetentionMs / 60000)));
+        }
+        toggleCustomWrap($("#display-retention-preset"), $("#display-retention-custom-wrap"));
+    }
+
+    function applyDisplayRetentionFromForm() {
+        persistDisplayRetentionMs(readDisplayRetentionMs());
     }
 
     function setConfigureStatus(message, className) {
@@ -209,11 +433,10 @@ JMX.util = (function() {
     }
 
     function syncRecentQueryFromReport(report) {
-        if (!report) {
+        if (!report || typeof $ === "undefined" || !$("#threshold-preset").length) {
             return;
         }
-        var historyMs = parsePositiveInt(report.HistoryTimespan, savedServerHistoryTimespanMs);
-        savedServerHistoryTimespanMs = historyMs;
+        savedServerHistoryTimespanMs = parsePositiveInt(report.HistoryTimespan, savedServerHistoryTimespanMs);
         if (typeof $ !== "undefined" && !isRecentQueryFormDirty()) {
             populateRecentQueryForm(report);
         }
@@ -234,14 +457,17 @@ JMX.util = (function() {
         updateRecentQueryDirtyState();
     }
 
-    function initRecentQueryForm(report) {
-        if (typeof $ === "undefined") {
+    function bindDisplayRetentionForm() {
+        if (displayRetentionFormBound || typeof $ === "undefined") {
             return;
         }
-        populatePresetSelect($("#threshold-preset"), THRESHOLD_PRESETS);
-        populatePresetSelect($("#history-preset"), HISTORY_PRESETS);
-        populateRecentQueryForm(report);
-        bindRecentQueryForm();
+        displayRetentionFormBound = true;
+
+        $("#display-retention-preset").on("change", function() {
+            toggleCustomWrap($("#display-retention-preset"), $("#display-retention-custom-wrap"));
+            applyDisplayRetentionFromForm();
+        });
+        $("#display-retention-custom").on("change input", applyDisplayRetentionFromForm);
     }
 
     function bindRecentQueryForm() {
@@ -289,6 +515,26 @@ JMX.util = (function() {
         });
     }
 
+    function initActivityPanelSettings(report) {
+        if (typeof $ === "undefined") {
+            return;
+        }
+        savedDisplayRetentionMs = readStoredDisplayRetentionMs();
+        populatePresetSelect($("#display-retention-preset"), DISPLAY_RETENTION_PRESETS);
+        populateDisplayRetentionForm();
+        bindDisplayRetentionForm();
+
+        populatePresetSelect($("#threshold-preset"), THRESHOLD_PRESETS);
+        populatePresetSelect($("#history-preset"), HISTORY_PRESETS);
+        bindRecentQueryForm();
+
+        if (report && report.TrackRequestURI !== undefined) {
+            populateRecentQueryForm(report);
+        } else {
+            $("#configure-history-wrap").hide();
+        }
+    }
+
     function observableValue(value) {
         if (value && typeof ko !== "undefined" && ko.isObservable(value)) {
             return value();
@@ -316,6 +562,70 @@ JMX.util = (function() {
         }
         var parsed = parseInt(id, 10);
         return isNaN(parsed) ? null : parsed;
+    }
+
+    function formatActivityUri(uri) {
+        if (!uri || uri === "#") {
+            return "—";
+        }
+        var label = uri;
+        try {
+            label = decodeURIComponent(uri);
+        } catch (err) {
+            label = uri;
+        }
+
+        var rest = label.match(/\/(?:exist\/)?rest\/([^/?]+)(?:\?(.*))?$/);
+        if (rest) {
+            var collection = rest[1];
+            var query = rest[2] || "";
+            if (query.indexOf("_query=") !== -1) {
+                return "REST · " + collection + " · XQuery";
+            }
+            if (query.indexOf("_xupdate=") !== -1) {
+                return "REST · " + collection + " · XUpdate";
+            }
+            if (query.indexOf("_wrap=") !== -1) {
+                return "REST · " + collection + " · wrap";
+            }
+            return "REST · " + collection;
+        }
+
+        label = label.replace(/^\/exist\//, "");
+
+        if (label.length > 52) {
+            return label.slice(0, 49) + "…";
+        }
+        return label;
+    }
+
+    function activityUriTitle(uri) {
+        if (!uri || uri === "#") {
+            return "";
+        }
+        try {
+            return decodeURIComponent(uri);
+        } catch (err) {
+            return uri;
+        }
+    }
+
+    function activityRequestUri(row) {
+        return jmxFieldText(runningQueryField(row, "requestURI"));
+    }
+
+    function activityRowEnded(row) {
+        if (!row) {
+            return false;
+        }
+        var ended = row.activityEnded;
+        if (ended === true) {
+            return true;
+        }
+        if (typeof ko !== "undefined" && ko.isObservable(ended)) {
+            return ended() === true;
+        }
+        return false;
     }
 
     return {
@@ -367,25 +677,23 @@ JMX.util = (function() {
             if (data.jmx.ProcessReport) {
                 syncRecentQueryFromReport(data.jmx.ProcessReport);
                 var queries = data.jmx.ProcessReport.RunningQueries;
-                if (!queries || !queries.length) {
-                    data.jmx.ProcessReport.RunningQueries = [];
-                }
+                data.jmx.ProcessReport.RunningQueries = mergeRunningQueries(
+                    queries && queries.length ? queries : []
+                );
                 var jobs = data.jmx.ProcessReport.RunningJobs;
                 if (!jobs || !jobs.length) {
                     data.jmx.ProcessReport.RunningJobs = [];
                 }
                 var recent = data.jmx.ProcessReport.RecentQueryHistory;
-                if (!recent || !recent.length) {
-                    data.jmx.ProcessReport.RecentQueryHistory = [];
-                } else {
-                    data.jmx.ProcessReport.RecentQueryHistory = mergeRecentQueryHistory(recent);
-                }
+                data.jmx.ProcessReport.RecentQueryHistory = mergeRecentQueryHistory(
+                    recent && recent.length ? recent : []
+                );
             }
             if (data.jmx.LockManager) {
                 var waiting = data.jmx.LockManager.WaitingThreads;
-                if (!waiting || !waiting.length) {
-                    data.jmx.LockManager.WaitingThreads = [];
-                }
+                data.jmx.LockManager.WaitingThreads = mergeWaitingThreads(
+                    waiting && waiting.length ? waiting : []
+                );
             } else if (data.jmx.LockTable) {
                 var attempting = data.jmx.LockTable.Attempting;
                 if (!attempting || !attempting.length) {
@@ -402,20 +710,38 @@ JMX.util = (function() {
         },
 
         mergeRecentQueryHistory: mergeRecentQueryHistory,
-        recentQueryDisplayRetentionMs: recentQueryDisplayRetentionMs,
-        initRecentQueryForm: initRecentQueryForm,
+        mergeRunningQueries: mergeRunningQueries,
+        mergeWaitingThreads: mergeWaitingThreads,
+        dashboardDisplayRetentionMs: dashboardDisplayRetentionMs,
+        recentQueryDisplayRetentionMs: dashboardDisplayRetentionMs,
+        setDashboardDisplayRetentionMs: persistDisplayRetentionMs,
+        setRecentQueryServerHistory: function(ms) {
+            savedServerHistoryTimespanMs = parsePositiveInt(ms, savedServerHistoryTimespanMs);
+        },
+        resetActivityBuffers: function() {
+            runningQueryBuffer.reset();
+            waitingThreadBuffer.reset();
+            recentQueryBuffer.reset();
+        },
+        initActivityPanelSettings: initActivityPanelSettings,
+        initRecentQueryForm: function(report) {
+            initActivityPanelSettings(report);
+        },
         syncRecentQueryFromReport: syncRecentQueryFromReport,
         readRecentQueryThresholdMs: readThresholdMs,
         readRecentQueryHistoryMs: readHistoryTimespanMs,
         isRecentQueryFormDirty: isRecentQueryFormDirty,
         markRecentQueryConfigSaved: markRecentQueryConfigSaved,
-        setRecentQueryServerHistory: function(ms) {
-            savedServerHistoryTimespanMs = parsePositiveInt(ms, savedServerHistoryTimespanMs);
-        },
+        activityRowEnded: activityRowEnded,
         THRESHOLD_PRESETS: THRESHOLD_PRESETS,
         HISTORY_PRESETS: HISTORY_PRESETS,
-        RECENT_QUERY_MIN_DISPLAY_MS: RECENT_QUERY_MIN_DISPLAY_MS,
+        DISPLAY_RETENTION_PRESETS: DISPLAY_RETENTION_PRESETS,
+        DEFAULT_DISPLAY_RETENTION_MS: DEFAULT_DISPLAY_RETENTION_MS,
         runningQueryField: runningQueryField,
-        runningQueryKillId: runningQueryKillId
+        runningQueryKillId: runningQueryKillId,
+        formatActivityUri: formatActivityUri,
+        activityUriTitle: activityUriTitle,
+        activityRequestUri: activityRequestUri,
+        jmxFieldText: jmxFieldText
     }
 }());

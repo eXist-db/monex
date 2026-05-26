@@ -222,36 +222,44 @@
                             <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"/></button>
                         </div>
                     </div>
-                    <div class="box-body no-padding">
-                        <div class="activity-section" data-bind="visible: runningQueryCount($data.jmx) &gt; 0">
+                    <div class="box-body no-padding activity-panel-body">
+                        <div class="activity-panel-scroll">
+                        <div class="activity-section" data-bind="visible: bufferedRunningQueryCount($data.jmx) &gt; 0">
                             <h4 class="activity-section-title">Running queries</h4>
-                            <div class="scrollable">
-                                <table class="table table-striped running-queries">
+                            <div class="scrollable activity-table-scroll">
+                                <table class="table table-striped running-queries activity-query-table">
                                     <thead>
                                         <tr>
                                             <th>Id</th>
                                             <th>Source</th>
-                                            <th>URI</th>
                                             <th>Status</th>
-                                            <th/>
+                                            <th>URI</th>
+                                            <th class="activity-actions-col" aria-label="Actions"/>
                                         </tr>
                                     </thead>
-                                    <tbody data-bind="foreach: { data: jmx.ProcessReport.RunningQueries, afterRender: addKillBtn }">
-                                        <tr>
-                                            <td data-bind="text: ( $data.thread ?? $data.value.thread ?? $data.id ?? $data.value.id )"/>
-                                            <td>
-                                                <span class="source-key" data-bind="text: ( $data?.sourceKey?.() ?? $data?.value?.sourceKey?.() )?.replace(/^.*\/([^\/]+)$/, '$1') ?? '???', attr: { title: ( $data?.sourceKey?.() ?? $data?.value?.sourceKey?.() ?? '' ) }" data-toggle="tooltip"/>
+                                    <tbody data-bind="foreach: { data: jmx.ProcessReport.RunningQueries, afterRender: initActivityRow }">
+                                        <tr data-bind="css: { 'activity-row-ended': activityEnded }">
+                                            <td class="activity-id-cell" data-bind="text: ( $data.thread ?? $data.value?.thread ?? $data.id ?? $data.value?.id )"/>
+                                            <td class="activity-source-cell">
+                                                <span class="source-key" data-bind="text: ( $data?.sourceKey?.() ?? $data?.value?.sourceKey?.() ?? $data?.sourceKey ?? $data?.value?.sourceKey ?? '' )?.replace(/^.*\/([^\/]+)$/, '$1') ?? '???', attr: { title: ( $data?.sourceKey?.() ?? $data?.value?.sourceKey?.() ?? $data?.sourceKey ?? $data?.value?.sourceKey ?? '' ) }" data-toggle="tooltip"/>
                                             </td>
-                                            <td>
-                                                <a target="_blank" data-bind="attr: { href: $root.url +( $data?.requestURI?.() ?? $data?.value?.requestURI?.() ?? '#') }, text: ($data?.requestURI ?? $data?.value?.requestURI ?? '???')"/>
+                                            <td class="activity-status-cell">
+                                                <!-- ko if: activityEnded -->
+                                                <span class="label label-default">Ended</span>
+                                                <!-- /ko -->
+                                                <!-- ko ifnot: activityEnded -->
+                                                <span class="label" data-bind="text: ( $data?.terminating?.() ?? $data?.value?.terminating?.() ?? $data?.terminating ?? $data?.value?.terminating ?? 'false' ) == 'false' ? 'running' : 'terminating', css: { 'label-success': ( $data?.terminating?.() ?? $data?.value?.terminating?.() ?? $data?.terminating ?? $data?.value?.terminating ?? 'false' ) == 'false', 'label-warning': ( $data?.terminating?.() ?? $data?.value?.terminating?.() ?? $data?.terminating ?? $data?.value?.terminating ?? 'false' ) == 'true' }"/>
+                                                <!-- /ko -->
                                             </td>
-                                            <td>
-                                                <span class="label" data-bind="text: ( $data?.terminating?.() ?? $data?.value?.terminating?.() ?? 'false' ) == 'false' ? 'running' : 'terminating', css: { 'label-success': ( $data?.terminating?.() ?? $data?.value?.terminating?.() ?? 'false' ) == 'false', 'label-warning': ( $data?.terminating?.() ?? $data?.value?.terminating?.() ?? 'false' ) == 'true' }"/>
+                                            <td class="activity-uri-cell">
+                                                <a class="activity-uri-link" href="#" role="button" aria-label="Show full request URI" data-bind="visible: activityUriLabel($data) !== '—', attr: { 'data-uri-full': activityUriTitle($data), 'data-uri-href': activityUriHref($root.url, $data) }, text: activityUriLabel($data)"/>
+                                                <span class="text-muted" data-bind="visible: activityUriLabel($data) === '—'">—</span>
                                             </td>
-                                            <td>
-                                                <a href="#" class="kill-query" title="Kill Query" data-bind="if: JMX_INSTANCE.name == 'localhost' || JMX_INSTANCE.version != 0">
-                                                    <span class="glyphicon glyphicon-remove"/>
-                                                </a>
+                                            <td class="activity-actions-cell">
+                                                <button type="button" class="btn btn-danger btn-xs kill-query" title="Kill query" data-bind="visible: showKillQuery($data)">
+                                                    <span class="glyphicon glyphicon-remove" aria-hidden="true"/>
+                                                    <span class="sr-only">Kill query</span>
+                                                </button>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -259,22 +267,31 @@
                             </div>
                         </div>
 
-                        <div class="activity-section" data-bind="visible: waitingThreadCount($data.jmx) &gt; 0">
+                        <div class="activity-section" data-bind="visible: bufferedWaitingThreadCount($data.jmx) &gt; 0">
                             <h4 class="activity-section-title">Waiting threads</h4>
                             <table class="table table-striped">
                                 <thead>
                                     <tr>
                                         <th>Resource</th>
                                         <th>Waiting for</th>
+                                        <th>Status</th>
                                     </tr>
                                 </thead>
                                 <tbody data-bind="foreach: waitingThreadsList($data.jmx)">
-                                    <tr>
+                                    <tr data-bind="css: { 'activity-row-ended': activityEnded }">
                                         <td data-bind="text: id"/>
                                         <td>
                                             <span data-bind="text: owner"/>
                                             <!-- ko if: waitingThread -->
                                             (<span data-bind="text: waitingThread"/>)
+                                            <!-- /ko -->
+                                        </td>
+                                        <td>
+                                            <!-- ko if: activityEnded -->
+                                            <span class="label label-default">Cleared</span>
+                                            <!-- /ko -->
+                                            <!-- ko ifnot: activityEnded -->
+                                            <span class="label label-warning">Waiting</span>
                                             <!-- /ko -->
                                         </td>
                                     </tr>
@@ -318,9 +335,9 @@
                                     <tr>
                                         <td class="thread" data-bind="text: owner"/>
                                         <td>
-                                            <a class="btn btn-default btn-xs pull-right stack" role="button" tabindex="0" data-bind="attr: { 'data-content': stack, title: owner }" data-toggle="popover">
+                                            <button type="button" class="btn btn-default btn-xs pull-right stack" aria-label="Show stack trace" data-bind="attr: { 'data-stack-title': stackTraceTitle($data), 'data-stack-text': stackTraceText($data) }">
                                                 <i class="fa fa-code"/> Stack
-                                            </a>
+                                            </button>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -332,8 +349,8 @@
                                 Recent queries
                                 <small data-bind="visible: $data.jmx.ProcessReport.MinTimeRecorded">(&gt; <span data-bind="text: jmx.ProcessReport.MinTimeRecorded"/> ms)</small>
                             </h4>
-                            <div class="scrollable">
-                                <table class="table table-striped">
+                            <div class="scrollable activity-table-scroll">
+                                <table class="table table-striped activity-query-table activity-recent-table">
                                     <thead>
                                         <tr>
                                             <th>Time</th>
@@ -347,21 +364,57 @@
                                             <td colspan="4">No recent queries</td>
                                         </tr>
                                     </tbody>
-                                    <tbody id="jmx-recent-queries" data-bind="visible: ( $data?.jmx?.ProcessReport?.RecentQueryHistory?.()?.length ?? 0 ) &gt; 0, foreach: {data: $data.jmx.ProcessReport.RecentQueryHistory, afterRender: function(node) { $('.source-key', node).tooltip(); }}">
-                                        <tr>
-                                            <td data-bind="text: new Date(parseInt( $data?.mostRecentExecutionTime?.() ?? $data?.value?.mostRecentExecutionTime?.() ?? 0 )).toISOString()"/>
-                                            <td>
-                                                <span class="source-key" data-bind="text: ( $data?.sourceKey?.() ?? $data?.value?.sourceKey?.() )?.replace(/^.*\/([^\/]+)$/, '$1') ?? '???', attr: { title: ( $data?.sourceKey?.() ?? $data?.value?.sourceKey?.() ?? '' ) }" data-toggle="tooltip"/>
+                                    <tbody id="jmx-recent-queries" data-bind="visible: ( $data?.jmx?.ProcessReport?.RecentQueryHistory?.()?.length ?? 0 ) &gt; 0, foreach: {data: $data.jmx.ProcessReport.RecentQueryHistory, afterRender: initActivityRow }">
+                                        <tr data-bind="css: { 'activity-row-ended': activityEnded }">
+                                            <td class="activity-time-cell" data-bind="text: new Date(parseInt( $data?.mostRecentExecutionTime?.() ?? $data?.value?.mostRecentExecutionTime?.() ?? $data?.mostRecentExecutionTime ?? 0 )).toISOString()"/>
+                                            <td class="activity-source-cell">
+                                                <span class="source-key" data-bind="text: ( $data?.sourceKey?.() ?? $data?.value?.sourceKey?.() ?? $data?.sourceKey ?? '' )?.replace(/^.*\/([^\/]+)$/, '$1') ?? '???', attr: { title: ( $data?.sourceKey?.() ?? $data?.value?.sourceKey?.() ?? $data?.sourceKey ?? '' ) }" data-toggle="tooltip"/>
                                             </td>
-                                            <td data-bind="text: ( $data?.mostRecentExecutionDuration?.() ?? $data?.value?.mostRecentExecutionDuration?.() ?? '' )"/>
-                                            <td>
-                                                <a target="_blank" data-bind="attr: { href: $root.url + ( $data?.requestURI?.() ?? $data?.value?.requestURI() ?? '#' ) }, text: ( $data?.requestURI?.() ?? $data?.value?.requestURI() ?? '#' )"/>
+                                            <td class="activity-elapsed-cell" data-bind="text: ( $data?.mostRecentExecutionDuration?.() ?? $data?.value?.mostRecentExecutionDuration?.() ?? $data?.mostRecentExecutionDuration ?? '' )"/>
+                                            <td class="activity-uri-cell">
+                                                <a class="activity-uri-link" href="#" role="button" aria-label="Show full request URI" data-bind="visible: activityUriLabel($data) !== '—', attr: { 'data-uri-full': activityUriTitle($data), 'data-uri-href': activityUriHref($root.url, $data) }, text: activityUriLabel($data)"/>
+                                                <span class="text-muted" data-bind="visible: activityUriLabel($data) === '—'">—</span>
                                             </td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
+                        </div>
+
+                        <div id="activity-uri-flyout" class="activity-uri-flyout" style="display: none;" aria-hidden="true" role="dialog" aria-label="Request URI">
+                            <button type="button" class="close activity-uri-flyout-close" aria-label="Close">
+                                <span aria-hidden="true">×</span>
+                            </button>
+                            <pre class="activity-uri-flyout-text"/>
+                            <a class="activity-uri-flyout-open" target="_blank" rel="noopener">Open in new tab ↗</a>
+                        </div>
+
+                        <div id="activity-stack-flyout" class="activity-uri-flyout activity-stack-flyout" style="display: none;" aria-hidden="true" role="dialog" aria-label="Stack trace">
+                            <button type="button" class="close activity-stack-flyout-close" aria-label="Close">
+                                <span aria-hidden="true">×</span>
+                            </button>
+                            <div class="activity-stack-flyout-title"/>
+                            <pre class="activity-stack-flyout-text"/>
+                        </div>
+
+                        <div class="activity-panel-settings" id="activity-panel-settings">
+                            <div class="activity-display-retention" id="activity-display-retention-wrap">
+                                <div class="activity-settings-heading">Monex display</div>
+                                <div class="activity-recent-config-row">
+                                    <label for="display-retention-preset" class="control-label">Keep visible for</label>
+                                    <div class="activity-recent-config-controls">
+                                        <select class="form-control input-sm" id="display-retention-preset" title="How long ended or dropped activity rows stay visible in Monex"/>
+                                        <span class="activity-recent-config-custom" id="display-retention-custom-wrap" hidden="hidden">
+                                            <input type="number" class="form-control input-sm" id="display-retention-custom" min="1" step="1" title="Custom display retention in minutes"/>
+                                            <span class="activity-recent-config-unit">minutes</span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <p class="help-block text-muted small activity-display-hint">Monex only — applies to running queries, waiting threads, and recent queries while this page stays open. KPI counts stay live. Preference is saved in this browser.</p>
+                            </div>
                             <div class="activity-recent-config" id="configure-history-wrap">
+                                <div class="activity-settings-heading">Recent query recording</div>
                                 <form id="configure-history" class="activity-recent-config-form">
                                     <fieldset class="activity-recent-config-fieldset">
                                         <legend class="sr-only">Recent query recording</legend>
@@ -397,7 +450,7 @@
                                         </div>
                                     </fieldset>
                                 </form>
-                                <p class="help-block text-muted small activity-history-hint">Applies to <strong>Recent queries</strong> only. Set updates eXist recording rules. While this page stays open, entries remain visible for at least 5 minutes (or your server retention, whichever is longer). Reloading clears the dashboard buffer.</p>
+                                <p class="help-block text-muted small activity-history-hint">Server recording for <strong>Recent queries</strong> only. Set updates eXist rules (threshold, server history, URI). Reloading clears row buffers but not this browser preference.</p>
                             </div>
                         </div>
                     </div>

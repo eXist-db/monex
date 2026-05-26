@@ -72,32 +72,29 @@ describe('Monex index page', () => {
       cy.get('#jmx-recent-queries').should('exist')
     })
 
-    it('should scope recent query settings under Recent queries with presets', () => {
+    it('should expose unified activity panel settings', () => {
       cy.wait(1500)
       cy.get('#pause-btn').click()
 
-      cy.get('#configure-history-wrap')
-        .parents('.activity-section-recent')
-        .should('exist')
-      cy.get('#configure-history-wrap').should('be.visible')
+      cy.get('#activity-panel-settings').should('be.visible')
+      cy.contains('.activity-settings-heading', 'Monex display').should('be.visible')
+      cy.contains('label', 'Keep visible for').should('be.visible')
+      cy.get('#display-retention-preset option').should('have.length.at.least', 5)
+      cy.get('#display-retention-preset').should('have.value', '300000')
+
+      cy.contains('.activity-settings-heading', 'Recent query recording').should('be.visible')
       cy.contains('label', 'Slow query threshold').should('be.visible')
       cy.contains('label', 'Keep on server for').should('be.visible')
       cy.contains('label', 'Record request URI').should('be.visible')
-      cy.get('#threshold-preset option').should('have.length.at.least', 5)
-      cy.get('#history-preset option').should('have.length.at.least', 5)
-      cy.get('.activity-history-hint')
-        .should('contain', 'Recent queries')
-        .and('contain', 'Reloading clears the dashboard buffer')
+      cy.get('.activity-display-hint').should('contain', 'running queries, waiting threads, and recent queries')
     })
 
-    it('should keep display retention on saved server history until Set', () => {
+    it('should keep server history changes unsaved without affecting dashboard display retention', () => {
       cy.wait(1500)
       cy.get('#pause-btn').click()
 
       cy.window().then((win) => {
-        win.JMX.util.setRecentQueryServerHistory(120000)
-        const displayBefore = win.JMX.util.recentQueryDisplayRetentionMs()
-        expect(displayBefore).to.eq(300000)
+        const displayBefore = win.JMX.util.dashboardDisplayRetentionMs()
 
         cy.get('#history-preset').invoke('val').then((current) => {
           cy.get('#history-preset option').then(($options) => {
@@ -105,19 +102,81 @@ describe('Monex index page', () => {
               .find((value) => value !== 'custom' && value !== current)
             expect(alternate, 'alternate history preset').to.exist
             cy.get('#history-preset').select(alternate)
-            expect(win.JMX.util.recentQueryDisplayRetentionMs()).to.eq(displayBefore)
+            expect(win.JMX.util.dashboardDisplayRetentionMs()).to.eq(displayBefore)
             cy.get('#configure-dirty').should('be.visible')
           })
         })
       })
     })
 
-    it('should apply a 5 minute floor to display retention from server history', () => {
+    it('should format long request URIs for display', () => {
       cy.window().then((win) => {
-        win.JMX.util.setRecentQueryServerHistory(120000)
-        expect(win.JMX.util.recentQueryDisplayRetentionMs()).to.eq(300000)
-        win.JMX.util.setRecentQueryServerHistory(600000)
-        expect(win.JMX.util.recentQueryDisplayRetentionMs()).to.eq(600000)
+        const encoded = '/exist/rest/db?_query=import%20module%20namespace%20util%3D%22http%3A%2F%2Fexist-db.org%2Fxquery%2Futil%22%3B%20util%3Await(1)'
+        expect(win.JMX.util.formatActivityUri(encoded)).to.eq('REST · db · XQuery')
+        expect(win.JMX.util.formatActivityUri('/exist/apps/monex/index.html')).to.eq('apps/monex/index.html')
+        expect(win.JMX.util.formatActivityUri('')).to.eq('—')
+        expect(win.JMX.util.activityRequestUri({ requestURI: win.ko.observable(encoded) })).to.eq(encoded)
+        expect(win.JMX.util.formatActivityUri(win.JMX.util.activityRequestUri({ requestURI: win.ko.observable(encoded) }))).to.eq('REST · db · XQuery')
+        expect(win.JMX.util.activityRequestUri({ requestURI: {} })).to.eq('')
+      })
+    })
+
+    it('should keep URI flyout open across dashboard poll refresh', () => {
+      const slowQuery = 'import module namespace util = "http://exist-db.org/xquery/util"; util:wait(120000)'
+
+      cy.wait(1500)
+      cy.startBackgroundRestQuery(slowQuery)
+      cy.waitForJmxRunningQuery({ timeout: 30000 })
+      cy.wait(1500)
+
+      cy.get('.running-queries .activity-uri-link', { timeout: 15000 }).first().click()
+      cy.get('#activity-uri-flyout').should('be.visible')
+      cy.wait(2200)
+      cy.get('#activity-uri-flyout').should('be.visible')
+      cy.get('#activity-uri-flyout .activity-uri-flyout-close').click()
+      cy.get('#activity-uri-flyout').should('not.be.visible')
+    })
+
+    it('should apply dashboard display retention from presets', () => {
+      cy.window().then((win) => {
+        win.JMX.util.setDashboardDisplayRetentionMs(120000)
+        expect(win.JMX.util.dashboardDisplayRetentionMs()).to.eq(120000)
+        win.JMX.util.setDashboardDisplayRetentionMs(300000)
+        expect(win.JMX.util.dashboardDisplayRetentionMs()).to.eq(300000)
+      })
+    })
+
+    it('should buffer ended running queries after they drop off JMX', () => {
+      cy.window().then((win) => {
+        win.JMX.util.resetActivityBuffers()
+        win.JMX.util.setDashboardDisplayRetentionMs(300000)
+
+        const report = {
+          RunningQueries: [{ id: 99, sourceKey: '/db/test', requestURI: '/exist/test', terminating: 'false' }],
+          RunningJobs: [],
+          RecentQueryHistory: [],
+          HistoryTimespan: '120000',
+          MinTime: '100',
+          TrackRequestURI: 'true'
+        }
+
+        const live = win.JMX.util.fixjs({
+          jmx: {
+            ProcessReport: report,
+            LockManager: { WaitingThreads: [] }
+          }
+        })
+        expect(live.jmx.ProcessReport.RunningQueries).to.have.length(1)
+        expect(live.jmx.ProcessReport.RunningQueries[0].activityEnded).to.not.be.true
+
+        const ended = win.JMX.util.fixjs({
+          jmx: {
+            ProcessReport: Object.assign({}, report, { RunningQueries: [] }),
+            LockManager: { WaitingThreads: [] }
+          }
+        })
+        expect(ended.jmx.ProcessReport.RunningQueries).to.have.length(1)
+        expect(ended.jmx.ProcessReport.RunningQueries[0].activityEnded).to.be.true
       })
     })
 
@@ -161,8 +220,12 @@ describe('Monex index page', () => {
 
       cy.startBackgroundRestQuery(slowQuery)
       cy.waitForJmxRunningQuery({ timeout: 30000 })
+      cy.wait(1500)
 
-      cy.get('.running-queries .kill-query', { timeout: 15000 })
+      cy.get('.workload-panel').scrollIntoView()
+
+      cy.get('.running-queries tbody tr:not(.activity-row-ended) .kill-query', { timeout: 15000 })
+        .first()
         .should('be.visible')
         .click()
 
