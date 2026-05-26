@@ -1,0 +1,69 @@
+src/main/xar-resources/facet.html
+  s_12ba9537e61ac7::t_4e1c67e6db3d5e 11,26-27,32,35
+src/main/xar-resources/index-keys.html
+  s_12ba9537e61ac7::t_b9dbe5afe0710a 11,26-27,32,35
+src/main/xar-resources/collection.html
+  s_12ba9537e61ac7::t_a2cf26abc51e3c 11,26,29,31
+src/main/xar-resources/modules/indexes.xqm
+  s_12ba9537e61ac7::t_eb52180a36d12a 184-185
+  s_12ba9537e61ac7::t_114a531b918346 208-251,267-268
+  s_12ba9537e61ac7::t_a3e0f470ed822c 1091-1105
+  s_12ba9537e61ac7::t_0747467f4c333b 153
+  s_12ba9537e61ac7::t_71931bc5d9ec60 113-119,142-148,150
+  s_12ba9537e61ac7::t_2164638b55c5ed 122-136,138-141
+  s_12ba9537e61ac7::t_0925c508d6116f 636
+  s_12ba9537e61ac7::t_893ce710ff2cde 575-586
+  s_12ba9537e61ac7::t_fb24c98b48b265 626-628
+  s_12ba9537e61ac7::t_4430f20f582f19 323,330
+  s_12ba9537e61ac7::t_e727591f9e4499 373-374,376-390,397-402,405-423
+  s_12ba9537e61ac7::t_79a43e8eb2e909 962-969
+  s_12ba9537e61ac7::t_d265647c043822 1028-1031,1039-1048,1058-1060,1065-1067
+  s_12ba9537e61ac7::t_d6a6ea4c728a03 276-282,285,287-297,299,302,304-322,324-329,331-335
+  s_12ba9537e61ac7::t_d51a3de6d86e8d 726-738,760-762,770
+  s_12ba9537e61ac7::t_e50184442e4827 946
+  s_12ba9537e61ac7::t_333c40e4cba3d8 931-938,944,958-961,971,974-985,991-1000
+  s_12ba9537e61ac7::t_1b67b687e240b1 137
+  s_12ba9537e61ac7::t_dad36f40e27c4c 91-112,120-121,154-169,174-182,190-207
+  s_12ba9537e61ac7::t_4e8e16db226b32 973,986-989
+  s_12ba9537e61ac7::t_0652690c084e20 149
+  s_12ba9537e61ac7::t_c4c0018dbaa88e 391-396,403-404
+  s_12ba9537e61ac7::t_4a739f5a72b4e1 846-857,879-881,889
+  s_12ba9537e61ac7::t_ddafaf55e180ae 1027,1057,1064
+  s_12ba9537e61ac7::t_dcbd71ee093b04 1181-1197
+  s_12ba9537e61ac7::t_7b9197bf758df5 151-152
+  s_12ba9537e61ac7::t_7094eb344acf47 170-173
+  s_12ba9537e61ac7::t_757910df79ee2c 183,186-189
+  s_12ba9537e61ac7::t_36bbb72cb3ae8d 942,950,952-956,972
+  s_12ba9537e61ac7::t_a709e11aa7438c 1125-1133
+  s_12ba9537e61ac7::t_51a560cc35696a 1154-1162
+  s_12ba9537e61ac7::t_ff3cb390caaad6 252-266
+src/test/cypress/e2e/indexes_spec.cy.js
+  s_12ba9537e61ac7::t_e1bf8d6d1e954b 23
+  s_12ba9537e61ac7::t_d6cb1956aa2ae8 16-19,25,31,35,37,39
+  s_12ba9537e61ac7::t_502996fc7887c8 20-22
+  s_12ba9537e61ac7::t_0e99e5a1b319aa 32-34,36,40-41
+src/main/xar-resources/field.html
+  s_12ba9537e61ac7::t_055d6ab6efc23d 11,26-27,32,35
+src/main/xar-resources/indexes.html
+  s_12ba9537e61ac7::t_6f1b79b648ad35 11,15,23-31
+src/main/xar-resources/resources/css/style.css
+  s_12ba9537e61ac7::t_244efb8e5eaead 682-693
+  s_12ba9537e61ac7::t_34b003a30da42b 572-659,661,666-681,694-731
+  s_12ba9537e61ac7::t_4f2aec6abf4450 660,662-665
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "48e11029d6595f40e2a0cfdfee6450ae6fe341fc",
+  "prompts": {},
+  "sessions": {
+    "s_12ba9537e61ac7": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "844524c2-10c0-461d-af7c-9e33465ffc79",
+        "model": "composer-2.5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
