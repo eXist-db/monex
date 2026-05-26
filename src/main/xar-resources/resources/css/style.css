@@ -441,6 +441,108 @@ body > .header .logo {
     max-height: 320px;
 }
 
+.activity-recent-config {
+    padding: 12px 16px 10px;
+    border-top: 1px solid #f0f0f0;
+    background: #fafafa;
+}
+
+.activity-recent-config-form {
+    margin-bottom: 8px;
+}
+
+.activity-recent-config-fieldset {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+}
+
+.activity-recent-config-row {
+    margin-bottom: 10px;
+}
+
+.activity-recent-config-row:last-of-type {
+    margin-bottom: 0;
+}
+
+.activity-recent-config-row > .control-label {
+    display: block;
+    margin: 0 0 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #555;
+}
+
+.activity-recent-config-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.activity-recent-config-controls .form-control {
+    width: auto;
+    min-width: 9em;
+    max-width: 100%;
+}
+
+.activity-recent-config-custom {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.activity-recent-config-custom[hidden] {
+    display: none !important;
+}
+
+.activity-recent-config-custom .form-control {
+    width: 5em;
+    min-width: 0;
+}
+
+.activity-recent-config-unit {
+    font-size: 12px;
+    color: #777;
+}
+
+.activity-recent-config-row-check {
+    margin-top: 4px;
+}
+
+.activity-recent-config-check {
+    margin: 0;
+    font-size: 13px;
+    font-weight: normal;
+}
+
+.activity-recent-config-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.activity-recent-config-status {
+    font-size: 12px;
+}
+
+.activity-recent-config-dirty {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.activity-recent-config-dirty[hidden] {
+    display: none !important;
+}
+
+.activity-history-hint {
+    margin: 0;
+    line-height: 1.45;
+}
+
 .cache-managers {
     border-top: 1px solid #eee;
     padding-top: 4px;

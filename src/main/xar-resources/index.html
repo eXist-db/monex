@@ -361,26 +361,45 @@
                                     </tbody>
                                 </table>
                             </div>
+                            <div class="activity-recent-config" id="configure-history-wrap">
+                                <form id="configure-history" class="activity-recent-config-form">
+                                    <fieldset class="activity-recent-config-fieldset">
+                                        <legend class="sr-only">Recent query recording</legend>
+                                        <div class="activity-recent-config-row">
+                                            <label for="threshold-preset" class="control-label">Slow query threshold</label>
+                                            <div class="activity-recent-config-controls">
+                                                <select class="form-control input-sm" id="threshold-preset" title="Only queries slower than this are recorded"/>
+                                                <span class="activity-recent-config-custom" id="threshold-custom-wrap" hidden="hidden">
+                                                    <input type="number" class="form-control input-sm" id="threshold-custom" min="1" step="1" title="Custom threshold in milliseconds"/>
+                                                    <span class="activity-recent-config-unit">ms</span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="activity-recent-config-row">
+                                            <label for="history-preset" class="control-label">Keep on server for</label>
+                                            <div class="activity-recent-config-controls">
+                                                <select class="form-control input-sm" id="history-preset" title="How long eXist retains entries in rolling history"/>
+                                                <span class="activity-recent-config-custom" id="history-custom-wrap" hidden="hidden">
+                                                    <input type="number" class="form-control input-sm" id="history-custom" min="1" step="1" title="Custom retention in minutes"/>
+                                                    <span class="activity-recent-config-unit">minutes</span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="activity-recent-config-row activity-recent-config-row-check">
+                                            <label class="activity-recent-config-check">
+                                                <input type="checkbox" id="track-uri" title="Fill the URI column (small overhead)"/> Record request URI
+                                            </label>
+                                        </div>
+                                        <div class="activity-recent-config-actions">
+                                            <button type="submit" class="btn btn-primary btn-sm" id="configure">Set</button>
+                                            <span class="activity-recent-config-status" id="configure-status" aria-live="polite"/>
+                                            <span class="activity-recent-config-dirty text-warning" id="configure-dirty" hidden="hidden">Unsaved changes</span>
+                                        </div>
+                                    </fieldset>
+                                </form>
+                                <p class="help-block text-muted small activity-history-hint">Applies to <strong>Recent queries</strong> only. Set updates eXist recording rules. While this page stays open, entries remain visible for at least 5 minutes (or your server retention, whichever is longer). Reloading clears the dashboard buffer.</p>
+                            </div>
                         </div>
-                    </div>
-                    <div class="box-footer">
-                        <form class="form-inline" id="configure-history">
-                            <div class="form-group">
-                                <label for="threshold" class="control-label">Min ms</label>
-                                <input type="text" class="form-control input-sm" id="threshold" title="Minimum execution time to record"/>
-                            </div>
-                            <div class="form-group">
-                                <label for="history-timespan">History ms</label>
-                                <input type="text" class="form-control input-sm" id="history-timespan" title="Time to keep queries in history"/>
-                            </div>
-                            <div class="form-group">
-                                <label>
-                                    <input type="checkbox" id="track-uri" title="Track HTTP URI"/> Track URI
-                                </label>
-                            </div>
-                            <button class="btn btn-primary btn-sm" id="configure">Set</button>
-                        </form>
-                        <p class="help-block text-muted small activity-history-hint">Recent queries stay visible here for at least 5 minutes, even after the server drops them from its rolling history.</p>
                     </div>
                 </div>
             </section>

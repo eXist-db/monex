@@ -69,8 +69,56 @@ describe('Monex index page', () => {
 
       cy.contains('.activity-section-title', 'Recent queries').should('be.visible')
       cy.contains('No active threads').should('not.exist')
-      cy.get('#configure-history').should('be.visible')
       cy.get('#jmx-recent-queries').should('exist')
+    })
+
+    it('should scope recent query settings under Recent queries with presets', () => {
+      cy.wait(1500)
+      cy.get('#pause-btn').click()
+
+      cy.get('#configure-history-wrap')
+        .parents('.activity-section-recent')
+        .should('exist')
+      cy.get('#configure-history-wrap').should('be.visible')
+      cy.contains('label', 'Slow query threshold').should('be.visible')
+      cy.contains('label', 'Keep on server for').should('be.visible')
+      cy.contains('label', 'Record request URI').should('be.visible')
+      cy.get('#threshold-preset option').should('have.length.at.least', 5)
+      cy.get('#history-preset option').should('have.length.at.least', 5)
+      cy.get('.activity-history-hint')
+        .should('contain', 'Recent queries')
+        .and('contain', 'Reloading clears the dashboard buffer')
+    })
+
+    it('should keep display retention on saved server history until Set', () => {
+      cy.wait(1500)
+      cy.get('#pause-btn').click()
+
+      cy.window().then((win) => {
+        win.JMX.util.setRecentQueryServerHistory(120000)
+        const displayBefore = win.JMX.util.recentQueryDisplayRetentionMs()
+        expect(displayBefore).to.eq(300000)
+
+        cy.get('#history-preset').invoke('val').then((current) => {
+          cy.get('#history-preset option').then(($options) => {
+            const alternate = Cypress.$.map($options, (el) => el.value)
+              .find((value) => value !== 'custom' && value !== current)
+            expect(alternate, 'alternate history preset').to.exist
+            cy.get('#history-preset').select(alternate)
+            expect(win.JMX.util.recentQueryDisplayRetentionMs()).to.eq(displayBefore)
+            cy.get('#configure-dirty').should('be.visible')
+          })
+        })
+      })
+    })
+
+    it('should apply a 5 minute floor to display retention from server history', () => {
+      cy.window().then((win) => {
+        win.JMX.util.setRecentQueryServerHistory(120000)
+        expect(win.JMX.util.recentQueryDisplayRetentionMs()).to.eq(300000)
+        win.JMX.util.setRecentQueryServerHistory(600000)
+        expect(win.JMX.util.recentQueryDisplayRetentionMs()).to.eq(600000)
+      })
     })
 
     it('should keep garbage collect in the java memory panel', () => {

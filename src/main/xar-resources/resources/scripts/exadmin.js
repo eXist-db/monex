@@ -795,7 +795,7 @@ JMX.connection = (function() {
     }
 
     return {
-        invoke: function(operation, mbean, args) {
+        invoke: function(operation, mbean, args, callbacks) {
             var url;
             if (currentInstance.name() == "localhost") {
                 url = location.pathname.replace(/^(.*?)\/(apps\/)?monex\/.*$/, "$1") +
@@ -812,10 +812,18 @@ JMX.connection = (function() {
                 url: url,
                 type: "GET",
                 timeout: 10000,
+                success: function() {
+                    if (callbacks && callbacks.success) {
+                        callbacks.success();
+                    }
+                },
                 error: function(xhr, status, error) {
                     $("#connection-alert").show(400).find(".message")
                         .text("Operation '" + operation + "' failed or is not supported on this server instance.");
                     setTimeout(function() { $("#connection-alert").hide(200); }, 3000);
+                    if (callbacks && callbacks.error) {
+                        callbacks.error(xhr, status, error);
+                    }
                 }
             });
         },
@@ -859,12 +867,10 @@ JMX.connection = (function() {
                                 viewModel.expandAllCaches = function() {
                                     viewModel.showAllCaches(true);
                                 };
-                                if (data.jmx.ProcessReport.TrackRequestURI) {
-                                    $("#threshold").val(data.jmx.ProcessReport.MinTime);
-                                    $("#track-uri").prop("checked", data.jmx.ProcessReport.TrackRequestURI == "true");
-                                    $("#history-timespan").val(data.jmx.ProcessReport.HistoryTimespan);
+                                if (data.jmx.ProcessReport && data.jmx.ProcessReport.TrackRequestURI !== undefined) {
+                                    JMX.util.initRecentQueryForm(data.jmx.ProcessReport);
                                 } else {
-                                    $("#configure-history").hide();
+                                    $("#configure-history-wrap").hide();
                                 }
                                 if (name == "localhost") {
                                     viewModel.url = "";
@@ -987,13 +993,6 @@ JMX.connection = (function() {
 $(function() {
     JMX.connection.init(JMX_INSTANCES, JMX_ACTIVE);
 
-    $("#configure").on("click", function(ev) {
-        ev.preventDefault();
-        var threshold = $("#threshold").val();
-        var historyTimespan = $("#history-timespan").val();
-        var trackURI = $("#track-uri").is(":checked");
-        JMX.connection.invoke("configure", "org.exist.management.exist:type=ProcessReport", [threshold, historyTimespan, trackURI]);
-    });
     // the following block should only be run on the main dashboard page
     $("#dashboard").each(function() {
         var charts = [];
