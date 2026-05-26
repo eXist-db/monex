@@ -2,8 +2,18 @@
  * SPDX LGPL-2.1-or-later
  * Copyright (C) 2014 The eXist-db Authors
  */
-.profiling .nav {
-    margin-top: 10px;
+.profiling .vector-stat-row {
+    background-color: #f4fbff;
+}
+
+.profiling .vector-stat-badge {
+    margin-left: 6px;
+    font-size: 10px;
+    vertical-align: middle;
+}
+
+.profiling .trace-index-type {
+    white-space: nowrap;
 }
 
 body > .header .logo {

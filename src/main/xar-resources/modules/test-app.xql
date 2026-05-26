@@ -18,7 +18,11 @@ declare variable $testapp:mock-profile :=
         <stats:function name="exists" elapsed="0.0" calls="9" source="/db/system/repo/templating-1.2.1/content/templates.xqm [270:12]"/>
         <stats:function name="exists" elapsed="0.0" calls="1" source="/db/system/repo/templating-1.2.1/content/templates.xqm [450:9]"/>
         <stats:function name="file:exists" elapsed="0.0" calls="1" source="/db/apps/monex/modules/monex.xqm [22:13]"/>
+        <stats:function name="ft:query-vector" elapsed="0.042" calls="3" source="/db/apps/demo/search.xql [18:12]"/>
+        <stats:function name="vector:embed" elapsed="0.015" calls="2" source="/db/apps/demo/index.xql [44:8]"/>
         <stats:index type="range" source="/db/apps/monex/modules/app.xql [123:84]" elapsed="0.0" calls="4" optimization-level="BASIC"/>
+        <stats:index type="lucene" source="/db/apps/demo/search.xql [12:5]" elapsed="0.012" calls="2" optimization-level="OPTIMIZED"/>
+        <stats:index type="lucene-vector" source="/db/apps/demo/search.xql [18:12]" elapsed="0.031" calls="3" optimization-level="OPTIMIZED"/>
         <stats:index type="range" source="/db/apps/monex/modules/monex.xqm [28:19]" elapsed="0.0" calls="4" optimization-level="NONE"/>
         <stats:index type="range" source="/db/apps/monex/modules/config.xqm [25:13]" elapsed="0.0" calls="1" optimization-level="NONE"/>
         <stats:index type="range" source="/db/system/repo/templating-1.2.1/content/templates.xqm [255:26]" elapsed="0.001" calls="10" optimization-level="OPTIMIZED"/>
@@ -47,7 +51,7 @@ function testapp:millis-to-time($millis as xs:integer) as xs:dateTime {
 };
 
 declare
-    %test:assertXPath('<tr><td colspan="4">No statistics available or tracing not enabled.</td></tr>')
+    %test:assertXPath('<tr><td colspan="5">No statistics available or tracing not enabled.</td></tr>')
 function testapp:index-stats-empty() {
     app:index-stats(<root/>, map{}, "test")
 };
@@ -76,4 +80,29 @@ function testapp:index-stats-returns-cols-and-rows() {
         count($rows),
         count($first//td)
     )
+};
+
+declare
+    %test:assertEquals(true(), true())
+function testapp:index-stats-labels-vector-knn() {
+    let $rows := app:index-stats(<root/>, map{ "trace": $testapp:mock-profile }, "test")
+    return
+        if (exists($rows[contains(., "Lucene vector KNN") and contains(., "KNN")])) then
+            true()
+        else
+            error((), "expected Lucene vector KNN label and badge")
+};
+
+declare
+    %test:assertEquals(true(), true())
+function testapp:vector-stats-aggregates-vector-workload() {
+    let $rows := app:vector-stats(<root/>, map{ "trace": $testapp:mock-profile }, "test")
+    return
+        if (count($rows) ge 3 and
+            exists($rows[contains(., "ft:query-vector")]) and
+            exists($rows[contains(., "vector:embed")]) and
+            exists($rows[contains(., "Lucene vector KNN")])) then
+            true()
+        else
+            error((), "expected vector function and index rows")
 };

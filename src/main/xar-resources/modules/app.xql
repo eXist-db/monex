@@ -303,7 +303,7 @@ declare function app:adjust-trace($trace, $tare) {
                 let $adjusted-elapsed := $index/@elapsed - $match/@elapsed
                 return
                     if ($adjusted-calls gt 0) then 
-                        <prof:index source="{$index/@source}" type="{$index/@type}" calls="{$adjusted-calls}" elapsed="{$adjusted-elapsed}" optimization="{$index/@optimization}"/>
+                        <prof:index source="{$index/@source}" type="{$index/@type}" calls="{$adjusted-calls}" elapsed="{$adjusted-elapsed}" optimization-level="{$index/@optimization-level}"/>
                     else
                         ()
             else
@@ -311,6 +311,44 @@ declare function app:adjust-trace($trace, $tare) {
     return
         <prof:calls>{$adjusted-queries, $adjusted-functions, $adjusted-indexes}</prof:calls>
         
+};
+
+declare function app:index-type-label($type as xs:string) as xs:string {
+    switch ($type)
+        case "lucene" return "Lucene FT"
+        case "lucene-vector" return "Lucene vector KNN"
+        case "range" return "Range"
+        case "new-range" return "Range (new)"
+        default return
+            if (contains($type, "vector")) then
+                concat("Vector (", $type, ")")
+            else
+                $type
+};
+
+declare function app:is-vector-function-name($name as xs:string?) as xs:boolean {
+    some $token in ("query-vector", "vector:embed", "vector:embed-batch", "vector:similarity", "vector:models", "vector:diagnostics")
+    satisfies contains($name, $token)
+};
+
+declare function app:is-vector-index-stat($index as element(prof:index)) as xs:boolean {
+    contains(string($index/@type), "vector") or
+    contains(string($index/@source), "query-vector")
+};
+
+declare function app:optimization-label($level as xs:string?) as element(span) {
+    switch ($level)
+        case "NONE" return
+            <span class="label label-danger">None</span>
+        case "BASIC" return
+            <span class="label label-warning">Basic</span>
+        case "OPTIMIZED" return
+            <span class="label label-success">Optimized</span>
+        default return
+            if ($level) then
+                <span class="label label-info">{$level}</span>
+            else
+                <span class="label label-default">—</span>
 };
 
 declare
@@ -351,9 +389,13 @@ function app:function-stats($node as node(), $model as map(*), $sort as xs:strin
             return
                 $func
         for $func in subsequence($funcs, 1, 20)
+        let $vector := app:is-vector-function-name($func/@name/string())
         return
-            <tr>
-                <td>{$func/@name/string()}</td>
+            <tr class="{if ($vector) then 'vector-stat-row' else ''}">
+                <td>
+                    {$func/@name/string()}
+                    {if ($vector) then <span class="label label-info vector-stat-badge">vector</span> else ()}
+                </td>
                 <td>{app:truncate-source($func/@source)}</td>
                 <td class="trace-calls">{$func/@calls/string()}</td>
                 <td class="trace-elapsed">{$func/@elapsed/string()}</td>
@@ -366,7 +408,7 @@ declare
 function app:index-stats($node as node(), $model as map(*), $sort as xs:string) {
     if (empty($model("trace")/prof:index)) then
         <tr>
-            <td colspan="4">No statistics available or tracing not enabled.</td>
+            <td colspan="5">No statistics available or tracing not enabled.</td>
         </tr>
     else
         let $indexes :=
@@ -375,26 +417,60 @@ function app:index-stats($node as node(), $model as map(*), $sort as xs:string) 
             return
                 $index
         for $index in subsequence($indexes, 1, 20)
+        let $vector := app:is-vector-index-stat($index)
         return
-            <tr>
+            <tr class="{if ($vector) then 'vector-stat-row' else ''}">
                 <td>{app:truncate-source($index/@source)}</td>
-                <td class="trace-calls">{$index/@type/string()}</td>
-                <td class="trace-calls">
-                {
-                    switch ($index/@optimization-level)
-                        case "NONE" return
-                            <span class="label label-danger">None</span>
-                        case "BASIC" return
-                            <span class="label label-warning">Basic</span>
-                        case "OPTIMIZED" return
-                            <span class="label label-success">Optimized</span>
-                        default return
-                            <span class="label label-info">{$index/@optimization-level}</span>
-                }
+                <td class="trace-index-type">
+                    {app:index-type-label($index/@type/string())}
+                    {if ($vector) then <span class="label label-info vector-stat-badge">KNN</span> else ()}
                 </td>
+                <td class="trace-calls">{app:optimization-label($index/@optimization-level/string())}</td>
                 <td class="trace-calls">{$index/@calls/string()}</td>
                 <td class="trace-elapsed">{$index/@elapsed/string()}</td>
             </tr>
+};
+
+declare
+    %templates:wrap
+    %templates:default("sort", "time")
+function app:vector-stats($node as node(), $model as map(*), $sort as xs:string) {
+    let $trace := $model("trace")
+    let $vector-functions :=
+        for $func in $trace/prof:function[app:is-vector-function-name(@name/string())]
+        order by app:sort($func, $sort) descending
+        return
+            <tr class="vector-stat-row">
+                <td><span class="label label-primary">Function</span></td>
+                <td>{$func/@name/string()}</td>
+                <td>{app:truncate-source($func/@source)}</td>
+                <td class="trace-calls">{$func/@calls/string()}</td>
+                <td class="trace-elapsed">{$func/@elapsed/string()}</td>
+            </tr>
+    let $vector-indexes :=
+        for $index in $trace/prof:index[app:is-vector-index-stat(.)]
+        order by app:sort($index, $sort) descending
+        return
+            <tr class="vector-stat-row">
+                <td><span class="label label-success">Index</span></td>
+                <td>{app:index-type-label($index/@type/string())}</td>
+                <td>{app:truncate-source($index/@source)}</td>
+                <td class="trace-calls">{$index/@calls/string()}</td>
+                <td class="trace-elapsed">{$index/@elapsed/string()}</td>
+            </tr>
+    let $rows := ($vector-functions, $vector-indexes)
+    return
+        if (empty($rows)) then
+            <tr>
+                <td colspan="5">
+                    No vector or KNN activity recorded yet. Run queries that use
+                    <code>ft:query-vector</code> or <code>vector:embed*</code>, then Refresh.
+                    Index Usage may not list KNN until eXist traces <code>ft:query-vector</code>;
+                    function timings appear here when those calls execute.
+                </td>
+            </tr>
+        else
+            $rows
 };
 
 declare
