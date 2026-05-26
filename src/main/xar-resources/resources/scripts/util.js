@@ -80,6 +80,35 @@ JMX.util = (function() {
         return merged;
     }
 
+    function observableValue(value) {
+        if (value && typeof ko !== "undefined" && ko.isObservable(value)) {
+            return value();
+        }
+        return value;
+    }
+
+    function runningQueryField(row, name) {
+        if (!row || !name) {
+            return undefined;
+        }
+        if (row[name] !== undefined && row[name] !== null) {
+            return observableValue(row[name]);
+        }
+        if (row.value && row.value[name] !== undefined && row.value[name] !== null) {
+            return observableValue(row.value[name]);
+        }
+        return undefined;
+    }
+
+    function runningQueryKillId(row) {
+        var id = runningQueryField(row, "id");
+        if (id === undefined || id === null || id === "") {
+            return null;
+        }
+        var parsed = parseInt(id, 10);
+        return isNaN(parsed) ? null : parsed;
+    }
+
     return {
         jmx2js: function (node) {
             if (!node) {
@@ -162,6 +191,8 @@ JMX.util = (function() {
             return data;
         },
 
-        mergeRecentQueryHistory: mergeRecentQueryHistory
+        mergeRecentQueryHistory: mergeRecentQueryHistory,
+        runningQueryField: runningQueryField,
+        runningQueryKillId: runningQueryKillId
     }
 }());

@@ -16,6 +16,16 @@
 // the project's config changing)
 
 module.exports = (on, config) => {
-  // `on` is used to hook into various events Cypress emits
-  // `config` is the resolved Cypress config
+  on('task', {
+    startBackgroundRestQuery ({ existRoot, query }) {
+      const url = new URL(`${existRoot}/rest/db`)
+      url.searchParams.set('_query', query)
+      fetch(url, {
+        headers: { Authorization: 'Basic ' + Buffer.from('admin:').toString('base64') }
+      }).catch(() => {})
+      return null
+    }
+  })
+
+  return config
 }

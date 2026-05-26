@@ -491,16 +491,21 @@ function updateVectorDiagnostics(model, data) {
 }
 
 function addKillBtn(node, data) {
-    $(node).find(".kill-query").on("click", function(ev) {
+    $(node).find(".kill-query").off("click.monexKill").on("click.monexKill", function(ev) {
         ev.preventDefault();
+        var queryId = JMX.util.runningQueryKillId(data);
+        if (queryId === null) {
+            console.error("Cannot kill query: missing numeric id", data);
+            return;
+        }
         if (JMX_INSTANCE.version === 0) {
             $.ajax({
                 url: "modules/admin.xql",
-                data: { action: "kill", id: data.id() },
+                data: { action: "kill", id: queryId },
                 type: "POST"
             });
         } else {
-            JMX.connection.invoke("killQuery", "org.exist.management.exist:type=ProcessReport", [data.id()]);
+            JMX.connection.invoke("killQuery", "org.exist.management.exist:type=ProcessReport", [queryId]);
         }
     });
 }

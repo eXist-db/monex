@@ -91,5 +91,43 @@ describe('Monex index page', () => {
       cy.get('.memory-sparkline-caption').contains('Last ~2 min').should('be.visible')
       cy.get('#memory-graph').should('exist')
     })
+
+    it('should resolve running query kill ids from mapped and plain rows', () => {
+      cy.window().then((win) => {
+        expect(win.JMX.util.runningQueryKillId({ id: 42 })).to.eq(42)
+        expect(win.JMX.util.runningQueryKillId({ id: '987654321' })).to.eq(987654321)
+        expect(win.JMX.util.runningQueryKillId({ value: { id: 11 } })).to.eq(11)
+        expect(win.JMX.util.runningQueryKillId({ id: win.ko.observable(123456) })).to.eq(123456)
+        expect(win.JMX.util.runningQueryKillId({ thread: 'qtp1-1' })).to.eq(null)
+      })
+    })
+
+    it('should kill a running query without throwing from the kill handler', () => {
+      const slowQuery = 'import module namespace util = "http://exist-db.org/xquery/util"; util:wait(120000)'
+
+      cy.wait(1500)
+
+      cy.window().then((win) => {
+        cy.stub(win.JMX.connection, 'invoke').as('killInvoke')
+      })
+
+      cy.startBackgroundRestQuery(slowQuery)
+      cy.waitForJmxRunningQuery({ timeout: 30000 })
+
+      cy.get('.running-queries .kill-query', { timeout: 15000 })
+        .should('be.visible')
+        .click()
+
+      cy.get('@killInvoke').should('have.been.calledWithMatch',
+        'killQuery',
+        'org.exist.management.exist:type=ProcessReport',
+        [Cypress.sinon.match.number]
+      )
+
+      cy.get('@killInvoke').then((stub) => {
+        const queryId = stub.getCall(0).args[2][0]
+        cy.killRunningQueryViaJmx(queryId)
+      })
+    })
   })
 })

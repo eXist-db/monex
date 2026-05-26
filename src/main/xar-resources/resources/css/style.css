@@ -36,7 +36,7 @@ body > .header .logo {
 
 #visualizer .node {
     border: solid 1px Ghostwhite;
-    font: 10px;
+    font-size: 10px;
     line-height: 16px;
     overflow: hidden;
     position: absolute;

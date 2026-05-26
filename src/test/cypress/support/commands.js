@@ -56,6 +56,65 @@ Cypress.Commands.add('loginApi', () => {
   )
 })
 
+function existRootUrl () {
+  const baseUrl = new URL(Cypress.config('baseUrl'))
+  return `${baseUrl.protocol}//${baseUrl.host}/exist`
+}
+
+function runningQueryIdsFromStatus (xml) {
+  const section = xml.match(/<jmx:RunningQueries>([\s\S]*?)<\/jmx:RunningQueries>/)
+  if (!section) {
+    return []
+  }
+  const ids = []
+  const re = /<jmx:id>(\d+)<\/jmx:id>/g
+  let match
+  while ((match = re.exec(section[1])) !== null) {
+    ids.push(parseInt(match[1], 10))
+  }
+  return [...new Set(ids)]
+}
+
+Cypress.Commands.add('startBackgroundRestQuery', (query) => {
+  cy.task('startBackgroundRestQuery', { existRoot: existRootUrl(), query })
+})
+
+Cypress.Commands.add('waitForJmxRunningQuery', (options = {}) => {
+  const timeout = options.timeout || 30000
+  const interval = options.interval || 500
+
+  function poll (start) {
+    return cy.window().its('JMX_INSTANCES.0.token').then((token) => {
+      return cy.request(`${existRootUrl()}/status?c=processes&token=${token}`).then((resp) => {
+        const ids = runningQueryIdsFromStatus(resp.body)
+        if (ids.length > 0) {
+          return cy.wrap(ids[0])
+        }
+        if (Date.now() - start > timeout) {
+          throw new Error(`Timed out after ${timeout}ms waiting for a running query in JMX`)
+        }
+        return cy.wait(interval).then(() => poll(start))
+      })
+    })
+  }
+
+  return poll(Date.now())
+})
+
+Cypress.Commands.add('killRunningQueryViaJmx', (queryId) => {
+  cy.window().its('JMX_INSTANCES.0.token').then((token) => {
+    cy.request({
+      url: `${existRootUrl()}/status`,
+      qs: {
+        operation: 'killQuery',
+        mbean: 'org.exist.management.exist:type=ProcessReport',
+        token,
+        args: queryId
+      }
+    })
+  })
+})
+
 Cypress.Commands.add('skipUnlessConsoleModule', () => {
   const baseUrl = new URL(Cypress.config('baseUrl'))
   const existRoot = `${baseUrl.protocol}//${baseUrl.host}/exist`
