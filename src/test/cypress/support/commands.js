@@ -55,7 +55,25 @@ Cypress.Commands.add('loginApi', () => {
     }
   )
 })
-// -- This is a child command --
+
+Cypress.Commands.add('skipUnlessConsoleModule', () => {
+  const baseUrl = new URL(Cypress.config('baseUrl'))
+  const existRoot = `${baseUrl.protocol}//${baseUrl.host}/exist`
+  cy.request({
+    method: 'GET',
+    url: `${existRoot}/rest/db`,
+    auth: { username: 'admin', password: '' },
+    qs: {
+      _query: 'import module namespace console="http://exist-db.org/xquery/console"; true()'
+    },
+    failOnStatusCode: false
+  }).then(function (response) {
+    if (response.status !== 200) {
+      cy.log('Skipping: console XQuery module not available on this eXist instance')
+      this.skip()
+    }
+  })
+})
 // Cypress.Commands.add("drag", { prevSubject: 'element'}, (subject, options) => { ... })
 //
 //

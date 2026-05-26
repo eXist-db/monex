@@ -8,6 +8,12 @@
 <collection xmlns="http://exist-db.org/collection-config/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:my="my-namespace">
     <index>
         <fulltext default="none" attributes="false"/>
+        <lucene vector-store="db">
+            <text qname="function">
+                <field name="function-name" match="@fn" type="xs:string"/>
+                <vector-field name="test-embedding" dimension="384" similarity="cosine" embedding="test-model"/>
+            </text>
+        </lucene>
         <range>
             <create qname="empty-namespace-element" type="xs:string"/>
             <create qname="@empty-namespace-attribute" type="xs:string"/>

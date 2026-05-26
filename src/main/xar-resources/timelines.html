@@ -108,6 +108,38 @@
                     </div>
                 </div><!-- /.box -->
             </section>
+            <section class="col-lg-12"><!-- Box (Shared Cache Pool) -->
+                <div class="box box-warning">
+                    <div class="box-header">
+                        <i class="fa fa-bar-chart-o"/>
+                        <h3 class="box-title">Shared Cache Pool</h3>
+                    </div><!-- /.box-header -->
+                    <div class="box-body no-padding">
+                        <div class="default-chart" id="cache-pool-graph" style="height: 250px;"/>
+                    </div><!-- /.box-body -->
+                    <div class="box-footer">
+                        <button class="pull-right zoom-out btn btn-default">
+                            <i class="fa fa-arrows-alt"/> Zoom Out</button>
+                        <p>Shared page cache memory in use vs configured pool size (`cacheSize`). Mark a region to zoom in.</p>
+                    </div>
+                </div><!-- /.box -->
+            </section>
+            <section class="col-lg-12"><!-- Box (Cache Hit Rates) -->
+                <div class="box box-warning">
+                    <div class="box-header">
+                        <i class="fa fa-bar-chart-o"/>
+                        <h3 class="box-title">Cache Hit Rates</h3>
+                    </div><!-- /.box-header -->
+                    <div class="box-body no-padding">
+                        <div class="default-chart" id="cache-hitrate-graph" style="height: 250px;"/>
+                    </div><!-- /.box-body -->
+                    <div class="box-footer">
+                        <button class="pull-right zoom-out btn btn-default">
+                            <i class="fa fa-arrows-alt"/> Zoom Out</button>
+                        <p>Percentage of cache lookups served from memory (Hits / Hits+Fails). Low hit rates may indicate thrashing.</p>
+                    </div>
+                </div><!-- /.box -->
+            </section>
             <section class="col-lg-12"><!-- Box (Vector Cache) -->
                 <div class="box box-warning">
                     <div class="box-header">

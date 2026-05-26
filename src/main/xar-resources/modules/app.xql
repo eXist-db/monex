@@ -40,6 +40,14 @@ declare variable $app:default-timeline-xpaths := map {
         "($jmx//jmx:Cache[contains(@name, 'name=vector.dbx,cache-type=BTREE')]/jmx:Used)[1]",
         "($jmx//jmx:Cache[contains(@name, 'name=vector.dbx,cache-type=DATA')]/jmx:Used)[1]"
     ),
+    "cache-pool-graph": (
+        "($jmx//jmx:CacheManager/jmx:CurrentSize)[1] div (1024 * 1024)",
+        "($jmx//jmx:Database/jmx:CacheMem)[1] div (1024 * 1024)"
+    ),
+    "cache-hitrate-graph": (
+        "let $c := ($jmx//jmx:Cache[contains(@name, 'name=dom.dbx,cache-type=DATA')])[1] return if ((number($c/jmx:Hits) + number($c/jmx:Fails)) gt 0) then (number($c/jmx:Hits) div (number($c/jmx:Hits) + number($c/jmx:Fails))) * 100 else ()",
+        "let $c := ($jmx//jmx:Cache[contains(@name, 'name=vector.dbx,cache-type=DATA')])[1] return if ((number($c/jmx:Hits) + number($c/jmx:Fails)) gt 0) then (number($c/jmx:Hits) div (number($c/jmx:Hits) + number($c/jmx:Fails))) * 100 else ()"
+    ),
     "slow-queries-graph": ("max($jmx//jmx:mostRecentExecutionDuration)",
             "avg($jmx//jmx:mostRecentExecutionDuration)")
     (: full path is $jmx/jmx:ProcessReport/jmx:RecentQueryHistory/jmx:row/jmx:mostRecentExecutionDuration :)
@@ -51,6 +59,8 @@ declare variable $app:default-timeline-labels := map {
     "cpu-graph": ("Process CPU Load", "System CPU Load"), 
     "memory-graph": ("Used Memory (MB)", "Committed Memory (MB)"), 
     "vector-cache-graph": ("vector.dbx BTREE Used (pages)", "vector.dbx DATA Used (pages)"),
+    "cache-pool-graph": ("Shared pool used (MB)", "Configured pool (MB)"),
+    "cache-hitrate-graph": ("dom.dbx DATA hit rate (%)", "vector.dbx DATA hit rate (%)"),
     "slow-queries-graph": ("Slowest Query", "Average Query")
 };
 

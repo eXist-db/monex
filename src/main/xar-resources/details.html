@@ -32,167 +32,72 @@
     </section>
     <!-- Main content -->
     <section id="details" class="content">
-        <div class="row">
-            <div class="col-lg-3 col-xs-6">
-                <!-- small box -->
-                <div class="info-box" data-bind="css: kpiBoxClass('activeBrokers', activeBrokerCount($data.jmx), $data.jmx)">
-                    <span class="info-box-icon" data-bind="css: kpiIconClass('activeBrokers', activeBrokerCount($data.jmx), $data.jmx)">
-                        <i class="ion ion-android-storage"/>
-                    </span>
-                    <div class="info-box-content">
-                        <div class="info-box-text"> Active DB Processes </div>
-                        <div class="info-box-number" id="jmx-brokers">
-                            <span data-bind="text: jmx.Database.ActiveBrokers">?</span> of <span data-bind="text: jmx.Database.TotalBrokers">?</span>
+        <div class="kpi-strip">
+            <div class="kpi-cell" data-bind="css: kpiCellClass('activeBrokers', activeBrokerCount($data.jmx), $data.jmx)">
+                <span class="kpi-label">Brokers</span>
+                <span class="kpi-value">
+                    <span data-bind="text: activeBrokerCount($data.jmx)">?</span>
+                    <span class="kpi-sub">/ <span data-bind="text: maxBrokerCount($data.jmx)">?</span></span>
+                </span>
+            </div>
+            <div class="kpi-cell" data-bind="css: kpiCellClass('runningQueries', runningQueryCount($data.jmx), $data.jmx)">
+                <span class="kpi-label">Queries</span>
+                <span class="kpi-value" data-bind="text: runningQueryCount($data.jmx)">?</span>
+            </div>
+            <div class="kpi-cell" data-bind="css: kpiCellClass('waitingThreads', waitingThreadCount($data.jmx), $data.jmx)">
+                <span class="kpi-label">Waiting</span>
+                <span class="kpi-value" data-bind="text: waitingThreadCount($data.jmx)">?</span>
+            </div>
+            <div class="kpi-cell kpi-neutral">
+                <span class="kpi-label">Uptime</span>
+                <span class="kpi-value" id="jmx-uptime" data-bind="text: uptime($data.jmx.Database.Uptime())">?</span>
+            </div>
+            <!-- ko if: sharedPoolKpiVisible($data.jmx) -->
+            <div class="kpi-cell" data-bind="css: sharedPoolKpiClass($data.jmx)">
+                <span class="kpi-label">Cache pool</span>
+                <span class="kpi-value"><span data-bind="text: sharedPoolKpiPercent($data.jmx)">0</span>%</span>
+            </div>
+            <!-- /ko -->
+        </div>
+
+        <div class="row dashboard-main">
+            <section class="col-lg-7 dashboard-capacity">
+                <!-- ko if: $data.jmx.MemoryImpl && $data.jmx.MemoryImpl.HeapMemoryUsage -->
+                <div class="box dashboard-panel">
+                    <div class="box-header">
+                        <h3 class="box-title">Java Memory</h3>
+                    </div>
+                    <div class="box-body no-padding">
+                        <div class="gauge-block" data-bind="with: jmx.MemoryImpl.HeapMemoryUsage">
+                            <div class="gauge-headline">
+                                <strong>
+                                    <span data-bind="text: memoryUsedMb($data)">0</span> /
+                                    <span data-bind="text: memoryMaxMb($data)">0</span> MB
+                                </strong>
+                                <span data-bind="text: memoryUsedPercent($data) + '% of max'">0%</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar" data-bind="css: capacityBarClass(memoryUsedPercent($data)), style: { width: memoryUsedPercent($data) + '%' }"/>
+                            </div>
+                        </div>
+                        <div class="broker-pool-row">
+                            <div class="gauge-headline">
+                                <strong>Broker pool</strong>
+                                <span>
+                                    <span data-bind="text: activeBrokerCount($parent.jmx)">0</span> /
+                                    <span data-bind="text: maxBrokerCount($parent.jmx)">0</span> active
+                                </span>
+                            </div>
+                            <div class="progress xs">
+                                <div class="progress-bar" data-bind="css: capacityBarClass(brokerPoolPercent($parent.jmx)), style: { width: brokerPoolPercent($parent.jmx) + '%' }"/>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div><!-- ./col -->
-            <div class="col-lg-3 col-xs-6">
-                <!-- small box -->
-                <div class="info-box">
-                    <span class="info-box-icon bg-gree">
-                        <i class="ion ion-ios7-time-outline"/>
-                    </span>
-                    <div class="info-box-content">
-                        <span class="info-box-text"> Uptime </span>
-                        <span class="info-box-number" id="jmx-uptime" data-bind="text: uptime($data.jmx.Database.Uptime())">?</span>
-                    </div>
-                </div>
-            </div><!-- ./col -->
-            <div class="col-lg-3 col-xs-6">
-                <!-- small box -->
-                <div class="info-box" data-bind="css: kpiBoxClass('runningQueries', runningQueryCount($data.jmx), $data.jmx)">
-                    <div class="info-box-icon" data-bind="css: kpiIconClass('runningQueries', runningQueryCount($data.jmx), $data.jmx)">
-                        <i class="ion ion-ios7-search"/>
-                    </div>
-                    <div class="info-box-content">
-                        <span class="info-box-text"> Running Queries </span>
-                        <span class="info-box-number">
-                            <span id="jmx-queries" data-bind="text: runningQueryCount($data.jmx)">?</span>
-                        </span>
-                    </div>
-                </div>
-            </div><!-- ./col -->
-            <div class="col-lg-3 col-xs-6">
-                <!-- small box -->
-                <div class="info-box" data-bind="css: kpiBoxClass('waitingThreads', waitingThreadCount($data.jmx), $data.jmx)">
-                    <span class="info-box-icon" data-bind="css: kpiIconClass('waitingThreads', waitingThreadCount($data.jmx), $data.jmx)">
-                        <i class="ion ion-pie-graph"/>
-                    </span>
-                    <div class="info-box-content">
-                        <span class="info-box-text"> Waiting Threads </span>
-                        <span class="info-box-number" data-bind="text: waitingThreadCount($data.jmx)">?</span>
-                    </div>
-                </div>
-            </div><!-- ./col -->
-        </div>
-        <div class="row">
-            <!-- Left col -->
-            <section class="col-lg-6">
-                <!-- Box (Running XQueries) -->
-                <div class="box box-success">
+                <!-- /ko -->
+
+                <div class="box dashboard-panel">
                     <div class="box-header">
-                        <i class="ion ion-ios7-search"/>
-                        <h3 class="box-title">Running Queries</h3>
-                    </div><!-- /.box-header -->
-                    <div class="box-body no-padding">
-                        <table class="table table-striped running-queries">
-                            <thead>
-                                <tr>
-                                    <th>Id</th>
-                                    <th>Source</th>
-                                    <th>URI</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody data-bind="visible: $data.jmx.ProcessReport.RunningQueries().length == 0">
-                                <tr>
-                                    <td colspan="5">No running queries</td>
-                                </tr>
-                            </tbody>
-                            <tbody data-bind="foreach: { data: jmx.ProcessReport.RunningQueries, afterRender: addKillBtn }">
-                                <tr>
-                                    <td class="thread" data-bind="text: $data.thread ? $data.thread : $data.id"/>
-                                    <td>
-                                        <span class="source-key" data-bind="text: $data.sourceKey().replace(/^.*\/([^\/]+)$/, '$1'), attr: { title: sourceKey }" data-toggle="tooltip"/>
-                                    </td>
-                                    <td data-bind="text: ($data.requestURI ? $data.requestURI : '')"/>
-                                    <td>
-                                        <span class="label" data-bind="text: $data.terminating() == 'false' ? 'running' : 'terminating', css: { 'label-success': $data.terminating() == 'false', 'label-warning': $data.terminating() == 'true' }"/>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="box box-danger">
-                    <div class="box-header">
-                        <i class="fa fa-cogs"/>
-                        <h3 class="box-title">Running Jobs</h3>
-                    </div>
-                    <div class="box-body no-padding">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Action</th>
-                                    <th>Id</th>
-                                    <th>Info</th>
-                                </tr>
-                            </thead>
-                            <tbody data-bind="visible: $data.jmx.ProcessReport.RunningJobs().length == 0">
-                                <tr>
-                                    <td colspan="3">No running jobs</td>
-                                </tr>
-                            </tbody>
-                            <tbody data-bind="foreach: jmx.ProcessReport.RunningJobs">
-                                <tr>
-                                    <td data-bind="text: action"/>
-                                    <td data-bind="text: id"/>
-                                    <td data-bind="text: info"/>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="box box-danger">
-                    <div class="box-header">
-                        <i class="fa fa-lock"/>
-                        <h3 class="box-title">Waiting Threads</h3>
-                    </div><!-- /.box-header -->
-                    <div class="box-body no-padding">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Thread</th>
-                                    <th>Waiting for</th>
-                                    <th>Resource</th>
-                                    <th>Lock mode</th>
-                                    <th>Lock type</th>
-                                </tr>
-                            </thead>
-                            <tbody data-bind="visible: $data.jmx.LockManager.WaitingThreads().length == 0">
-                                <tr>
-                                    <td colspan="5">No waiting threads</td>
-                                </tr>
-                            </tbody>
-                            <tbody data-bind="foreach: jmx.LockManager.WaitingThreads">
-                                <tr>
-                                    <td class="thread" data-bind="text: waitingThread"/>
-                                    <td data-bind="text: owner"/>
-                                    <td data-bind="text: id"/>
-                                    <td data-bind="text: lockMode"/>
-                                    <td data-bind="text: lockType"/>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-            <section class="col-lg-6">
-                <!-- Box (Cache Usage) -->
-                <div class="box box-info">
-                    <div class="box-header">
-                        <i class="fa fa-download"/>
                         <h3 class="box-title">Page Caches</h3>
                     </div>
                     <div class="box-body no-padding">
@@ -220,7 +125,12 @@
                                 <div class="cache-segment" data-bind="with: btree">
                                     <div class="cache-segment-label" title="BTREE pages in cache (used / max slots)">
                                         <span class="cache-type">BTREE</span>
-                                        <span data-bind="text: cacheSegmentSummary($data)"/>
+                                        <span>
+                                            <span data-bind="text: cacheSegmentSummary($data)"/>
+                                            <!-- ko if: cacheShowHitRate(Hits(), Fails()) -->
+                                            · <span class="hit-warn" data-bind="text: cacheHitRate(Hits(), Fails())"/>
+                                            <!-- /ko -->
+                                        </span>
                                     </div>
                                     <div class="progress">
                                         <div class="progress-bar" data-bind="css: capacityBarClass(cacheUsedPercent(Used(), Size())), style: { width: cacheUsedPercent(Used(), Size()) + '%' }"/>
@@ -231,7 +141,12 @@
                                 <div class="cache-segment" data-bind="with: data">
                                     <div class="cache-segment-label" title="DATA pages in cache (used / max slots)">
                                         <span class="cache-type">DATA</span>
-                                        <span data-bind="text: cacheSegmentSummary($data)"/>
+                                        <span>
+                                            <span data-bind="text: cacheSegmentSummary($data)"/>
+                                            <!-- ko if: cacheShowHitRate(Hits(), Fails()) -->
+                                            · <span class="hit-warn" data-bind="text: cacheHitRate(Hits(), Fails())"/>
+                                            <!-- /ko -->
+                                        </span>
                                     </div>
                                     <div class="progress">
                                         <div class="progress-bar" data-bind="css: capacityBarClass(cacheUsedPercent(Used(), Size())), style: { width: cacheUsedPercent(Used(), Size()) + '%' }"/>
@@ -243,117 +158,158 @@
                         <!-- /ko -->
                     </div>
                 </div>
-                <div class="box box-info">
+            </section>
+
+            <section class="col-lg-5 workload-panel">
+                <div class="box dashboard-panel activity-panel">
                     <div class="box-header">
-                        <i class="fa fa-info"/>
-                        <h3 class="box-title">System Information</h3>
-                    </div><!-- /.box-header -->
-                    <div class="box-body no-padding">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Key</th>
-                                    <th>Value</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><span data-bind="text: jmx.SystemInfo.ProductName"/> Version:</td>
-                                    <td data-bind="text: jmx.SystemInfo.ProductVersion"/>
-                                </tr>
-                                <tr>
-                                    <td><span data-bind="text: jmx.SystemInfo.ProductName"/> Build:</td>
-                                    <td data-bind="text: jmx.SystemInfo.ProductBuild"/>
-                                </tr>
-                                <tr>
-                                    <td>Operating System:</td>
-                                    <td data-bind="text: jmx.SystemInfo.OperatingSystem"/>
-                                </tr>
-                                <tr>
-                                    <td>Java Version:</td>
-                                    <td data-template="app:java-version"/>
-                                </tr>
-                                <tr>
-                                    <td>Default Encoding:</td>
-                                    <td data-bind="text: jmx.SystemInfo.DefaultEncoding"/>
-                                </tr>
-                                <tr>
-                                    <td>Instance ID:</td>
-                                    <td data-bind="text: jmx.Database.InstanceId"/>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <i class="fa fa-tasks"/>
+                        <h3 class="box-title">Activity</h3>
                     </div>
-                </div>
-                <div class="row">
-                    <section class="col-lg-12">
-                        <div class="box box-primary" id="loading-example">
-                            <div class="box-header">
-                                <i class="fa fa-cloud"/>
-                                <h3 class="box-title">Active Threads</h3>
-                            </div>
-                            <div class="box-body no-padding">
-                                <table class="table table-striped">
-                                    <thead>
-                                        <tr>
-                                            <th>Thread</th>
-                                            <th/>
-                                        </tr>
-                                    </thead>
-                                    <tbody data-bind="visible: $data.jmx.Database.ActiveBrokersMap().length == 0">
-                                        <tr>
-                                            <td colspan="2">No active threads</td>
-                                        </tr>
-                                    </tbody>
-                                    <tbody data-bind="foreach: jmx.Database.ActiveBrokersMap">
-                                        <tr>
-                                            <td class="thread" data-bind="text: owner"/>
-                                            <td>
-                                                <button class="btn btn-default pull-right stack" data-bind="attr: { 'data-content':  stack, title: owner}" data-toggle="popover">
-                                                    <i class="fa fa-code"/> Show stack
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+                    <div class="box-body no-padding">
+                        <div class="activity-section" data-bind="visible: runningQueryCount($data.jmx) &gt; 0">
+                            <h4 class="activity-section-title">Running queries</h4>
+                            <table class="table table-striped running-queries">
+                                <thead>
+                                    <tr>
+                                        <th>Id</th>
+                                        <th>Source</th>
+                                        <th>URI</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody data-bind="foreach: jmx.ProcessReport.RunningQueries">
+                                    <tr>
+                                        <td class="thread" data-bind="text: $data.thread ? $data.thread : $data.id"/>
+                                        <td>
+                                            <span class="source-key" data-bind="text: $data.sourceKey().replace(/^.*\/([^\/]+)$/, '$1'), attr: { title: sourceKey }" data-toggle="tooltip"/>
+                                        </td>
+                                        <td data-bind="text: ($data.requestURI ? $data.requestURI : '')"/>
+                                        <td>
+                                            <span class="label" data-bind="text: $data.terminating() == 'false' ? 'running' : 'terminating', css: { 'label-success': $data.terminating() == 'false', 'label-warning': $data.terminating() == 'true' }"/>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
-                    </section>
+
+                        <div class="activity-section" data-bind="visible: waitingThreadCount($data.jmx) &gt; 0">
+                            <h4 class="activity-section-title">Waiting threads</h4>
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Resource</th>
+                                        <th>Waiting for</th>
+                                    </tr>
+                                </thead>
+                                <tbody data-bind="foreach: waitingThreadsList($data.jmx)">
+                                    <tr>
+                                        <td data-bind="text: id"/>
+                                        <td>
+                                            <span data-bind="text: owner"/>
+                                            <!-- ko if: waitingThread -->
+                                            (<span data-bind="text: waitingThread"/>)
+                                            <!-- /ko -->
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="activity-section" data-bind="visible: runningJobCount($data.jmx) &gt; 0">
+                            <h4 class="activity-section-title">Running jobs</h4>
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Action</th>
+                                        <th>Id</th>
+                                        <th>Info</th>
+                                    </tr>
+                                </thead>
+                                <tbody data-bind="foreach: jmx.ProcessReport.RunningJobs">
+                                    <tr>
+                                        <td data-bind="text: action"/>
+                                        <td data-bind="text: id"/>
+                                        <td data-bind="text: info"/>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="activity-section" data-bind="visible: $data.jmx.Database.ActiveBrokersMap().length &gt; 0">
+                            <h4 class="activity-section-title">
+                                Active threads
+                                <span class="workload-count">(<span data-bind="text: $data.jmx.Database.ActiveBrokersMap().length">0</span>)</span>
+                            </h4>
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Thread</th>
+                                        <th/>
+                                    </tr>
+                                </thead>
+                                <tbody data-bind="foreach: jmx.Database.ActiveBrokersMap">
+                                    <tr>
+                                        <td class="thread" data-bind="text: owner"/>
+                                        <td>
+                                            <button class="btn btn-default btn-xs pull-right stack" data-bind="attr: { 'data-content': stack, title: owner }" data-toggle="popover">
+                                                <i class="fa fa-code"/> Stack
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="activity-section activity-section-recent">
+                            <h4 class="activity-section-title">
+                                Recent queries
+                                <small data-bind="visible: $data.jmx.ProcessReport.MinTimeRecorded">(&gt; <span data-bind="text: jmx.ProcessReport.MinTimeRecorded"/> ms)</small>
+                            </h4>
+                            <table class="table table-striped" id="recentQueries">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Source</th>
+                                        <th>Elapsed</th>
+                                        <th>URI</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="jmx-recent-queries" data-bind="foreach: {data: jmx.ProcessReport.RecentQueryHistory, afterRender: function(node) { $('.source-key', node).tooltip(); }}">
+                                    <tr>
+                                        <td data-bind="text: new Date(parseInt($data.mostRecentExecutionTime())).toISOString()"/>
+                                        <td>
+                                            <span class="source-key" data-bind="text: $data.sourceKey().replace(/^.*\/([^\/]+)$/, '$1'), attr: { title: sourceKey }" data-toggle="tooltip"/>
+                                        </td>
+                                        <td data-bind="text: mostRecentExecutionDuration"/>
+                                        <td data-bind="text: ($data.requestURI ? $data.requestURI : '')"/>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </section>
         </div>
-        <div class="row">
-            <section class="col-lg-12">
-                <div class="box box-info">
-                    <div class="box-header">
-                        <i class="fa fa-bar-chart-o"/>
-                        <h3 class="box-title">Recent Queries <small data-bind="visible: $data.jmx.ProcessReport.MinTimeRecorded">(execution time &gt; <span data-bind="text: jmx.ProcessReport.MinTimeRecorded"/>ms)</small>
-                        </h3>
-                    </div>
-                    <div class="box-body no-padding">
-                        <table class="table table-striped" id="recentQueries">
-                            <thead>
-                                <tr>
-                                    <th>Time</th>
-                                    <th>Source</th>
-                                    <th>Elapsed Time</th>
-                                    <th>Request URI</th>
-                                </tr>
-                            </thead>
-                            <tbody id="jmx-recent-queries" data-bind="foreach: {data: jmx.ProcessReport.RecentQueryHistory, afterRender: function(node) { $('.source-key', node).tooltip(); }}">
-                                <tr>
-                                    <td data-bind="text: new Date(parseInt($data.mostRecentExecutionTime())).toISOString()"/>
-                                    <td>
-                                        <span class="source-key" data-bind="text: $data.sourceKey().replace(/^.*\/([^\/]+)$/, '$1'), attr: { title: sourceKey }" data-toggle="tooltip"/>
-                                    </td>
-                                    <td data-bind="text: mostRecentExecutionDuration"/>
-                                    <td data-bind="text: ($data.requestURI ? $data.requestURI : '')"/>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
+
+        <div class="dashboard-system-footer">
+            <span class="system-summary">
+                <span data-bind="text: jmx.SystemInfo.ProductName"/> <span data-bind="text: jmx.SystemInfo.ProductVersion"/>
+                · <span data-bind="text: jmx.SystemInfo.OperatingSystem"/>
+                · Java <span data-template="app:java-version-inline"/>
+                · <span data-bind="text: jmx.Database.InstanceId"/>
+            </span>
+            <a class="system-more-toggle" data-toggle="collapse" href="#system-details">More</a>
+            <div id="system-details" class="system-details collapse">
+                <dl>
+                    <dt>Build</dt>
+                    <dd data-bind="text: jmx.SystemInfo.ProductBuild"/>
+                    <dt>Encoding</dt>
+                    <dd data-bind="text: jmx.SystemInfo.DefaultEncoding"/>
+                    <dt>Locale</dt>
+                    <dd data-bind="text: jmx.SystemInfo.DefaultLocale"/>
+                </dl>
+            </div>
         </div>
     </section>
     <pre id="jmx-data" style="display: none" data-template="app:load-record"/>
