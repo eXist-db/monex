@@ -1,0 +1,56 @@
+src/test/cypress/e2e/timelines_spec.cy.js
+  s_12ba9537e61ac7::t_9f11540d9e5a9b 1-92
+src/test/cypress/support/commands.js
+  s_12ba9537e61ac7::t_40d34464ffb480 150
+  s_12ba9537e61ac7::t_15a7bf9d7f5da5 180-182,184-186
+  s_12ba9537e61ac7::t_eaaade40ca27c4 161-163,165-174,176-177
+  s_12ba9537e61ac7::t_06128f04046c46 190,192-193,195
+  s_12ba9537e61ac7::t_be89ebc46771cf 194,196-197
+  s_12ba9537e61ac7::t_e118d743ecd9b9 136,198-201,203-242
+  s_12ba9537e61ac7::t_62cbd68812e8c3 137-149,151-160,178-179,183
+  s_12ba9537e61ac7::t_c3547e0d8c8b3c 202
+  s_12ba9537e61ac7::t_848a86d6040d8e 187-189,191
+  s_12ba9537e61ac7::t_6d06a419026195 175
+  s_12ba9537e61ac7::t_6d0441db1c88c6 164
+src/test/cypress/e2e/details_spec.cy.js
+  s_12ba9537e61ac7::t_6eb93017284cd1 69-70
+  s_12ba9537e61ac7::t_83de62a1df3689 13-23
+  s_12ba9537e61ac7::t_588f92f2568142 42,44
+  s_12ba9537e61ac7::t_8156d47fb35905 45
+  s_12ba9537e61ac7::t_80a3c76b3a4267 38,40
+  s_12ba9537e61ac7::t_c9f3c4e29fe898 71-72
+  s_12ba9537e61ac7::t_2ebc73ec9d66ff 1-11,46-47,54-58,60-68,73-76,82,88-94,97
+  s_12ba9537e61ac7::t_d853fb68eb9207 12,24-37,39,48-53,95-96
+  s_12ba9537e61ac7::t_f41159cb7018fe 43
+  s_12ba9537e61ac7::t_8a5356c980d2af 77
+  s_12ba9537e61ac7::t_fde738586f207a 78-81,83-87
+  s_12ba9537e61ac7::t_5b64706210f203 41
+  s_12ba9537e61ac7::t_62e580e613b85d 59
+src/test/cypress/fixtures/monex-details-snapshot.json
+  s_12ba9537e61ac7::t_341227a696d1bb 1-3,6-9
+  s_12ba9537e61ac7::t_e9164a70d9c7e2 4-5
+src/test/cypress/fixtures/monex-details-snapshot.xq
+  s_12ba9537e61ac7::t_0a95f0086ce6b6 5
+  s_12ba9537e61ac7::t_d2d86c1a016acd 21,28-32
+  s_12ba9537e61ac7::t_ba975ae09c5bf2 71-98
+  s_12ba9537e61ac7::t_8b14e9e1f2fc10 1-4,6,19,33-70,99
+  s_12ba9537e61ac7::t_8abdb9857ab583 22-27
+  s_12ba9537e61ac7::t_31b607dd3f7750 7-17,100
+  s_12ba9537e61ac7::t_a83333a0891924 18,20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "19fb2f24a2986b2068c8bc46ac1b56cfaa23ce8a",
+  "prompts": {},
+  "sessions": {
+    "s_12ba9537e61ac7": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "844524c2-10c0-461d-af7c-9e33465ffc79",
+        "model": "composer-2.5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
