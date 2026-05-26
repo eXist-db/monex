@@ -290,6 +290,12 @@ body > .header .logo {
 }
 
 .memory-sparkline-wrap .chart,
+.memory-sparkline-wrap .memory-sparkline,
+.default-chart {
+    position: relative;
+}
+
+.memory-sparkline-wrap .chart,
 .memory-sparkline-wrap .memory-sparkline {
     display: block;
     width: 100% !important;
@@ -298,8 +304,11 @@ body > .header .logo {
     margin: 0;
 }
 
-.memory-sparkline-wrap .flot-base,
-.memory-sparkline-wrap canvas {
+.memory-sparkline-wrap canvas,
+.default-chart canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
     max-width: 100%;
 }
 

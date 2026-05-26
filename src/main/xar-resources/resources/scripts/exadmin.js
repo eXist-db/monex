@@ -524,55 +524,6 @@ JMX.TimeSeries = (function() {
     var CHART_WARMUP_SAMPLES = 3;
     var CHART_PLOT_SKIP = 2;
 
-    var options = {
-        series: {
-            lines: {
-                show: true,
-                lineWidth: 1.2,
-                fill: true
-            }
-        },
-        xaxis: {
-            mode: "time",
-            show: true,
-            tickSize: [2, "second"],
-            tickFormatter: function (v, axis) {
-                var date = new Date(v);
-
-                if (date.getSeconds() % 20 == 0) {
-                    var hours = date.getHours() < 10 ? "0" + date.getHours() : date.getHours();
-                    var minutes = date.getMinutes() < 10 ? "0" + date.getMinutes() : date.getMinutes();
-                    var seconds = date.getSeconds() < 10 ? "0" + date.getSeconds() : date.getSeconds();
-
-                    return hours + ":" + minutes + ":" + seconds;
-                } else {
-                    return "";
-                }
-            },
-            axisLabel: "Time",
-            axisLabelUseCanvas: false,
-            axisLabelFontSizePixels: 12,
-            axisLabelFontFamily: 'Verdana, Arial',
-            axisLabelPadding: 10
-        },
-        yaxis: {
-            min: 0,
-            max: 100,
-            axisLabelUseCanvas: true,
-            axisLabelFontSizePixels: 12,
-            axisLabelFontFamily: 'Verdana, Arial',
-            axisLabelPadding: 6
-        },
-        legend: {
-            show: true,
-            labelBoxBorderColor: "#fff"
-        },
-        grid: {
-            borderWidth: 1,
-            margin: 6
-        }
-    };
-
     function getProperty(data, property) {
         if (!data) {
             return 0;
@@ -600,13 +551,13 @@ JMX.TimeSeries = (function() {
         return num;
     }
 
-    function seriesPeak(dataset) {
+    function seriesPeak(datasets) {
         var peak = 0;
-        for (var i = 0; i < dataset.length; i++) {
-            var points = dataset[i].data;
+        for (var i = 0; i < datasets.length; i++) {
+            var points = datasets[i].data;
             for (var j = 0; j < points.length; j++) {
-                if (points[j][1] > peak) {
-                    peak = points[j][1];
+                if (points[j].y > peak) {
+                    peak = points[j].y;
                 }
             }
         }
@@ -630,37 +581,41 @@ JMX.TimeSeries = (function() {
 
     Constr = function(container, labels, properties, propertyMaxY, unitY) {
         this.container = $(container);
+        this.canvas = MonexCharts.ensureCanvas(this.container);
+        this.chart = null;
+        this.lastHeapCap = 0;
         this.properties = properties;
         this.propertyMaxY = propertyMaxY;
         this.unitY = unitY || "";
         this.scaleMode = container.attr("data-scale") || "fixed";
-        this.plotOptions = $.extend(true, {}, options);
-        if (container.attr("data-legend") === "false") {
-            this.plotOptions.legend.show = false;
-        }
-        this.dataset = [];
+        this.showLegend = container.attr("data-legend") !== "false";
+        this.datasets = [];
         for (var i = 0; i < labels.length; i++) {
-            this.dataset.push({
-                label: labels[i],
-                data: []
+            var colors = MonexCharts.colorForIndex(i);
+            this.datasets.push({
+                label: labels[i].trim(),
+                data: [],
+                borderColor: colors.border,
+                backgroundColor: colors.fill,
+                borderWidth: 1.2,
+                pointRadius: 0,
+                pointHoverRadius: 3,
+                fill: true,
+                tension: 0.1
             });
         }
     };
 
     Constr.prototype.getPlotDataset = function() {
-        var len = this.dataset[0].data.length;
+        var len = this.datasets[0].data.length;
         if (len < CHART_WARMUP_SAMPLES) {
             return null;
         }
         var skip = Math.min(CHART_PLOT_SKIP, len - 1);
-        if (skip <= 0) {
-            return this.dataset;
-        }
-        return this.dataset.map(function(series) {
-            return {
-                label: series.label,
-                data: series.data.slice(skip)
-            };
+        return this.datasets.map(function(series) {
+            return $.extend({}, series, {
+                data: skip > 0 ? series.data.slice(skip) : series.data.slice()
+            });
         });
     };
 
@@ -669,27 +624,48 @@ JMX.TimeSeries = (function() {
         if (!plotDataset) {
             return;
         }
-        var heapCap = numericValue(getProperty(data, this.propertyMaxY), this.unitY);
-        var peak = seriesPeak(plotDataset);
-        this.plotOptions.yaxis.max = computeYMax(this.scaleMode, this.unitY, heapCap, peak);
-        $.plot(this.container, plotDataset, this.plotOptions);
+        var heapCap = data ?
+            numericValue(getProperty(data, this.propertyMaxY), this.unitY) :
+            this.lastHeapCap;
+        if (data) {
+            this.lastHeapCap = heapCap;
+        }
+        var yMax = computeYMax(this.scaleMode, this.unitY, heapCap, seriesPeak(plotDataset));
+        if (this.chart) {
+            for (var i = 0; i < plotDataset.length; i++) {
+                this.chart.data.datasets[i].data = plotDataset[i].data;
+            }
+            this.chart.options.scales.y.max = yMax;
+            this.chart.update("none");
+            return;
+        }
+        var options = MonexCharts.liveChartOptions(this.showLegend);
+        options.scales.y.max = yMax;
+        this.chart = new Chart(this.canvas, {
+            type: "line",
+            data: { datasets: plotDataset },
+            options: options
+        });
     };
 
     Constr.prototype.update = function(data) {
-        if (this.dataset[0].data.length > 100) {
-            for (var i = 0; i < this.dataset.length; i++) {
-                this.dataset[i].data.shift();
+        if (this.datasets[0].data.length > 100) {
+            for (var i = 0; i < this.datasets.length; i++) {
+                this.datasets[i].data.shift();
             }
         }
         var now = new Date().getTime();
         for (var i = 0; i < this.properties.length; i++) {
             var val = numericValue(getProperty(data, this.properties[i]), this.unitY);
-            this.dataset[i].data.push([now, val]);
+            this.datasets[i].data.push({ x: now, y: val });
         }
         this.renderPlot(data);
     };
 
     Constr.prototype.replot = function() {
+        if (this.chart) {
+            this.chart.resize();
+        }
         this.renderPlot(null);
     };
 
