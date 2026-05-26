@@ -17,6 +17,11 @@
 
 module.exports = (on, config) => {
   on('task', {
+    log (message) {
+      // eslint-disable-next-line no-console
+      console.log(message)
+      return null
+    },
     startBackgroundRestQuery ({ existRoot, query }) {
       const url = new URL(`${existRoot}/rest/db`)
       url.searchParams.set('_query', query)

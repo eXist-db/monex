@@ -122,39 +122,44 @@ describe('Monex index page', () => {
     })
 
     it('should keep URI flyout open across dashboard poll refresh', () => {
+      cy.waitForMonitoringViewModel({ timeout: 15000 })
+      cy.pauseMonitoringPoll()
+      cy.seedMonitoringRunningQueryUri()
+
+      cy.get('.running-queries .activity-uri-link:visible', { timeout: 10000 })
+        .should('have.length.at.least', 1)
+      cy.get('.running-queries .activity-uri-link:visible').first().click()
+      cy.get('#activity-uri-flyout').should('be.visible')
+
+      cy.simulateMonitoringPollRefresh()
+      cy.get('#activity-uri-flyout').should('be.visible')
+
+      cy.get('#activity-uri-flyout .activity-uri-flyout-close').click()
+      cy.get('#activity-uri-flyout').should('not.be.visible')
+    })
+
+    it('should keep stack flyout open across dashboard poll refresh', { timeout: 60000 }, () => {
       const slowQuery = 'import module namespace util = "http://exist-db.org/xquery/util"; util:wait(120000)'
 
       cy.wait(1500)
       cy.startBackgroundRestQuery(slowQuery)
-      cy.waitForJmxRunningQuery({ timeout: 30000 })
-      cy.wait(1500)
+      cy.waitForJmxRunningQuery({ timeout: 45000 }).as('runningQueryId')
+      cy.waitForDashboardActiveThreadStack({ timeout: 45000 })
 
-      cy.get('.running-queries .activity-uri-link:visible', { timeout: 15000 }).first().click()
+      cy.contains('h4.activity-section-title', 'Active threads')
+        .closest('.activity-section')
+        .find('.stack:visible')
+        .first()
+        .click()
       cy.get('#activity-uri-flyout').should('be.visible')
       cy.wait(2200)
       cy.get('#activity-uri-flyout').should('be.visible')
       cy.get('#activity-uri-flyout .activity-uri-flyout-close').click()
       cy.get('#activity-uri-flyout').should('not.be.visible')
-    })
 
-    it('should keep stack flyout open across dashboard poll refresh', () => {
-      const slowQuery = 'import module namespace util = "http://exist-db.org/xquery/util"; util:wait(120000)'
-
-      cy.wait(1500)
-      cy.startBackgroundRestQuery(slowQuery)
-      cy.waitForJmxRunningQuery({ timeout: 30000 })
-      cy.wait(1500)
-
-      cy.contains('h4.activity-section-title', 'Active threads', { timeout: 15000 })
-        .closest('.activity-section')
-        .find('.stack:visible')
-        .first()
-        .click()
-      cy.get('#activity-stack-flyout').should('be.visible')
-      cy.wait(2200)
-      cy.get('#activity-stack-flyout').should('be.visible')
-      cy.get('#activity-stack-flyout .activity-stack-flyout-close').click()
-      cy.get('#activity-stack-flyout').should('not.be.visible')
+      cy.get('@runningQueryId').then((queryId) => {
+        cy.killRunningQueryViaJmx(queryId)
+      })
     })
 
     it('should apply dashboard display retention from presets', () => {

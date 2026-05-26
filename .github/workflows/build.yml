@@ -44,7 +44,8 @@ jobs:
       # npm ci --ignore-scripts skips Cypress's postinstall binary fetch,
       # so download it explicitly. The binary is cached at ~/.cache/Cypress.
       - name: Install Cypress binary
-        run: npx cypress install
+        run: |
+          npx cypress install
       - run: npm run build
       - name: Install XAR
         run: npx --yes @existdb/xst package install dist/monex-*.xar
@@ -52,7 +53,7 @@ jobs:
           EXISTDB_USER: admin
           EXISTDB_PASS:
       - name: Run Cypress tests
-        run: npx cypress run
+        run: npx cypress run --browser firefox
 
   release:
     name: Release

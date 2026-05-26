@@ -4,7 +4,6 @@
  */
 $(function() {
     JMX.util.resetActivityBuffers();
-    initActivityFlyouts();
 
     var params = new URLSearchParams(window.location.search);
     var instance = params.get("instance") || "localhost";
@@ -31,6 +30,10 @@ $(function() {
         }
         var viewModel = ko.mapping.fromJS(data);
         viewModel.url = "";
+        Monex.activity.attachDashboardViewModel(viewModel, { livePoll: false });
+        Monex.activity.getDetailsFlyout = function() {
+            return viewModel.activityFlyout;
+        };
         ko.applyBindings(viewModel, document.getElementById("details-dashboard"));
 
         $(".thread").hover(function() {

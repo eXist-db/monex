@@ -33,6 +33,13 @@
             <b>Alert! </b>
             <span class="message"/>
         </div>
+        <p class="poll-status-bar text-muted small" data-bind="visible: pollLastLabel">
+            <span class="poll-status-label">Last poll:</span>
+            <span data-bind="text: pollLastLabel"/>
+            <!-- ko if: pollTabIdle -->
+            <span class="poll-tab-idle"> · slower refresh while tab is in background</span>
+            <!-- /ko -->
+        </p>
         <div id="browser-alert" class="alert alert-danger" style="display: none;">
             <i class="fa fa-ban"/>
             <b>Alert! </b> Your browser does not support websockets. Remote monitoring and console
@@ -237,8 +244,8 @@
                                             <th class="activity-actions-col" aria-label="Actions"/>
                                         </tr>
                                     </thead>
-                                    <tbody data-bind="foreach: { data: jmx.ProcessReport.RunningQueries, afterRender: initActivityRow }">
-                                        <tr data-bind="css: { 'activity-row-ended': activityEnded }">
+                                    <tbody data-bind="foreach: { data: runningQueriesForDisplay, afterRender: initActivityRow }">
+                                        <tr data-bind="css: { 'activity-row-ended': activityEnded }, attr: { 'data-activity-row-key': activityRowFlyoutKey($data) }">
                                             <td class="activity-id-cell" data-bind="text: ( $data.thread ?? $data.value?.thread ?? $data.id ?? $data.value?.id )"/>
                                             <td class="activity-source-cell">
                                                 <span class="source-key" data-bind="text: ( $data?.sourceKey?.() ?? $data?.value?.sourceKey?.() ?? $data?.sourceKey ?? $data?.value?.sourceKey ?? '' )?.replace(/^.*\/([^\/]+)$/, '$1') ?? '???', attr: { title: ( $data?.sourceKey?.() ?? $data?.value?.sourceKey?.() ?? $data?.sourceKey ?? $data?.value?.sourceKey ?? '' ) }" data-toggle="tooltip"/>
@@ -252,7 +259,7 @@
                                                 <!-- /ko -->
                                             </td>
                                             <td class="activity-uri-cell">
-                                                <a class="activity-uri-link" href="#" role="button" aria-label="Show full request URI" data-bind="visible: activityUriLabel($data) !== '—', attr: { 'data-uri-full': activityUriTitle($data), 'data-uri-href': activityUriHref($root.url, $data) }, text: activityUriLabel($data)"/>
+                                                <a class="activity-uri-link" href="#" role="button" aria-label="Show full request URI" data-bind="visible: activityUriLabel($data) !== '—', click: function(d, e) { return $root.activityFlyout.toggleUri(d, e, $root.url); }, text: activityUriLabel($data)"/>
                                                 <span class="text-muted" data-bind="visible: activityUriLabel($data) === '—'">—</span>
                                             </td>
                                             <td class="activity-actions-cell">
@@ -277,8 +284,8 @@
                                         <th>Status</th>
                                     </tr>
                                 </thead>
-                                <tbody data-bind="foreach: waitingThreadsList($data.jmx)">
-                                    <tr data-bind="css: { 'activity-row-ended': activityEnded }">
+                                <tbody data-bind="foreach: waitingThreadsForDisplay">
+                                        <tr data-bind="css: { 'activity-row-ended': activityEnded }, attr: { 'data-activity-row-key': activityRowFlyoutKey($data) }">
                                         <td data-bind="text: id"/>
                                         <td>
                                             <span data-bind="text: owner"/>
@@ -332,10 +339,10 @@
                                     </tr>
                                 </thead>
                                 <tbody data-bind="foreach: { data: jmx.Database.ActiveBrokersMap, afterRender: initActivityRow }">
-                                    <tr>
+                                    <tr data-bind="attr: { 'data-activity-row-key': activityRowFlyoutKey($data) }">
                                         <td class="thread" data-bind="text: owner"/>
                                         <td>
-                                            <button type="button" class="btn btn-default btn-xs pull-right stack" aria-label="Show stack trace" data-bind="attr: { 'data-stack-title': stackTraceTitle($data), 'data-stack-text': stackTraceText($data) }">
+                                            <button type="button" class="btn btn-default btn-xs pull-right stack" aria-label="Show stack trace" data-bind="click: function(d, e) { return $root.activityFlyout.toggleStack(d, e); }">
                                                 <i class="fa fa-code"/> Stack
                                             </button>
                                         </td>
@@ -364,38 +371,39 @@
                                             <td colspan="4">No recent queries</td>
                                         </tr>
                                     </tbody>
-                                    <tbody id="jmx-recent-queries" data-bind="visible: ( $data?.jmx?.ProcessReport?.RecentQueryHistory?.()?.length ?? 0 ) &gt; 0, foreach: {data: $data.jmx.ProcessReport.RecentQueryHistory, afterRender: initActivityRow }">
-                                        <tr data-bind="css: { 'activity-row-ended': activityEnded }">
+                                    <tbody id="jmx-recent-queries" data-bind="visible: ( $data?.jmx?.ProcessReport?.RecentQueryHistory?.()?.length ?? 0 ) &gt; 0, foreach: {data: recentQueriesForDisplay, afterRender: initActivityRow }">
+                                        <tr data-bind="css: { 'activity-row-ended': activityEnded }, attr: { 'data-activity-row-key': activityRowFlyoutKey($data) }">
                                             <td class="activity-time-cell" data-bind="text: new Date(parseInt( $data?.mostRecentExecutionTime?.() ?? $data?.value?.mostRecentExecutionTime?.() ?? $data?.mostRecentExecutionTime ?? 0 )).toISOString()"/>
                                             <td class="activity-source-cell">
                                                 <span class="source-key" data-bind="text: ( $data?.sourceKey?.() ?? $data?.value?.sourceKey?.() ?? $data?.sourceKey ?? '' )?.replace(/^.*\/([^\/]+)$/, '$1') ?? '???', attr: { title: ( $data?.sourceKey?.() ?? $data?.value?.sourceKey?.() ?? $data?.sourceKey ?? '' ) }" data-toggle="tooltip"/>
                                             </td>
                                             <td class="activity-elapsed-cell" data-bind="text: ( $data?.mostRecentExecutionDuration?.() ?? $data?.value?.mostRecentExecutionDuration?.() ?? $data?.mostRecentExecutionDuration ?? '' )"/>
                                             <td class="activity-uri-cell">
-                                                <a class="activity-uri-link" href="#" role="button" aria-label="Show full request URI" data-bind="visible: activityUriLabel($data) !== '—', attr: { 'data-uri-full': activityUriTitle($data), 'data-uri-href': activityUriHref($root.url, $data) }, text: activityUriLabel($data)"/>
+                                                <a class="activity-uri-link" href="#" role="button" aria-label="Show full request URI" data-bind="visible: activityUriLabel($data) !== '—', click: function(d, e) { return $root.activityFlyout.toggleUri(d, e, $root.url); }, text: activityUriLabel($data)"/>
                                                 <span class="text-muted" data-bind="visible: activityUriLabel($data) === '—'">—</span>
                                             </td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
+                            <p class="help-block text-muted small activity-uri-hint" data-bind="visible: showTrackUriHint">
+                                Request URIs show <strong>—</strong> because <strong>Track request URI</strong> is off on the server.
+                                Enable it under <strong>Recent query recording</strong> below to populate this column for HTTP-triggered queries.
+                            </p>
                         </div>
                         </div>
 
-                        <div id="activity-uri-flyout" class="activity-uri-flyout" style="display: none;" aria-hidden="true" role="dialog" aria-label="Request URI">
-                            <button type="button" class="close activity-uri-flyout-close" aria-label="Close">
+                        <div id="activity-uri-flyout" class="activity-uri-flyout activity-flyout-panel" aria-hidden="true" role="dialog" aria-label="Activity detail" data-bind="visible: activityFlyout.open, css: { 'activity-stack-flyout': activityFlyout.isStack }, style: activityFlyout.panelStyle, click: function(_, e) { e.stopPropagation(); }">
+                            <button type="button" class="close activity-uri-flyout-close" aria-label="Close" data-bind="click: activityFlyout.close">
                                 <span aria-hidden="true">×</span>
                             </button>
-                            <pre class="activity-uri-flyout-text"/>
-                            <a class="activity-uri-flyout-open" target="_blank" rel="noopener">Open in new tab ↗</a>
-                        </div>
-
-                        <div id="activity-stack-flyout" class="activity-uri-flyout activity-stack-flyout" style="display: none;" aria-hidden="true" role="dialog" aria-label="Stack trace">
-                            <button type="button" class="close activity-stack-flyout-close" aria-label="Close">
-                                <span aria-hidden="true">×</span>
-                            </button>
-                            <div class="activity-stack-flyout-title"/>
-                            <pre class="activity-stack-flyout-text"/>
+                            <!-- ko if: activityFlyout.isStack -->
+                            <div class="activity-stack-flyout-title" data-bind="text: activityFlyout.title"/>
+                            <!-- /ko -->
+                            <pre data-bind="text: activityFlyout.body, css: { 'activity-uri-flyout-text': activityFlyout.isUri, 'activity-stack-flyout-text': activityFlyout.isStack }"/>
+                            <!-- ko if: activityFlyout.showOpenLink -->
+                            <a class="activity-uri-flyout-open" target="_blank" rel="noopener" data-bind="attr: { href: activityFlyout.openHref() }">Open in new tab ↗</a>
+                            <!-- /ko -->
                         </div>
 
                         <div class="activity-panel-settings" id="activity-panel-settings">
@@ -503,5 +511,5 @@
     <script type="text/javascript" src="resources/scripts/charts.js"> </script>
     <script type="text/javascript" src="resources/scripts/ion.rangeSlider.min.js"> </script>
     <script type="text/javascript" src="resources/scripts/util.js"> </script>
-    <script type="text/javascript" src="resources/scripts/exadmin.js"> </script>
+    <script type="text/javascript" src="resources/scripts/monex-dashboard.js"> </script>
 </div>

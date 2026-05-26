@@ -201,7 +201,6 @@ body > .header .logo {
 }
 
 .activity-uri-flyout {
-    display: none;
     position: fixed;
     padding: 10px 28px 10px 12px;
     background: #fff;
@@ -209,6 +208,18 @@ body > .header .logo {
     border-radius: 4px;
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
     max-width: min(480px, 90vw);
+}
+
+.poll-status-bar {
+    margin: 0 0 12px;
+}
+
+.poll-tab-idle {
+    font-style: italic;
+}
+
+.activity-uri-hint {
+    margin: 8px 12px 0;
 }
 
 .activity-uri-flyout-close {

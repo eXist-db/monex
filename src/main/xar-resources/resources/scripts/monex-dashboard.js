@@ -3,6 +3,20 @@
  * Copyright (C) 2014 The eXist-db Authors
  */
 // util.js must be loaded first, otherwise JMX is undefined
+var Monex = window.Monex || {};
+window.Monex = Monex;
+
+function jmxValue(value) {
+    if (value && typeof ko !== "undefined" && ko.isObservable(value)) {
+        return value();
+    }
+    return value;
+}
+
+/*
+ * SPDX LGPL-2.1-or-later
+ * Copyright (C) 2014 The eXist-db Authors
+ */
 function findByName(nodes, name) {
     if (nodes instanceof Array) {
         for (var i = 0; i < nodes.length; i++) {
@@ -258,14 +272,34 @@ function cacheShowHitRate(hits, fails) {
     return (h / (h + f)) < 0.95;
 }
 
-function brokerPoolPercent(jmx) {
-    var active = activeBrokerCount(jmx);
-    var max = maxBrokerCount(jmx);
-    if (max <= 0) {
-        return 0;
-    }
-    return Math.round(active / (max / 100));
-}
+Monex.caches = {
+    findByName: findByName,
+    primaryCacheManager: primaryCacheManager,
+    collectionCacheManager: collectionCacheManager,
+    sharedPoolUsedMb: sharedPoolUsedMb,
+    sharedPoolMaxMb: sharedPoolMaxMb,
+    sharedPoolUsedPercent: sharedPoolUsedPercent,
+    sharedPoolKpiPercent: sharedPoolKpiPercent,
+    sharedPoolKpiVisible: sharedPoolKpiVisible,
+    sharedPoolKpiClass: sharedPoolKpiClass,
+    capacityBarClass: capacityBarClass,
+    cacheUsedPercent: cacheUsedPercent,
+    cacheHitRate: cacheHitRate,
+    cacheDisplayName: cacheDisplayName,
+    sortedDbxCacheGroups: sortedDbxCacheGroups,
+    visibleDbxCacheGroups: visibleDbxCacheGroups,
+    hiddenDbxCacheCount: hiddenDbxCacheCount,
+    cacheSegmentSummary: cacheSegmentSummary,
+    cacheShowHitRate: cacheShowHitRate
+};
+
+/*
+ * SPDX LGPL-2.1-or-later
+ * Copyright (C) 2014 The eXist-db Authors
+ */
+Monex.activity = Monex.activity || {};
+
+var HIDDEN_POLL_BACKOFF_MS = 10000;
 
 function runningJobCount(jmx) {
     if (!jmx || !jmx.ProcessReport || !jmx.ProcessReport.RunningJobs) {
@@ -273,62 +307,6 @@ function runningJobCount(jmx) {
     }
     var jobs = jmx.ProcessReport.RunningJobs;
     return (ko.isObservable(jobs) ? jobs() : jobs).length || 0;
-}
-
-function memoryUsedMb(heap) {
-    if (!heap) {
-        return 0;
-    }
-    return Math.floor(parseInt(jmxValue(heap.used), 10) / 1024 / 1024);
-}
-
-function memoryMaxMb(heap) {
-    if (!heap) {
-        return 0;
-    }
-    return Math.floor(parseInt(jmxValue(heap.max), 10) / 1024 / 1024);
-}
-
-function memoryUsedPercent(heap) {
-    if (!heap) {
-        return 0;
-    }
-    var used = parseInt(jmxValue(heap.used), 10) || 0;
-    var max = parseInt(jmxValue(heap.max), 10) || 0;
-    if (max <= 0) {
-        return 0;
-    }
-    return Math.round(used / (max / 100));
-}
-
-function readyVectorModels(vector) {
-    if (!vector || !vector.models) {
-        return [];
-    }
-    var models = ko.isObservable(vector.models) ? vector.models() : vector.models;
-    return models.filter(function(model) {
-        var status = ko.isObservable(model.status) ? model.status() : model.status;
-        return status === "available";
-    });
-}
-
-function vectorMissingCount(vector) {
-    if (!vector) {
-        return 0;
-    }
-    var ready = typeof vector.ready === "function" ? vector.ready() : vector.ready;
-    var total = typeof vector.total === "function" ? vector.total() : vector.total;
-    return Math.max(0, (total || 0) - (ready || 0));
-}
-
-function vectorModelLabel(model) {
-    if (!model) {
-        return "";
-    }
-    var id = ko.isObservable(model.id) ? model.id() : model.id;
-    var dimension = ko.isObservable(model.dimension) ? model.dimension() : model.dimension;
-    var provider = ko.isObservable(model.provider) ? model.provider() : model.provider;
-    return id + " · " + dimension + "d · " + provider;
 }
 
 function waitingThreadCount(jmx) {
@@ -339,7 +317,7 @@ function waitingThreadCount(jmx) {
         var waiting = jmx.LockManager.WaitingThreads;
         var rows = ko.isObservable(waiting) ? waiting() : waiting;
         return rows.filter(function(row) {
-            return !JMX.util.activityRowEnded(row);
+            return !activityRowEnded(row);
         }).length || 0;
     }
     if (jmx.LockTable && jmx.LockTable.Attempting) {
@@ -367,6 +345,14 @@ function runningQueriesList(jmx) {
     }
     var queries = jmx.ProcessReport.RunningQueries;
     return ko.isObservable(queries) ? queries() : queries;
+}
+
+function recentQueriesList(jmx) {
+    if (!jmx || !jmx.ProcessReport || !jmx.ProcessReport.RecentQueryHistory) {
+        return [];
+    }
+    var recent = jmx.ProcessReport.RecentQueryHistory;
+    return ko.isObservable(recent) ? recent() : recent;
 }
 
 function activityRowEnded(row) {
@@ -399,29 +385,6 @@ function showKillQuery(row) {
     return JMX_INSTANCE.name === "localhost" || JMX_INSTANCE.version !== 0;
 }
 
-function buildActivityUriFlyoutContent(fullUri, openHref) {
-    var $flyout = $("#activity-uri-flyout");
-    if (!$flyout.length) {
-        return;
-    }
-    $flyout.find(".activity-uri-flyout-text").text(fullUri || "");
-    var $open = $flyout.find(".activity-uri-flyout-open");
-    if (openHref && openHref !== "#") {
-        $open.attr("href", openHref).show();
-    } else {
-        $open.hide().removeAttr("href");
-    }
-}
-
-function buildActivityStackFlyoutContent(title, stackText) {
-    var $flyout = $("#activity-stack-flyout");
-    if (!$flyout.length) {
-        return;
-    }
-    $flyout.find(".activity-stack-flyout-title").text(title || "Stack trace");
-    $flyout.find(".activity-stack-flyout-text").text(stackText || "");
-}
-
 function activityRowFlyoutKey(row) {
     if (!row) {
         return "";
@@ -443,197 +406,212 @@ function activityRowFlyoutKey(row) {
     return key;
 }
 
-function applyActivityRowFlyoutKeys(node, data) {
-    var rowKey = activityRowFlyoutKey(data);
-    if (!rowKey) {
+function stackTraceText(row) {
+    return JMX.util.jmxFieldText(row && row.stack);
+}
+
+function stackTraceTitle(row) {
+    return JMX.util.jmxFieldText(row && row.owner) || "Stack trace";
+}
+
+function showTrackUriHint(jmx) {
+    if (!jmx || !jmx.ProcessReport) {
+        return false;
+    }
+    var track = jmxValue(jmx.ProcessReport.TrackRequestURI);
+    if (track === true || track === "true") {
+        return false;
+    }
+    return bufferedRunningQueryCount(jmx) > 0 || bufferedRecentQueryCount(jmx) > 0;
+}
+
+function positionFlyoutFromElement(model, el) {
+    if (!el || !model) {
         return;
     }
-    $(node).find(".activity-uri-link").attr("data-flyout-key", "uri:" + rowKey);
-    $(node).find(".stack").attr("data-flyout-key", "stack:" + rowKey);
-}
-
-function findActivityFlyoutAnchor(state) {
-    if (!state || !state.key) {
-        return $();
-    }
-    var selector = state.type === "uri" ? ".activity-uri-link" : ".stack";
-    var $root = $("#dashboard, #details");
-    var $match = $root.find(selector).filter(function() {
-        return $(this).attr("data-flyout-key") === state.key;
-    }).first();
-    if ($match.length) {
-        return $match;
-    }
-    if (state.type === "stack" && state.stackTitle) {
-        return $root.find(selector).filter(function() {
-            return $(this).attr("data-stack-title") === state.stackTitle;
-        }).first();
-    }
-    if (state.type === "uri" && state.uriFull) {
-        return $root.find(selector).filter(function() {
-            return $(this).attr("data-uri-full") === state.uriFull;
-        }).first();
-    }
-    return $();
-}
-
-var activityFlyoutState = null;
-var activityFlyoutAnchors = {};
-var activityFlyoutSuppressDismissUntil = 0;
-var activityFlyoutReconcileTimer = null;
-var activityFlyoutReconcileAttempts = 0;
-var ACTIVITY_FLYOUT_RECONCILE_MAX_ATTEMPTS = 12;
-
-function suppressActivityFlyoutDismiss() {
-    activityFlyoutSuppressDismissUntil = Date.now() + 250;
-}
-
-function shouldSuppressActivityFlyoutDismiss() {
-    return Date.now() < activityFlyoutSuppressDismissUntil;
-}
-
-function dismissActivityFlyouts() {
-    if (activityFlyoutReconcileTimer) {
-        clearTimeout(activityFlyoutReconcileTimer);
-        activityFlyoutReconcileTimer = null;
-    }
-    activityFlyoutReconcileAttempts = 0;
-    $("#activity-uri-flyout, #activity-stack-flyout").each(function() {
-        var $flyout = $(this);
-        $flyout.hide().attr("aria-hidden", "true");
-    });
-    activityFlyoutAnchors = {};
-    activityFlyoutState = null;
-}
-
-function dismissActivityUriFlyout() {
-    dismissActivityFlyouts();
-}
-
-function positionActivityFlyout($flyout, $anchor) {
-    if (!$flyout.length || !$anchor.length) {
-        return;
-    }
-    var maxWidth = $flyout.hasClass("activity-stack-flyout") ? 640 : 480;
-    var rect = $anchor[0].getBoundingClientRect();
+    var maxWidth = model.type() === "stack" ? 640 : 480;
+    var rect = el.getBoundingClientRect();
     var flyoutWidth = Math.min(maxWidth, window.innerWidth - 24);
     var left = Math.max(12, Math.min(rect.left, window.innerWidth - flyoutWidth - 12));
     var top = rect.bottom + 6;
-    $flyout.css({
-        position: "fixed",
-        left: left + "px",
-        top: top + "px",
-        width: flyoutWidth + "px",
-        zIndex: 1050
-    });
-    $flyout.show().attr("aria-hidden", "false");
-    var flyoutBottom = $flyout[0].getBoundingClientRect().bottom;
-    if (flyoutBottom > window.innerHeight - 12) {
-        top = Math.max(12, rect.top - 6 - $flyout.outerHeight());
-        $flyout.css("top", top + "px");
+    model.left(left);
+    model.top(top);
+    model.width(flyoutWidth);
+    model.open(true);
+}
+
+function findActivityRowByKey(rowKey) {
+    if (!rowKey) {
+        return null;
     }
-}
-
-function isActivityFlyoutOpen($flyout, $anchor) {
-    return $flyout.is(":visible") && activityFlyoutState &&
-        activityFlyoutState.id === $flyout.attr("id") &&
-        activityFlyoutState.key === ($anchor.attr("data-flyout-key") || "");
-}
-
-function rememberActivityFlyout($flyout, $anchor, type) {
-    var key = $anchor.attr("data-flyout-key");
-    if (!key) {
-        key = type + ":" + ($anchor.attr("data-uri-full") || $anchor.attr("data-stack-title") || $anchor.text());
-        $anchor.attr("data-flyout-key", key);
-    }
-    activityFlyoutState = {
-        id: $flyout.attr("id"),
-        type: type,
-        key: key,
-        open: true,
-        uriFull: $anchor.attr("data-uri-full") || "",
-        uriHref: $anchor.attr("data-uri-href") || "",
-        stackTitle: $anchor.attr("data-stack-title") || "",
-        stackText: $anchor.attr("data-stack-text") || ""
-    };
-    activityFlyoutAnchors[$flyout.attr("id")] = $anchor[0];
-}
-
-function showActivityUriFlyout($anchor) {
-    dismissActivityFlyouts();
-    buildActivityUriFlyoutContent(
-        $anchor.attr("data-uri-full") || "",
-        $anchor.attr("data-uri-href") || "#"
-    );
-    var $flyout = $("#activity-uri-flyout");
-    rememberActivityFlyout($flyout, $anchor, "uri");
-    positionActivityFlyout($flyout, $anchor);
-    suppressActivityFlyoutDismiss();
-}
-
-function showActivityStackFlyout($anchor) {
-    dismissActivityFlyouts();
-    buildActivityStackFlyoutContent(
-        $anchor.attr("data-stack-title") || "",
-        $anchor.attr("data-stack-text") || ""
-    );
-    var $flyout = $("#activity-stack-flyout");
-    rememberActivityFlyout($flyout, $anchor, "stack");
-    positionActivityFlyout($flyout, $anchor);
-    suppressActivityFlyoutDismiss();
-}
-
-function refreshActivityFlyoutAnchors(options) {
-    options = options || {};
-    if (!activityFlyoutState || !activityFlyoutState.open) {
-        return false;
-    }
-    var $flyout = $("#" + activityFlyoutState.id);
-    if (!$flyout.length) {
-        return false;
-    }
-    $flyout.show().attr("aria-hidden", "false");
-    var $anchor = findActivityFlyoutAnchor(activityFlyoutState);
-    if (!$anchor.length) {
-        if (options.dismissIfMissing) {
-            dismissActivityFlyouts();
+    var rows = document.querySelectorAll("[data-activity-row-key]");
+    var i;
+    for (i = 0; i < rows.length; i++) {
+        if (rows[i].getAttribute("data-activity-row-key") === rowKey) {
+            return rows[i];
         }
-        return false;
     }
-    activityFlyoutReconcileAttempts = 0;
-    activityFlyoutAnchors[activityFlyoutState.id] = $anchor[0];
-    positionActivityFlyout($flyout, $anchor);
-    return true;
+    return null;
 }
 
-function scheduleActivityFlyoutReconcile() {
-    if (!activityFlyoutState || !activityFlyoutState.open) {
+Monex.activity.createFlyoutModel = function(options) {
+    options = options || {};
+    var livePoll = options.livePoll !== false;
+
+    var model = {
+        open: ko.observable(false),
+        type: ko.observable("uri"),
+        rowKey: ko.observable(""),
+        title: ko.observable(""),
+        body: ko.observable(""),
+        openHref: ko.observable(""),
+        top: ko.observable(12),
+        left: ko.observable(12),
+        width: ko.observable(480),
+        close: function() {
+            model.open(false);
+            model.rowKey("");
+        },
+        toggleUri: function(row, ev, baseUrl) {
+            var key = activityRowFlyoutKey(row);
+            if (model.open() && model.type() === "uri" && model.rowKey() === key) {
+                model.close();
+                return false;
+            }
+            model.type("uri");
+            model.rowKey(key);
+            model.title("");
+            model.body(activityUriTitle(row));
+            model.openHref(activityUriHref(ko.isObservable(baseUrl) ? baseUrl() : baseUrl, row));
+            model.open(true);
+            if (ev && ev.currentTarget) {
+                positionFlyoutFromElement(model, ev.currentTarget);
+            }
+            return false;
+        },
+        toggleStack: function(row, ev) {
+            var key = activityRowFlyoutKey(row);
+            if (model.open() && model.type() === "stack" && model.rowKey() === key) {
+                model.close();
+                return false;
+            }
+            model.type("stack");
+            model.rowKey(key);
+            model.title(stackTraceTitle(row));
+            model.body(stackTraceText(row));
+            model.openHref("");
+            model.open(true);
+            if (ev && ev.currentTarget) {
+                positionFlyoutFromElement(model, ev.currentTarget);
+            }
+            return false;
+        },
+        afterPoll: function() {
+            if (!livePoll || !model.open()) {
+                return;
+            }
+            var key = model.rowKey();
+            if (!key) {
+                model.close();
+                return;
+            }
+            var rowEl = findActivityRowByKey(key);
+            if (!rowEl) {
+                model.close();
+                return;
+            }
+            var anchor = rowEl.querySelector(model.type() === "uri" ? ".activity-uri-link" : ".stack");
+            if (anchor) {
+                positionFlyoutFromElement(model, anchor);
+            }
+        }
+    };
+
+    model.panelStyle = ko.computed(function() {
+        return {
+            position: "fixed",
+            top: model.top() + "px",
+            left: model.left() + "px",
+            width: model.width() + "px",
+            zIndex: 1050
+        };
+    });
+    model.isUri = ko.computed(function() {
+        return model.type() === "uri";
+    });
+    model.isStack = ko.computed(function() {
+        return model.type() === "stack";
+    });
+    model.showOpenLink = ko.computed(function() {
+        var href = model.openHref();
+        return model.isUri() && href && href !== "#";
+    });
+
+    return model;
+};
+
+Monex.activity.attachDashboardViewModel = function(viewModel, options) {
+    if (!viewModel || viewModel._monexDashboardAttached) {
+        return viewModel;
+    }
+    options = options || {};
+    viewModel._monexDashboardAttached = true;
+
+    viewModel.runningQueriesForDisplay = ko.pureComputed(function() {
+        return runningQueriesList(viewModel.jmx);
+    });
+    viewModel.recentQueriesForDisplay = ko.pureComputed(function() {
+        return recentQueriesList(viewModel.jmx);
+    });
+    viewModel.waitingThreadsForDisplay = ko.pureComputed(function() {
+        return waitingThreadsList(viewModel.jmx);
+    });
+    viewModel.showTrackUriHint = ko.pureComputed(function() {
+        return showTrackUriHint(viewModel.jmx);
+    });
+    viewModel.activityFlyout = Monex.activity.createFlyoutModel(options);
+
+    if (options.livePoll !== false) {
+        viewModel.pollLastLabel = ko.observable("—");
+        viewModel.pollTabIdle = ko.observable(typeof document !== "undefined" && document.hidden);
+    }
+
+    return viewModel;
+};
+
+Monex.activity.initFlyoutDismiss = function(getFlyoutModel) {
+    if ($("body").data("monexFlyoutDismissInit")) {
         return;
     }
-    if (activityFlyoutReconcileTimer) {
-        clearTimeout(activityFlyoutReconcileTimer);
-    }
-    activityFlyoutReconcileAttempts = 0;
-    activityFlyoutReconcileTimer = setTimeout(function retryActivityFlyoutReconcile() {
-        activityFlyoutReconcileTimer = null;
-        if (!activityFlyoutState || !activityFlyoutState.open) {
-            return;
-        }
-        if (refreshActivityFlyoutAnchors()) {
-            return;
-        }
-        activityFlyoutReconcileAttempts++;
-        if (activityFlyoutReconcileAttempts < ACTIVITY_FLYOUT_RECONCILE_MAX_ATTEMPTS) {
-            activityFlyoutReconcileTimer = setTimeout(retryActivityFlyoutReconcile, 50);
-            return;
-        }
-        refreshActivityFlyoutAnchors({ dismissIfMissing: true });
-    }, 0);
-}
+    $("body").data("monexFlyoutDismissInit", true);
 
-function reconcileActivityFlyouts() {
-    scheduleActivityFlyoutReconcile();
-}
+    $(document).on("click.monexFlyout", function(ev) {
+        var flyout = getFlyoutModel();
+        if (!flyout || !flyout.open()) {
+            return;
+        }
+        if ($(ev.target).closest(".activity-flyout-panel, .activity-uri-link, .stack").length) {
+            return;
+        }
+        flyout.close();
+    });
+
+    $(document).on("keydown.monexFlyout", function(ev) {
+        if (ev.key === "Escape") {
+            var flyout = getFlyoutModel();
+            if (flyout) {
+                flyout.close();
+            }
+        }
+    });
+
+    $(window).on("scroll.monexFlyout resize.monexFlyout", function() {
+        var flyout = getFlyoutModel();
+        if (flyout) {
+            flyout.afterPoll();
+        }
+    });
+};
 
 function cleanupActivityTooltips() {
     $(".source-key").each(function() {
@@ -646,90 +624,41 @@ function cleanupActivityTooltips() {
     $("body > .popover.in, #dashboard .popover.in, #details .popover.in").remove();
 }
 
-function cleanupActivityOverlays() {
-    cleanupActivityTooltips();
-    scheduleActivityFlyoutReconcile();
-}
-
-function initActivityFlyouts() {
-    if ($("body").data("activityFlyoutsInit")) {
+function addKillBtn(node, data) {
+    if (data && activityRowEnded(data)) {
         return;
     }
-    $("body").data("activityFlyoutsInit", true);
-
-    $(document).on("click.activityFlyout", ".activity-uri-link", function(ev) {
+    var $row = $(node);
+    $row.find(".kill-query").off("click.monexKill").on("click.monexKill", function(ev) {
         ev.preventDefault();
         ev.stopPropagation();
-        var $anchor = $(this);
-        var $flyout = $("#activity-uri-flyout");
-        if (isActivityFlyoutOpen($flyout, $anchor)) {
-            dismissActivityFlyouts();
-        } else {
-            showActivityUriFlyout($anchor);
-        }
-    });
-
-    $(document).on("click.activityFlyout", ".stack", function(ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-        var $anchor = $(this);
-        var $flyout = $("#activity-stack-flyout");
-        if (isActivityFlyoutOpen($flyout, $anchor)) {
-            dismissActivityFlyouts();
-        } else {
-            showActivityStackFlyout($anchor);
-        }
-    });
-
-    $("#activity-uri-flyout, #activity-stack-flyout").on("click.activityFlyout", function(ev) {
-        ev.stopPropagation();
-    });
-
-    $("#activity-uri-flyout").on("click.activityFlyout", ".activity-uri-flyout-close", function(ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-        dismissActivityFlyouts();
-    });
-
-    $("#activity-stack-flyout").on("click.activityFlyout", ".activity-stack-flyout-close", function(ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-        dismissActivityFlyouts();
-    });
-
-    $(document).on("click.activityFlyout", function(ev) {
-        if (shouldSuppressActivityFlyoutDismiss()) {
+        var queryId = JMX.util.runningQueryKillId(data);
+        if (queryId === null) {
+            console.error("Cannot kill query: missing numeric id", data);
             return;
         }
-        if ($(ev.target).closest("#activity-uri-flyout, .activity-uri-link, #activity-stack-flyout, .stack").length) {
-            return;
+        if (JMX_INSTANCE.version === 0) {
+            $.ajax({
+                url: "modules/admin.xql",
+                data: { action: "kill", id: queryId },
+                type: "POST"
+            });
+        } else {
+            JMX.connection.invoke("killQuery", "org.exist.management.exist:type=ProcessReport", [queryId]);
         }
-        dismissActivityFlyouts();
     });
-
-    $(document).on("keydown.activityFlyout", function(ev) {
-        if (ev.key === "Escape") {
-            dismissActivityFlyouts();
+    if (data && !activityRowEnded(data) && $row.find(".kill-query").length) {
+        var $scroll = $row.closest(".activity-table-scroll");
+        var $firstLive = $scroll.find(".running-queries tbody tr:not(.activity-row-ended)").first();
+        if ($firstLive.length && $firstLive[0] === $row[0] && $row[0].scrollIntoView) {
+            $row[0].scrollIntoView({ block: "nearest", inline: "nearest" });
         }
-    });
-
-    $(window).on("scroll.activityFlyout resize.activityFlyout", function() {
-        refreshActivityFlyoutAnchors({ dismissIfMissing: false });
-    });
-}
-
-function stackTraceText(row) {
-    return JMX.util.jmxFieldText(row && row.stack);
-}
-
-function stackTraceTitle(row) {
-    return JMX.util.jmxFieldText(row && row.owner) || "Stack trace";
+    }
 }
 
 function initActivityRow(node, data) {
     if (data) {
         addKillBtn(node, data);
-        applyActivityRowFlyoutKeys(node, data);
     }
     $(node).find(".source-key").each(function() {
         var $el = $(this);
@@ -740,18 +669,37 @@ function initActivityRow(node, data) {
     });
 }
 
+function revealRunningQueries(liveCount) {
+    if (!liveCount || liveCount <= 0) {
+        return;
+    }
+    var panelScroll = document.querySelector(".activity-panel-scroll");
+    if (panelScroll) {
+        panelScroll.scrollTop = 0;
+    }
+    var workload = document.querySelector(".workload-panel");
+    if (workload && workload.scrollIntoView) {
+        workload.scrollIntoView({ block: "nearest", inline: "nearest" });
+    }
+    var liveRow = document.querySelector(".running-queries tbody tr:not(.activity-row-ended)");
+    if (liveRow && liveRow.scrollIntoView) {
+        liveRow.scrollIntoView({ block: "nearest", inline: "nearest" });
+    }
+}
+
+Monex.activity.HIDDEN_POLL_BACKOFF_MS = HIDDEN_POLL_BACKOFF_MS;
+Monex.activity.cleanupActivityTooltips = cleanupActivityTooltips;
+Monex.activity.revealRunningQueries = revealRunningQueries;
+
+/*
+ * SPDX LGPL-2.1-or-later
+ * Copyright (C) 2014 The eXist-db Authors
+ */
 var JMX_KPI_THRESHOLDS = {
     runningQueries: { warn: 3, critical: 10 },
     waitingThreads: { warn: 5, critical: 30 },
     activeBrokers: { warnRatio: 0.75, criticalRatio: 0.9 }
 };
-
-function jmxValue(value) {
-    if (value && typeof ko !== "undefined" && ko.isObservable(value)) {
-        return value();
-    }
-    return value;
-}
 
 function activeBrokerCount(jmx) {
     if (!jmx || !jmx.Database) {
@@ -771,6 +719,15 @@ function maxBrokerCount(jmx) {
     return parseInt(jmxValue(jmx.Database.TotalBrokers), 10) || 0;
 }
 
+function brokerPoolPercent(jmx) {
+    var active = activeBrokerCount(jmx);
+    var max = maxBrokerCount(jmx);
+    if (max <= 0) {
+        return 0;
+    }
+    return Math.round(active / (max / 100));
+}
+
 function runningQueryCount(jmx) {
     var queries = runningQueriesList(jmx);
     return queries.filter(function(row) {
@@ -783,29 +740,7 @@ function bufferedRunningQueryCount(jmx) {
 }
 
 function bufferedRecentQueryCount(jmx) {
-    if (!jmx || !jmx.ProcessReport || !jmx.ProcessReport.RecentQueryHistory) {
-        return 0;
-    }
-    var recent = jmx.ProcessReport.RecentQueryHistory;
-    return (ko.isObservable(recent) ? recent() : recent).length || 0;
-}
-
-function revealRunningQueries(liveCount) {
-    if (!liveCount || liveCount <= 0) {
-        return;
-    }
-    var panelScroll = document.querySelector(".activity-panel-scroll");
-    if (panelScroll) {
-        panelScroll.scrollTop = 0;
-    }
-    var workload = document.querySelector(".workload-panel");
-    if (workload && workload.scrollIntoView) {
-        workload.scrollIntoView({ block: "nearest", inline: "nearest" });
-    }
-    var liveRow = document.querySelector(".running-queries tbody tr:not(.activity-row-ended)");
-    if (liveRow && liveRow.scrollIntoView) {
-        liveRow.scrollIntoView({ block: "nearest", inline: "nearest" });
-    }
+    return recentQueriesList(jmx).length;
 }
 
 function kpiLevel(metric, value, jmx) {
@@ -869,6 +804,62 @@ function kpiCellClass(metric, value, jmx) {
     };
 }
 
+function memoryUsedMb(heap) {
+    if (!heap) {
+        return 0;
+    }
+    return Math.floor(parseInt(jmxValue(heap.used), 10) / 1024 / 1024);
+}
+
+function memoryMaxMb(heap) {
+    if (!heap) {
+        return 0;
+    }
+    return Math.floor(parseInt(jmxValue(heap.max), 10) / 1024 / 1024);
+}
+
+function memoryUsedPercent(heap) {
+    if (!heap) {
+        return 0;
+    }
+    var used = parseInt(jmxValue(heap.used), 10) || 0;
+    var max = parseInt(jmxValue(heap.max), 10) || 0;
+    if (max <= 0) {
+        return 0;
+    }
+    return Math.round(used / (max / 100));
+}
+
+function readyVectorModels(vector) {
+    if (!vector || !vector.models) {
+        return [];
+    }
+    var models = ko.isObservable(vector.models) ? vector.models() : vector.models;
+    return models.filter(function(model) {
+        var status = ko.isObservable(model.status) ? model.status() : model.status;
+        return status === "available";
+    });
+}
+
+function vectorMissingCount(vector) {
+    if (!vector) {
+        return 0;
+    }
+    var ready = typeof vector.ready === "function" ? vector.ready() : vector.ready;
+    var total = typeof vector.total === "function" ? vector.total() : vector.total;
+    return Math.max(0, (total || 0) - (ready || 0));
+}
+
+function vectorModelLabel(model) {
+    if (!model) {
+        return "";
+    }
+    var id = ko.isObservable(model.id) ? model.id() : model.id;
+    var dimension = ko.isObservable(model.dimension) ? model.dimension() : model.dimension;
+    var provider = ko.isObservable(model.provider) ? model.provider() : model.provider;
+    return id + " · " + dimension + "d · " + provider;
+}
+
 function vectorStatusClass(status) {
     switch (status) {
         case "available":
@@ -905,53 +896,47 @@ function updateVectorDiagnostics(model, data) {
     model.vector.models(payload.models || []);
 }
 
-function addKillBtn(node, data) {
-    if (data && activityRowEnded(data)) {
-        return;
-    }
-    var $row = $(node);
-    $row.find(".kill-query").off("click.monexKill").on("click.monexKill", function(ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-        var queryId = JMX.util.runningQueryKillId(data);
-        if (queryId === null) {
-            console.error("Cannot kill query: missing numeric id", data);
-            return;
-        }
-        if (JMX_INSTANCE.version === 0) {
-            $.ajax({
-                url: "modules/admin.xql",
-                data: { action: "kill", id: queryId },
-                type: "POST"
-            });
-        } else {
-            JMX.connection.invoke("killQuery", "org.exist.management.exist:type=ProcessReport", [queryId]);
-        }
-    });
-    if (data && !activityRowEnded(data) && $row.find(".kill-query").length) {
-        var $scroll = $row.closest(".activity-table-scroll");
-        var $firstLive = $scroll.find(".running-queries tbody tr:not(.activity-row-ended)").first();
-        if ($firstLive.length && $firstLive[0] === $row[0] && $row[0].scrollIntoView) {
-            $row[0].scrollIntoView({ block: "nearest", inline: "nearest" });
-        }
-    }
-}
-
 function uptime(data) {
-    var uptime = parseInt(data);
-    var cd = 24 * 60 * 60 * 1000,
-        ch = 60 * 60 * 1000,
-        d = Math.floor(uptime / cd),
-        h = '0' + Math.floor( (uptime - d * cd) / ch),
-        m = '0' + Math.round( (uptime - d * cd - h * ch) / 60000);
+    var uptimeMs = parseInt(data, 10);
+    var cd = 24 * 60 * 60 * 1000;
+    var ch = 60 * 60 * 1000;
+    var d = Math.floor(uptimeMs / cd);
+    var h = "0" + Math.floor((uptimeMs - d * cd) / ch);
+    var m = "0" + Math.round((uptimeMs - d * cd - h * ch) / 60000);
     if (d > 0) {
-        status = d + "d " + h.substr(-2) + "h";
-    } else {
-        status = h.substr(-2) + "h " + m.substr(-2) + "m";
+        return d + "d " + h.substr(-2) + "h";
     }
-    return status;
+    return h.substr(-2) + "h " + m.substr(-2) + "m";
 }
 
+Monex.kpi = {
+    JMX_KPI_THRESHOLDS: JMX_KPI_THRESHOLDS,
+    activeBrokerCount: activeBrokerCount,
+    maxBrokerCount: maxBrokerCount,
+    brokerPoolPercent: brokerPoolPercent,
+    runningQueryCount: runningQueryCount,
+    bufferedRunningQueryCount: bufferedRunningQueryCount,
+    bufferedRecentQueryCount: bufferedRecentQueryCount,
+    kpiLevel: kpiLevel,
+    kpiIconClass: kpiIconClass,
+    kpiBoxClass: kpiBoxClass,
+    kpiCellClass: kpiCellClass,
+    memoryUsedMb: memoryUsedMb,
+    memoryMaxMb: memoryMaxMb,
+    memoryUsedPercent: memoryUsedPercent,
+    readyVectorModels: readyVectorModels,
+    vectorMissingCount: vectorMissingCount,
+    vectorModelLabel: vectorModelLabel,
+    vectorStatusClass: vectorStatusClass,
+    createVectorViewModel: createVectorViewModel,
+    updateVectorDiagnostics: updateVectorDiagnostics,
+    uptime: uptime
+};
+
+/*
+ * SPDX LGPL-2.1-or-later
+ * Copyright (C) 2014 The eXist-db Authors
+ */
 JMX.TimeSeries = (function() {
     var CHART_WARMUP_SAMPLES = 3;
     var CHART_PLOT_SKIP = 2;
@@ -1104,23 +1089,21 @@ JMX.TimeSeries = (function() {
     return Constr;
 }());
 
+/*
+ * SPDX LGPL-2.1-or-later
+ * Copyright (C) 2014 The eXist-db Authors
+ */
 JMX.connection = (function() {
     "use strict";
 
-    var JMX_NS = "http://exist-db.org/jmx";
-
-    var version = 0;
-
     var viewModel = null;
-
     var instanceMap = {};
-
     var currentInstance;
-
     var onUpdateCb;
     var poll = true;
     var pollPeriod = 1000;
     var lastLiveRunningQueryCount = 0;
+    var visibilityListenerAttached = false;
 
     function Instance(config, schedulerActive) {
         this.name = ko.observable(config.name);
@@ -1182,6 +1165,40 @@ JMX.connection = (function() {
         };
     }
 
+    function effectivePollDelay() {
+        if (typeof document !== "undefined" && document.hidden) {
+            return Math.max(pollPeriod, Monex.activity.HIDDEN_POLL_BACKOFF_MS);
+        }
+        return pollPeriod;
+    }
+
+    function updatePollStatus(viewModelRef, startedAt, finishedAt) {
+        if (!viewModelRef || !viewModelRef.pollLastLabel) {
+            return;
+        }
+        var latency = Math.max(0, Math.round(finishedAt - startedAt));
+        var stamp = new Date(finishedAt).toLocaleTimeString();
+        viewModelRef.pollLastLabel(stamp + " · " + latency + "ms");
+        if (viewModelRef.pollTabIdle) {
+            viewModelRef.pollTabIdle(document.hidden);
+        }
+    }
+
+    function ensureVisibilityListener() {
+        if (visibilityListenerAttached || typeof document === "undefined") {
+            return;
+        }
+        visibilityListenerAttached = true;
+        document.addEventListener("visibilitychange", function() {
+            if (viewModel && viewModel.pollTabIdle) {
+                viewModel.pollTabIdle(document.hidden);
+            }
+            if (!document.hidden && poll && onUpdateCb) {
+                JMX.connection.poll(onUpdateCb);
+            }
+        });
+    }
+
     function connect(channel, callback) {
         if (!Modernizr.websockets) {
             $("#browser-alert").show(400);
@@ -1194,10 +1211,9 @@ JMX.connection = (function() {
         var url = proto + "://" + location.host + rootcontext + "/ws";
         var connection = new WebSocket(url);
 
-        // Log errors
-        connection.onerror = function (error) {
+        connection.onerror = function(error) {
             $("#status").text("Connection error ...");
-            console.log('WebSocket Error: %o', error);
+            console.log("WebSocket Error: %o", error);
         };
 
         connection.onclose = function() {
@@ -1209,20 +1225,22 @@ JMX.connection = (function() {
             connection.send('{ "channel": "' + channel + '" }');
         };
 
-        // Log messages from the server
-        connection.onmessage = function (e) {
+        connection.onmessage = function(e) {
             if (e.data == "ping") {
                 return;
             }
 
             var data = JSON.parse(e.data);
             console.log("ping received for %s: %s", data.instance, data.status);
-
             callback(data);
         };
     }
 
     return {
+        getViewModel: function() {
+            return viewModel;
+        },
+
         invoke: function(operation, mbean, args, callbacks) {
             var url;
             if (currentInstance.name() == "localhost") {
@@ -1261,6 +1279,8 @@ JMX.connection = (function() {
             if (!poll) {
                 return;
             }
+            ensureVisibilityListener();
+
             var url;
             var name = currentInstance.name();
             if (name == "localhost") {
@@ -1270,11 +1290,14 @@ JMX.connection = (function() {
                 url = "modules/remote.xql?name=" + name;
             }
 
+            var pollStarted = performance.now();
+
             $.ajax({
                 url: url,
                 type: "GET",
                 timeout: 10000,
                 success: function(xml) {
+                    var pollFinished = performance.now();
                     $("#connection-alert").hide(400);
                     var data = JMX.util.fixjs(JMX.util.jmx2js(xml));
                     if (data) {
@@ -1282,11 +1305,11 @@ JMX.connection = (function() {
                             data.jmx.version = 0;
                         }
                         currentInstance.version = data.jmx.version;
-                        // console.dir(data);
                         var rootDom = document.getElementById("dashboard");
                         if (rootDom) {
                             if (!viewModel) {
                                 viewModel = ko.mapping.fromJS(data);
+                                Monex.activity.attachDashboardViewModel(viewModel, { livePoll: true });
                                 viewModel.vector = createVectorViewModel(null);
                                 viewModel.gc = function() {
                                     JMX.connection.invoke("gc", "java.lang:type=Memory");
@@ -1317,13 +1340,16 @@ JMX.connection = (function() {
                                     });
                                 }
                             } else {
-                                cleanupActivityTooltips();
+                                Monex.activity.cleanupActivityTooltips();
                                 ko.mapping.fromJS(data, viewModel);
-                                scheduleActivityFlyoutReconcile();
+                                if (viewModel.activityFlyout) {
+                                    viewModel.activityFlyout.afterPoll();
+                                }
                             }
+                            updatePollStatus(viewModel, pollStarted, pollFinished);
                             var liveRunning = runningQueryCount(data.jmx);
                             if (liveRunning > lastLiveRunningQueryCount) {
-                                revealRunningQueries(liveRunning);
+                                Monex.activity.revealRunningQueries(liveRunning);
                             }
                             lastLiveRunningQueryCount = liveRunning;
                         }
@@ -1344,13 +1370,13 @@ JMX.connection = (function() {
                                 }
                             });
                         }
-                        setTimeout(function() { JMX.connection.poll(onUpdate); }, pollPeriod);
+                        setTimeout(function() { JMX.connection.poll(onUpdate); }, effectivePollDelay());
                     } else {
                         $("#connection-alert").show(400).find(".message").text("No response from server. Retrying ...");
                         setTimeout(function() { JMX.connection.poll(onUpdate); }, 5000);
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function() {
                     $("#connection-alert").show(400).find(".message")
                         .text("Connection to server failed. Retrying ...");
                     setTimeout(JMX.connection.poll, 5000);
@@ -1371,12 +1397,12 @@ JMX.connection = (function() {
                     instances.push(instance);
                 }
             }
-            var viewModel = new Instances(instances, schedulerActive);
+            var remotesModel = new Instances(instances, schedulerActive);
             var domRoot = document.getElementById("remotes");
             if (domRoot) {
-                ko.applyBindings(viewModel, domRoot);
+                ko.applyBindings(remotesModel, domRoot);
             }
-            ko.applyBindings(viewModel, $("#notifications")[0]);
+            ko.applyBindings(remotesModel, $("#notifications")[0]);
 
             connect("jmx.ping", JMX.connection.ping);
         },
@@ -1421,11 +1447,24 @@ JMX.connection = (function() {
     };
 }());
 
+/*
+ * SPDX LGPL-2.1-or-later
+ * Copyright (C) 2014 The eXist-db Authors
+ */
 $(function() {
-    initActivityFlyouts();
+    Monex.activity.initFlyoutDismiss(function() {
+        var vm = JMX.connection.getViewModel();
+        if (vm && vm.activityFlyout) {
+            return vm.activityFlyout;
+        }
+        if (typeof Monex.activity.getDetailsFlyout === "function") {
+            return Monex.activity.getDetailsFlyout();
+        }
+        return null;
+    });
+
     JMX.connection.init(JMX_INSTANCES, JMX_ACTIVE);
 
-    // the following block should only be run on the main dashboard page
     $("#dashboard").each(function() {
         var charts = [];
 
@@ -1466,7 +1505,7 @@ $(function() {
                 JMX.connection.setPollPeriod(data.from);
             }
         });
-        $("#pause-btn").on("click", function(ev) {
+        $("#pause-btn").on("click", function() {
             JMX.connection.togglePolling();
         });
         JMX.connection.poll(function(data) {
@@ -1482,8 +1521,4 @@ $(function() {
             redrawCharts();
         });
     });
-
-    // for (var server in JMX_INSTANCES) {
-    //     JMX.connection.ping(JMX_INSTANCES[server]);
-    // }
 });

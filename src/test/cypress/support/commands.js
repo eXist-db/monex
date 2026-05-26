@@ -75,6 +75,187 @@ function runningQueryIdsFromStatus (xml) {
   return [...new Set(ids)]
 }
 
+function runningQueriesFromStatus (xml) {
+  const section = xml.match(/<jmx:RunningQueries>([\s\S]*?)<\/jmx:RunningQueries>/)
+  if (!section) {
+    return []
+  }
+  const rows = []
+  const rowRe = /<jmx:RunningQuery[^>]*>([\s\S]*?)<\/jmx:RunningQuery>/g
+  let rowMatch
+  while ((rowMatch = rowRe.exec(section[1])) !== null) {
+    const block = rowMatch[1]
+    const id = block.match(/<jmx:id>([^<]*)<\/jmx:id>/)
+    const uri = block.match(/<jmx:requestURI>([^<]*)<\/jmx:requestURI>/)
+    rows.push({
+      id: id ? id[1] : '',
+      requestURI: uri ? uri[1] : ''
+    })
+  }
+  if (rows.length === 0) {
+    const ids = runningQueryIdsFromStatus(xml)
+    return ids.map((id) => ({ id: String(id), requestURI: '' }))
+  }
+  return rows
+}
+
+function trackRequestUriFromStatus (xml) {
+  const match = xml.match(/<jmx:TrackRequestURI>\s*([^<]*)\s*<\/jmx:TrackRequestURI>/i)
+  return match ? match[1] : '(missing)'
+}
+
+Cypress.Commands.add('logActivityDashboardDiagnostics', (label) => {
+  const tag = label ? `[${label}] ` : ''
+
+  cy.window({ log: false }).then((win) => {
+    const vm = win.JMX.connection && win.JMX.connection.getViewModel()
+    const runningQueries = vm && vm.jmx && vm.jmx.ProcessReport && vm.jmx.ProcessReport.RunningQueries
+    const rows = runningQueries ? (win.ko.isObservable(runningQueries) ? runningQueries() : runningQueries) : []
+    const dashboard = {
+      viewModelReady: !!vm,
+      trackRequestUri: vm && vm.jmx && vm.jmx.ProcessReport
+        ? (win.ko.isObservable(vm.jmx.ProcessReport.TrackRequestURI)
+          ? vm.jmx.ProcessReport.TrackRequestURI()
+          : vm.jmx.ProcessReport.TrackRequestURI)
+        : null,
+      runningQueryRows: (rows || []).map((row) => ({
+        id: win.JMX.util.jmxFieldText(win.JMX.util.runningQueryField(row, 'id')),
+        requestURI: win.JMX.util.activityRequestUri(row),
+        uriLabel: win.activityUriLabel ? win.activityUriLabel(row) : null
+      })),
+      visibleRunningRows: Cypress.$('.running-queries tbody tr:not(.activity-row-ended)').length,
+      visibleUriLinks: Cypress.$('.running-queries .activity-uri-link:visible').length,
+      flyoutOpen: vm && vm.activityFlyout ? vm.activityFlyout.open() : null
+    }
+
+    cy.task('log', `${tag}Dashboard activity state:\n${JSON.stringify(dashboard, null, 2)}`, { log: false })
+  })
+
+  cy.window({ log: false }).its('JMX_INSTANCES.0.token').then((token) => {
+    if (!token) {
+      cy.task('log', `${tag}JMX status: no token on window.JMX_INSTANCES`, { log: false })
+      return
+    }
+    cy.request({
+      url: `${existRootUrl()}/status?c=processes&token=${token}`,
+      failOnStatusCode: false
+    }).then((resp) => {
+      const jmx = {
+        trackRequestUri: trackRequestUriFromStatus(resp.body),
+        runningQueries: runningQueriesFromStatus(resp.body)
+      }
+      cy.task('log', `${tag}JMX ProcessReport snapshot:\n${JSON.stringify(jmx, null, 2)}`, { log: false })
+    })
+  })
+})
+
+Cypress.Commands.add('waitForMonitoringViewModel', (options = {}) => {
+  const timeout = options.timeout || 15000
+  const interval = options.interval || 250
+  const started = Date.now()
+
+  const poll = () => {
+    return cy.window({ log: false }).then((win) => {
+      const vm = win.JMX.connection && win.JMX.connection.getViewModel()
+      if (vm && vm.jmx && vm.activityFlyout) {
+        return cy.wrap(vm, { log: false })
+      }
+      if (Date.now() - started > timeout) {
+        cy.logActivityDashboardDiagnostics('waitForMonitoringViewModel timeout')
+        throw new Error(`Dashboard view model not ready after ${timeout}ms`)
+      }
+      return cy.wait(interval, { log: false }).then(poll)
+    })
+  }
+
+  return poll()
+})
+
+Cypress.Commands.add('seedMonitoringRunningQueryUri', (options = {}) => {
+  const requestURI = options.requestURI ||
+    '/exist/rest/db?_query=import%20module%20namespace%20util%3D%22http%3A%2F%2Fexist-db.org%2Fxquery%2Futil%22%3B%20util%3Await(1)'
+  const queryId = options.id || 99001
+
+  cy.window().then((win) => {
+    const vm = win.JMX.connection.getViewModel()
+    if (!vm) {
+      cy.logActivityDashboardDiagnostics('seedMonitoringRunningQueryUri missing view model')
+      throw new Error('Dashboard view model is not ready')
+    }
+
+    win.JMX.util.resetActivityBuffers()
+    const pollData = win.JMX.util.fixjs({
+      jmx: {
+        ProcessReport: {
+          RunningQueries: [{
+            id: String(queryId),
+            thread: 'cypress-uri-flyout',
+            sourceKey: '/db/apps/monex/test',
+            requestURI,
+            terminating: 'false'
+          }],
+          RunningJobs: [],
+          RecentQueryHistory: [],
+          TrackRequestURI: 'true',
+          HistoryTimespan: '120000',
+          MinTime: '100'
+        },
+        LockManager: { WaitingThreads: [] }
+      }
+    })
+
+    if (win.Monex && win.Monex.activity && win.Monex.activity.cleanupActivityTooltips) {
+      win.Monex.activity.cleanupActivityTooltips()
+    }
+    win.ko.mapping.fromJS(pollData, vm)
+    win.__cypressLastPollData = pollData
+  })
+})
+
+Cypress.Commands.add('simulateMonitoringPollRefresh', () => {
+  cy.window().then((win) => {
+    const vm = win.JMX.connection.getViewModel()
+    const pollData = win.__cypressLastPollData
+    if (!vm || !pollData) {
+      cy.logActivityDashboardDiagnostics('simulateMonitoringPollRefresh missing state')
+      throw new Error('Cannot simulate poll refresh without seeded dashboard data')
+    }
+    if (win.Monex && win.Monex.activity && win.Monex.activity.cleanupActivityTooltips) {
+      win.Monex.activity.cleanupActivityTooltips()
+    }
+    win.ko.mapping.fromJS(pollData, vm)
+    if (vm.activityFlyout) {
+      vm.activityFlyout.afterPoll()
+    }
+  })
+})
+
+Cypress.Commands.add('pauseMonitoringPoll', () => {
+  cy.get('#pause-btn').then(($btn) => {
+    if ($btn.hasClass('active')) {
+      return
+    }
+    cy.wrap($btn).click()
+    cy.get('#pause-btn').should('have.class', 'active')
+  })
+})
+
+Cypress.Commands.add('waitForDashboardRunningQueryRow', (options = {}) => {
+  const timeout = options.timeout || 30000
+  cy.get('.workload-panel').scrollIntoView()
+  cy.get('.running-queries tbody tr:not(.activity-row-ended)', { timeout })
+    .should('have.length.at.least', 1)
+})
+
+Cypress.Commands.add('waitForDashboardActiveThreadStack', (options = {}) => {
+  const timeout = options.timeout || 30000
+  cy.waitForDashboardRunningQueryRow({ timeout })
+  cy.contains('h4.activity-section-title', 'Active threads', { timeout })
+    .closest('.activity-section')
+    .find('.stack:visible')
+    .should('have.length.at.least', 1)
+})
+
 Cypress.Commands.add('startBackgroundRestQuery', (query) => {
   cy.task('startBackgroundRestQuery', { existRoot: existRootUrl(), query })
 })
@@ -91,6 +272,7 @@ Cypress.Commands.add('waitForJmxRunningQuery', (options = {}) => {
           return cy.wrap(ids[0])
         }
         if (Date.now() - start > timeout) {
+          cy.logActivityDashboardDiagnostics('waitForJmxRunningQuery timeout')
           throw new Error(`Timed out after ${timeout}ms waiting for a running query in JMX`)
         }
         return cy.wait(interval).then(() => poll(start))

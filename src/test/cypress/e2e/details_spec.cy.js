@@ -53,9 +53,9 @@ describe('Monex details page', () => {
       cy.get('#jmx-uptime').should('contain', '1h')
     })
 
-    it('should expose activity flyout panels and initialize handlers', () => {
+    it('should expose activity flyout panel and initialize handlers', () => {
       cy.get('#activity-uri-flyout').should('exist')
-      cy.get('#activity-stack-flyout').should('exist')
+      cy.get('#activity-stack-flyout').should('not.exist')
       cy.get('#jmx-recent-queries .activity-uri-link:visible').should('have.length.at.least', 1)
     })
 
@@ -81,10 +81,10 @@ describe('Monex details page', () => {
       cy.get('#activity-uri-flyout').should('not.be.visible')
 
       cy.get('.stack').first().click()
-      cy.get('#activity-stack-flyout').should('be.visible')
-      cy.get('#activity-stack-flyout .activity-stack-flyout-text').should('contain', 'org.exist.test.Main.run')
-      cy.get('#activity-stack-flyout .activity-stack-flyout-close').click()
-      cy.get('#activity-stack-flyout').should('not.be.visible')
+      cy.get('#activity-uri-flyout').should('be.visible')
+      cy.get('#activity-uri-flyout .activity-stack-flyout-text').should('contain', 'org.exist.test.Main.run')
+      cy.get('#activity-uri-flyout .activity-uri-flyout-close').click()
+      cy.get('#activity-uri-flyout').should('not.be.visible')
     })
 
     it('should keep recent query table markup aligned with monitoring', () => {

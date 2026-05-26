@@ -3,6 +3,7 @@
  * Copyright (C) 2014 The eXist-db Authors
  */
 import { src, dest, series, parallel, watch as gulpWatch } from "gulp";
+import concat from "gulp-concat";
 import { createClient, readOptionsFromEnv } from "@existdb/gulp-exist";
 import replace from "@existdb/gulp-replace-tmpl";
 import rename from "gulp-rename";
@@ -124,8 +125,19 @@ function styles() {
     .pipe(dest(`${paths.staging}/resources/css`));
 }
 
+function dashboardBundle() {
+  return src("src/main/xar-resources/resources/scripts/dashboard/*.js")
+    .pipe(concat("monex-dashboard.js"))
+    .pipe(dest(`${paths.staging}/resources/scripts`))
+    .pipe(dest("src/main/xar-resources/resources/scripts"));
+}
+
 function scripts() {
-  return src("src/main/xar-resources/resources/scripts/*")
+  return src([
+    "src/main/xar-resources/resources/scripts/*",
+    "!src/main/xar-resources/resources/scripts/dashboard/**",
+    "!src/main/xar-resources/resources/scripts/monex-dashboard.js",
+  ])
     .pipe(dest(`${paths.staging}/resources/scripts`));
 }
 
@@ -176,7 +188,7 @@ function deployXar() {
 const build = series(
   clean,
   parallel(copyXarResources, copyProjectFiles),
-  parallel(styles, scripts, copyStatic),
+  parallel(styles, scripts, dashboardBundle, copyStatic),
   templates,
   createXar
 );
@@ -188,4 +200,5 @@ export { build, install };
 // default: build + deploy + watch
 export default series(build, deployXar, function watchTask() {
   gulpWatch(`${paths.input}/**/*`, build);
+  gulpWatch("src/main/xar-resources/resources/scripts/dashboard/*.js", dashboardBundle);
 });
