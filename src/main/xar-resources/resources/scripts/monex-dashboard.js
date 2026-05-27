@@ -830,6 +830,60 @@ function memoryUsedPercent(heap) {
     return Math.round(used / (max / 100));
 }
 
+function cpuOsNode(jmx) {
+    if (!jmx) {
+        return null;
+    }
+    if (jmx.CpuLoad) {
+        return jmx.CpuLoad;
+    }
+    return jmx.OperatingSystemImpl || jmx.UnixOperatingSystem || null;
+}
+
+function cpuMetricsAvailable(jmx) {
+    return !!cpuOsNode(jmx);
+}
+
+function cpuLoadRatio(jmx, key) {
+    var node = cpuOsNode(jmx);
+    if (!node) {
+        return 0;
+    }
+    var raw = jmxValue(node[key]);
+    var num = parseFloat(raw);
+    if (isNaN(num) || num < 0) {
+        return 0;
+    }
+    return num;
+}
+
+function processCpuLoad(jmx) {
+    return cpuLoadRatio(jmx, "ProcessCpuLoad");
+}
+
+function systemCpuLoad(jmx) {
+    return cpuLoadRatio(jmx, "SystemCpuLoad");
+}
+
+function processCpuLoadPercent(jmx) {
+    return Math.min(100, Math.round(processCpuLoad(jmx) * 100));
+}
+
+function systemCpuLoadPercent(jmx) {
+    return Math.min(100, Math.round(systemCpuLoad(jmx) * 100));
+}
+
+function formatCpuLoad(ratio) {
+    var pct = Math.max(0, (parseFloat(ratio) || 0) * 100);
+    if (pct > 0 && pct < 0.1) {
+        return pct.toFixed(2) + "%";
+    }
+    if (pct < 10) {
+        return pct.toFixed(1) + "%";
+    }
+    return Math.round(pct) + "%";
+}
+
 function readyVectorModels(vector) {
     if (!vector || !vector.models) {
         return [];
@@ -966,6 +1020,12 @@ Monex.kpi = {
     memoryUsedMb: memoryUsedMb,
     memoryMaxMb: memoryMaxMb,
     memoryUsedPercent: memoryUsedPercent,
+    cpuMetricsAvailable: cpuMetricsAvailable,
+    processCpuLoad: processCpuLoad,
+    systemCpuLoad: systemCpuLoad,
+    processCpuLoadPercent: processCpuLoadPercent,
+    systemCpuLoadPercent: systemCpuLoadPercent,
+    formatCpuLoad: formatCpuLoad,
     readyVectorModels: readyVectorModels,
     vectorMissingCount: vectorMissingCount,
     vectorModelLabel: vectorModelLabel,
@@ -1008,7 +1068,13 @@ JMX.TimeSeries = (function() {
     }
 
     function numericValue(value, unitY) {
-        var num = parseInt(value, 10) || 0;
+        var num = parseFloat(value);
+        if (isNaN(num)) {
+            num = parseInt(value, 10) || 0;
+        }
+        if (unitY === "percent") {
+            return num < 0 ? 0 : num * 100;
+        }
         if (unitY === "mb") {
             num = num / 1024 / 1024;
         }
@@ -1029,6 +1095,13 @@ JMX.TimeSeries = (function() {
     }
 
     function computeYMax(scaleMode, unitY, heapCap, peak) {
+        if (unitY === "percent") {
+            if (scaleMode === "pressure") {
+                var pctHeadroom = Math.max(peak * 0.25, 0.1);
+                return Math.min(100, Math.max(peak + pctHeadroom, 1));
+            }
+            return 100;
+        }
         if (scaleMode === "pressure") {
             var headroom = Math.max(peak * 0.15, unitY === "mb" ? 256 : 1);
             var zoomed = Math.max(peak + headroom, unitY === "mb" ? 512 : 2);
@@ -1053,6 +1126,7 @@ JMX.TimeSeries = (function() {
         this.unitY = unitY || "";
         this.scaleMode = container.attr("data-scale") || "fixed";
         this.showLegend = container.attr("data-legend") !== "false";
+        this.compactAxis = container.attr("data-compact-axis") === "true";
         this.datasets = [];
         for (var i = 0; i < labels.length; i++) {
             var colors = MonexCharts.colorForIndex(i);
@@ -1075,13 +1149,42 @@ JMX.TimeSeries = (function() {
         if (len < CHART_WARMUP_SAMPLES) {
             return null;
         }
-        var skip = Math.min(CHART_PLOT_SKIP, len - 1);
+        var skip = 0;
+        if (!this.compactAxis && len > CHART_PLOT_SKIP + 1) {
+            skip = CHART_PLOT_SKIP;
+        }
         return this.datasets.map(function(series) {
             return $.extend({}, series, {
                 data: skip > 0 ? series.data.slice(skip) : series.data.slice()
             });
         });
     };
+
+    function applyAxisOptions(options, unitY, yMax, compactAxis) {
+        options.scales.y.max = yMax;
+        if (compactAxis) {
+            options.scales.x.ticks.display = false;
+            options.scales.x.title.display = false;
+            options.scales.x.grid.display = false;
+            options.scales.y.ticks.maxTicksLimit = 2;
+            options.plugins.legend.display = false;
+        }
+        if (unitY === "percent") {
+            options.scales.y.ticks.callback = function(value) {
+                if (value < 1) {
+                    return value.toFixed(2) + "%";
+                }
+                return value + "%";
+            };
+            if (!compactAxis) {
+                options.scales.y.title = {
+                    display: true,
+                    text: "Load"
+                };
+            }
+        }
+        return options;
+    }
 
     Constr.prototype.renderPlot = function(data) {
         var plotDataset = this.getPlotDataset();
@@ -1099,12 +1202,11 @@ JMX.TimeSeries = (function() {
             for (var i = 0; i < plotDataset.length; i++) {
                 this.chart.data.datasets[i].data = plotDataset[i].data;
             }
-            this.chart.options.scales.y.max = yMax;
+            applyAxisOptions(this.chart.options, this.unitY, yMax, this.compactAxis);
             this.chart.update("none");
             return;
         }
-        var options = MonexCharts.liveChartOptions(this.showLegend);
-        options.scales.y.max = yMax;
+        var options = applyAxisOptions(MonexCharts.liveChartOptions(this.showLegend), this.unitY, yMax, this.compactAxis);
         this.chart = new Chart(this.canvas, {
             type: "line",
             data: { datasets: plotDataset },
@@ -1363,8 +1465,8 @@ JMX.connection = (function() {
                                     JMX.connection.invoke("gc", "java.lang:type=Memory");
                                 };
                                 viewModel.showAllCaches = ko.observable(false);
-                                viewModel.expandAllCaches = function() {
-                                    viewModel.showAllCaches(true);
+                                viewModel.toggleAllCaches = function() {
+                                    viewModel.showAllCaches(!viewModel.showAllCaches());
                                 };
                                 JMX.util.initActivityPanelSettings(data.jmx.ProcessReport);
                                 if (name == "localhost") {
@@ -1515,6 +1617,7 @@ $(function() {
         }
 
         $("#poll-period").ionRangeSlider({
+            skin: "monex",
             min: 0.5,
             max: 60.0,
             from: 1.0,
@@ -1529,17 +1632,34 @@ $(function() {
         $("#pause-btn").on("click", function() {
             JMX.connection.togglePolling();
         });
+        function redrawCpuGauges() {
+            if (Monex.cpuGauge) {
+                Monex.cpuGauge.resize();
+            }
+        }
+
         JMX.connection.poll(function(data) {
             initCharts();
             for (var i = 0; i < charts.length; i++) {
                 charts[i].update(data);
             }
+            if (Monex.cpuGauge && data && data.jmx) {
+                Monex.cpuGauge.update(data.jmx);
+            }
+            window.requestAnimationFrame(function() {
+                for (var j = 0; j < charts.length; j++) {
+                    charts[j].replot();
+                }
+                redrawCpuGauges();
+            });
         });
         $("#dashboard").on("expanded.boxwidget", ".box", function() {
             redrawCharts();
+            redrawCpuGauges();
         });
         $(window).on("resize.dashboardCharts", function() {
             redrawCharts();
+            redrawCpuGauges();
         });
     });
 });
@@ -1739,3 +1859,79 @@ Monex.vector = {
     formatVectorFileSize: formatVectorFileSize,
     vectorStoreSummary: vectorStoreSummary
 };
+
+/*
+ * SPDX LGPL-2.1-or-later
+ * Copyright (C) 2014 The eXist-db Authors
+ */
+Monex.cpuGauge = (function() {
+    "use strict";
+
+    var PROCESS_COLOR = "rgb(60, 141, 188)";
+    var SYSTEM_COLOR = "rgb(243, 156, 18)";
+    var TRACK_COLOR = "#eceff3";
+    var gauges = [];
+
+    function gaugePercent(jmx, key) {
+        var ratio = key === "process" ?
+            Monex.kpi.processCpuLoad(jmx) :
+            Monex.kpi.systemCpuLoad(jmx);
+        return Math.min(100, Math.max(0, ratio * 100));
+    }
+
+    function createGauge(container, color, key) {
+        var canvas = MonexCharts.ensureCanvas(container);
+        var chart = new Chart(canvas, {
+            type: "doughnut",
+            data: {
+                datasets: [{
+                    data: [0, 100],
+                    backgroundColor: [color, TRACK_COLOR],
+                    borderWidth: 0,
+                    hoverOffset: 0
+                }]
+            },
+            options: MonexCharts.semicircleGaugeOptions()
+        });
+        return {
+            chart: chart,
+            key: key
+        };
+    }
+
+    function init() {
+        if (gauges.length > 0) {
+            return;
+        }
+        var processNode = document.getElementById("cpu-process-gauge");
+        var systemNode = document.getElementById("cpu-system-gauge");
+        if (!processNode || !systemNode) {
+            return;
+        }
+        gauges.push(createGauge(processNode, PROCESS_COLOR, "process"));
+        gauges.push(createGauge(systemNode, SYSTEM_COLOR, "system"));
+    }
+
+    function update(jmx) {
+        init();
+        for (var i = 0; i < gauges.length; i++) {
+            var pct = gaugePercent(jmx, gauges[i].key);
+            gauges[i].chart.data.datasets[0].data = [pct, 100 - pct];
+            gauges[i].chart.update("none");
+        }
+    }
+
+    function resize() {
+        for (var i = 0; i < gauges.length; i++) {
+            if (gauges[i].chart) {
+                gauges[i].chart.resize();
+            }
+        }
+    }
+
+    return {
+        init: init,
+        update: update,
+        resize: resize
+    };
+}());

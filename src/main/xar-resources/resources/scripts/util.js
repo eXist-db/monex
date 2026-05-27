@@ -628,6 +628,32 @@ JMX.util = (function() {
         return false;
     }
 
+    function cpuLoadRatio(os, key) {
+        if (!os) {
+            return 0;
+        }
+        var raw = os[key];
+        if (raw === undefined || raw === null) {
+            return 0;
+        }
+        var num = parseFloat(raw);
+        if (isNaN(num) || num < 0) {
+            return 0;
+        }
+        return num;
+    }
+
+    function normalizeCpuMetrics(jmx) {
+        if (!jmx) {
+            return;
+        }
+        var os = jmx.OperatingSystemImpl || jmx.UnixOperatingSystem;
+        jmx.CpuLoad = {
+            ProcessCpuLoad: cpuLoadRatio(os, "ProcessCpuLoad"),
+            SystemCpuLoad: cpuLoadRatio(os, "SystemCpuLoad")
+        };
+    }
+
     return {
         jmx2js: function (node) {
             if (!node) {
@@ -706,6 +732,7 @@ JMX.util = (function() {
                     data.jmx.Database.ActiveBrokersMap = [];
                 }
             }
+            normalizeCpuMetrics(data.jmx);
             return data;
         },
 

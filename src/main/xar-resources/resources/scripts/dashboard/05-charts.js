@@ -26,7 +26,13 @@ JMX.TimeSeries = (function() {
     }
 
     function numericValue(value, unitY) {
-        var num = parseInt(value, 10) || 0;
+        var num = parseFloat(value);
+        if (isNaN(num)) {
+            num = parseInt(value, 10) || 0;
+        }
+        if (unitY === "percent") {
+            return num < 0 ? 0 : num * 100;
+        }
         if (unitY === "mb") {
             num = num / 1024 / 1024;
         }
@@ -47,6 +53,13 @@ JMX.TimeSeries = (function() {
     }
 
     function computeYMax(scaleMode, unitY, heapCap, peak) {
+        if (unitY === "percent") {
+            if (scaleMode === "pressure") {
+                var pctHeadroom = Math.max(peak * 0.25, 0.1);
+                return Math.min(100, Math.max(peak + pctHeadroom, 1));
+            }
+            return 100;
+        }
         if (scaleMode === "pressure") {
             var headroom = Math.max(peak * 0.15, unitY === "mb" ? 256 : 1);
             var zoomed = Math.max(peak + headroom, unitY === "mb" ? 512 : 2);
@@ -71,6 +84,7 @@ JMX.TimeSeries = (function() {
         this.unitY = unitY || "";
         this.scaleMode = container.attr("data-scale") || "fixed";
         this.showLegend = container.attr("data-legend") !== "false";
+        this.compactAxis = container.attr("data-compact-axis") === "true";
         this.datasets = [];
         for (var i = 0; i < labels.length; i++) {
             var colors = MonexCharts.colorForIndex(i);
@@ -93,13 +107,42 @@ JMX.TimeSeries = (function() {
         if (len < CHART_WARMUP_SAMPLES) {
             return null;
         }
-        var skip = Math.min(CHART_PLOT_SKIP, len - 1);
+        var skip = 0;
+        if (!this.compactAxis && len > CHART_PLOT_SKIP + 1) {
+            skip = CHART_PLOT_SKIP;
+        }
         return this.datasets.map(function(series) {
             return $.extend({}, series, {
                 data: skip > 0 ? series.data.slice(skip) : series.data.slice()
             });
         });
     };
+
+    function applyAxisOptions(options, unitY, yMax, compactAxis) {
+        options.scales.y.max = yMax;
+        if (compactAxis) {
+            options.scales.x.ticks.display = false;
+            options.scales.x.title.display = false;
+            options.scales.x.grid.display = false;
+            options.scales.y.ticks.maxTicksLimit = 2;
+            options.plugins.legend.display = false;
+        }
+        if (unitY === "percent") {
+            options.scales.y.ticks.callback = function(value) {
+                if (value < 1) {
+                    return value.toFixed(2) + "%";
+                }
+                return value + "%";
+            };
+            if (!compactAxis) {
+                options.scales.y.title = {
+                    display: true,
+                    text: "Load"
+                };
+            }
+        }
+        return options;
+    }
 
     Constr.prototype.renderPlot = function(data) {
         var plotDataset = this.getPlotDataset();
@@ -117,12 +160,11 @@ JMX.TimeSeries = (function() {
             for (var i = 0; i < plotDataset.length; i++) {
                 this.chart.data.datasets[i].data = plotDataset[i].data;
             }
-            this.chart.options.scales.y.max = yMax;
+            applyAxisOptions(this.chart.options, this.unitY, yMax, this.compactAxis);
             this.chart.update("none");
             return;
         }
-        var options = MonexCharts.liveChartOptions(this.showLegend);
-        options.scales.y.max = yMax;
+        var options = applyAxisOptions(MonexCharts.liveChartOptions(this.showLegend), this.unitY, yMax, this.compactAxis);
         this.chart = new Chart(this.canvas, {
             type: "line",
             data: { datasets: plotDataset },

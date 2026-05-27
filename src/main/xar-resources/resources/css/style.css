@@ -103,10 +103,10 @@ body > .header .logo {
 .workload-panel .activity-panel {
     display: flex;
     flex-direction: column;
-    max-height: calc(100vh - 120px);
+    max-height: calc(100vh - 220px);
 }
 
-.workload-panel .activity-panel > .box-body.activity-panel-body {
+.activity-panel > .box-body.activity-panel-body {
     display: flex;
     flex-direction: column;
     flex: 1 1 auto;
@@ -123,8 +123,194 @@ body > .header .logo {
 
 .activity-panel-settings {
     flex: 0 0 auto;
-    border-top: 1px solid #eee;
-    background: #fafafa;
+    border-top: 1px solid #e0e0e0;
+    background: #f4fbff;
+}
+
+.activity-recording-panel {
+    padding: 12px 16px 10px;
+}
+
+.activity-recording-panel-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 6px 12px;
+    margin-bottom: 10px;
+}
+
+.activity-recording-panel-title {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #555;
+}
+
+.activity-recording-panel-context {
+    font-size: 11px;
+    color: #888;
+}
+
+.activity-recording-callout {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 0 0 10px;
+    padding: 8px 10px;
+    border: 1px solid #d6e8f2;
+    border-left: 3px solid #7eb8d4;
+    border-radius: 3px;
+    background: #fff;
+    color: #555;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.activity-recording-callout .fa {
+    margin-top: 2px;
+    color: #5a9ab8;
+    flex-shrink: 0;
+}
+
+.activity-recording-callout p {
+    margin: 0;
+}
+
+.activity-recording-form {
+    margin: 0;
+}
+
+.activity-recording-fieldset {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+}
+
+.activity-recording-fields-split {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 20px;
+    align-items: flex-end;
+    margin-bottom: 10px;
+}
+
+.activity-recording-field {
+    flex: 1 1 200px;
+    min-width: 0;
+}
+
+.activity-recording-field > .control-label {
+    display: block;
+    margin: 0 0 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #555;
+}
+
+.activity-recording-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.activity-recording-controls .form-control {
+    width: auto;
+    min-width: 9em;
+    max-width: 100%;
+}
+
+.activity-recording-custom {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.activity-recording-custom[hidden] {
+    display: none !important;
+}
+
+.activity-recording-custom .form-control {
+    width: 5em;
+    min-width: 0;
+}
+
+.activity-recording-unit {
+    font-size: 12px;
+    color: #777;
+}
+
+.activity-recording-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px 16px;
+    padding-top: 10px;
+    border-top: 1px solid #dce9f0;
+}
+
+.activity-recording-panel--uri-off .activity-recording-toolbar {
+    background: rgba(255, 255, 255, 0.65);
+    margin: 0 -16px -10px;
+    padding: 10px 16px 12px;
+    border-top-color: #c8dde8;
+}
+
+.activity-recording-uri-check {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: #444;
+    cursor: pointer;
+}
+
+.activity-recording-uri-check input {
+    margin: 0 6px 0 0;
+    vertical-align: -2px;
+}
+
+.activity-recording-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.activity-recording-status {
+    font-size: 12px;
+    color: #777;
+}
+
+.activity-recording-dirty {
+    font-size: 12px;
+}
+
+.activity-recording-dirty[hidden] {
+    display: none !important;
+}
+
+.activity-recording-footnote {
+    margin: 10px 0 0;
+    font-size: 11px;
+    line-height: 1.45;
+    color: #888;
+}
+
+.activity-section-recent {
+    border-bottom: none;
+}
+
+.activity-uri-hint {
+    margin: 8px 12px 0;
+    padding: 8px 10px;
+    border-left: 3px solid #d6e8f2;
+    background: #f4fbff;
+    line-height: 1.45;
 }
 
 .running-queries.activity-query-table {
@@ -216,10 +402,6 @@ body > .header .logo {
 
 .poll-tab-idle {
     font-style: italic;
-}
-
-.activity-uri-hint {
-    margin: 8px 12px 0;
 }
 
 .activity-uri-flyout-close {
@@ -333,12 +515,41 @@ body > .header .logo {
 
 .dashboard-toolbar {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: flex-end;
     gap: 12px;
     margin-top: 8px;
     padding: 8px 0;
     border-bottom: 1px solid #e8e8e8;
+}
+
+.dashboard-toolbar .toolbar-display-retention {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-left: 4px;
+    padding-left: 12px;
+    border-left: 1px solid #e0e0e0;
+}
+
+.dashboard-toolbar .toolbar-display-label {
+    margin: 0;
+    font-weight: normal;
+    color: #666;
+    white-space: nowrap;
+}
+
+.dashboard-toolbar .toolbar-display-retention .form-control {
+    width: auto;
+    min-width: 7.5em;
+    max-width: 100%;
+}
+
+.dashboard-toolbar .toolbar-display-custom .form-control {
+    width: 4.5em;
+    min-width: 0;
 }
 
 .dashboard-toolbar label {
@@ -349,6 +560,109 @@ body > .header .logo {
 
 .dashboard-toolbar .toolbar-poll {
     min-width: 180px;
+}
+
+/* ionRangeSlider monex skin — neutral grays for refresh control (flat skin is red) */
+.irs--monex {
+    height: 40px;
+}
+
+.irs--monex.irs-with-grid {
+    height: 60px;
+}
+
+.irs--monex .irs-line {
+    top: 25px;
+    height: 12px;
+    background-color: #e8e8e8;
+    border-radius: 4px;
+}
+
+.irs--monex .irs-bar {
+    top: 25px;
+    height: 12px;
+    background-color: #888;
+}
+
+.irs--monex .irs-bar--single {
+    border-radius: 4px 0 0 4px;
+}
+
+.irs--monex .irs-shadow {
+    height: 1px;
+    bottom: 16px;
+    background-color: #e8e8e8;
+}
+
+.irs--monex .irs-handle {
+    top: 22px;
+    width: 16px;
+    height: 18px;
+    background-color: transparent;
+}
+
+.irs--monex .irs-handle > i:first-child {
+    position: absolute;
+    display: block;
+    top: 0;
+    left: 50%;
+    width: 2px;
+    height: 100%;
+    margin-left: -1px;
+    background-color: #666;
+}
+
+.irs--monex .irs-handle.state_hover > i:first-child,
+.irs--monex .irs-handle:hover > i:first-child {
+    background-color: #555;
+}
+
+.irs--monex .irs-min,
+.irs--monex .irs-max {
+    top: 0;
+    padding: 1px 3px;
+    color: #999;
+    font-size: 10px;
+    line-height: 1.333;
+    text-shadow: none;
+    background-color: #e8e8e8;
+    border-radius: 4px;
+}
+
+.irs--monex .irs-from,
+.irs--monex .irs-to,
+.irs--monex .irs-single {
+    color: #fff;
+    font-size: 10px;
+    line-height: 1.333;
+    text-shadow: none;
+    padding: 1px 5px;
+    background-color: #666;
+    border-radius: 4px;
+}
+
+.irs--monex .irs-from:before,
+.irs--monex .irs-to:before,
+.irs--monex .irs-single:before {
+    position: absolute;
+    display: block;
+    content: "";
+    bottom: -6px;
+    left: 50%;
+    width: 0;
+    height: 0;
+    margin-left: -3px;
+    overflow: hidden;
+    border: 3px solid transparent;
+    border-top-color: #666;
+}
+
+.irs--monex .irs-grid-pol {
+    background-color: #e8e8e8;
+}
+
+.irs--monex .irs-grid-text {
+    color: #999;
 }
 
 .kpi-strip {
@@ -503,11 +817,76 @@ body > .header .logo {
 }
 
 .memory-sparkline-wrap canvas,
+.cpu-gauge-chart canvas,
 .default-chart canvas {
     display: block;
     width: 100% !important;
     height: 100% !important;
     max-width: 100%;
+}
+
+.dashboard-panel-slim {
+    margin-bottom: 12px;
+}
+
+.dashboard-panel-slim .box-header {
+    padding: 8px 12px;
+}
+
+.cpu-gauge-row {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 32px;
+    padding: 4px 16px 12px;
+}
+
+.cpu-gauge-cell {
+    position: relative;
+    width: 128px;
+    text-align: center;
+}
+
+.cpu-gauge-chart {
+    display: block;
+    width: 128px;
+    height: 68px;
+    margin: 0 auto;
+}
+
+.cpu-gauge-chart canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.cpu-gauge-value {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 22px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #444;
+    line-height: 1;
+    pointer-events: none;
+}
+
+.cpu-gauge-label {
+    display: block;
+    margin-top: 2px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #888;
+}
+
+.cpu-gauge-process .cpu-gauge-value {
+    color: rgb(60, 141, 188);
+}
+
+.cpu-gauge-system .cpu-gauge-value {
+    color: rgb(243, 156, 18);
 }
 
 .broker-pool-row {
@@ -629,25 +1008,6 @@ body > .header .logo {
     max-height: 320px;
 }
 
-.activity-recent-config {
-    padding: 12px 16px 10px;
-    border-top: 1px solid #f0f0f0;
-    background: #fafafa;
-}
-
-.activity-display-retention {
-    padding: 12px 16px 0;
-}
-
-.activity-settings-heading {
-    margin: 0 0 10px;
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: #777;
-}
-
 .activity-row-ended {
     opacity: 0.72;
     background-color: #f9f9f9;
@@ -657,51 +1017,7 @@ body > .header .logo {
     display: none !important;
 }
 
-.activity-display-hint {
-    margin: 0 0 4px;
-    line-height: 1.45;
-}
-
-.activity-recent-config-form {
-    margin-bottom: 8px;
-}
-
-.activity-recent-config-fieldset {
-    border: 0;
-    margin: 0;
-    padding: 0;
-    min-width: 0;
-}
-
-.activity-recent-config-row {
-    margin-bottom: 10px;
-}
-
-.activity-recent-config-row:last-of-type {
-    margin-bottom: 0;
-}
-
-.activity-recent-config-row > .control-label {
-    display: block;
-    margin: 0 0 4px;
-    font-size: 12px;
-    font-weight: 600;
-    color: #555;
-}
-
-.activity-recent-config-controls {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 6px;
-}
-
-.activity-recent-config-controls .form-control {
-    width: auto;
-    min-width: 9em;
-    max-width: 100%;
-}
-
+/* Toolbar display retention (shared custom input pattern) */
 .activity-recent-config-custom {
     display: inline-flex;
     align-items: center;
@@ -720,42 +1036,6 @@ body > .header .logo {
 .activity-recent-config-unit {
     font-size: 12px;
     color: #777;
-}
-
-.activity-recent-config-row-check {
-    margin-top: 4px;
-}
-
-.activity-recent-config-check {
-    margin: 0;
-    font-size: 13px;
-    font-weight: normal;
-}
-
-.activity-recent-config-actions {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-    margin-top: 12px;
-}
-
-.activity-recent-config-status {
-    font-size: 12px;
-}
-
-.activity-recent-config-dirty {
-    font-size: 12px;
-    font-weight: 600;
-}
-
-.activity-recent-config-dirty[hidden] {
-    display: none !important;
-}
-
-.activity-history-hint {
-    margin: 0;
-    line-height: 1.45;
 }
 
 .cache-managers {

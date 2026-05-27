@@ -22,9 +22,17 @@
             <div class="toolbar-poll">
                 <input id="poll-period" type="text" name="poll-period" value=""/>
             </div>
-            <a class="btn btn-default btn-sm" id="pause-btn" data-toggle="button">
+            <a class="btn btn-primary btn-sm" id="pause-btn" data-toggle="button">
                 <i class="fa fa-pause"/> Pause
             </a>
+            <div class="toolbar-display-retention" id="activity-display-retention-wrap" title="How long ended or dropped activity rows stay visible in this browser. KPI counts stay live.">
+                <label for="display-retention-preset" class="toolbar-display-label">Keep visible</label>
+                <select class="form-control input-sm" id="display-retention-preset" title="How long ended or dropped activity rows stay visible in Monex"/>
+                <span class="activity-recent-config-custom toolbar-display-custom" id="display-retention-custom-wrap" hidden="hidden">
+                    <input type="number" class="form-control input-sm" id="display-retention-custom" min="1" step="1" title="Custom display retention in minutes"/>
+                    <span class="activity-recent-config-unit">min</span>
+                </span>
+            </div>
         </div>
     </section>
     <section id="dashboard" class="content">
@@ -110,7 +118,7 @@
                         </div>
                         <div class="memory-sparkline-wrap">
                             <span class="memory-sparkline-caption">Last ~2 min</span>
-                            <div class="chart memory-sparkline" id="memory-graph" data-scale="pressure" data-legend="false" data-labels="Used memory (mb),Committed memory (mb)" data-properties="jmx.MemoryImpl.HeapMemoryUsage.used,jmx.MemoryImpl.HeapMemoryUsage.committed" data-max-y="jmx.MemoryImpl.HeapMemoryUsage.max" data-unit-y="mb"/>
+                            <div class="chart memory-sparkline" id="memory-graph" data-scale="pressure" data-legend="false" data-labels="Used,Committed" data-properties="jmx.MemoryImpl.HeapMemoryUsage.used,jmx.MemoryImpl.HeapMemoryUsage.committed" data-max-y="jmx.MemoryImpl.HeapMemoryUsage.max" data-unit-y="mb"/>
                         </div>
                         <div class="broker-pool-row">
                             <div class="gauge-headline">
@@ -126,7 +134,7 @@
                         </div>
                     </div>
                     <div class="box-footer">
-                        <button class="btn btn-warning btn-sm" data-bind="visible: parseInt($data?.jmx?.version?.() ?? 0) &gt; 0, click: gc">Garbage Collect</button>
+                        <button type="button" class="btn btn-primary btn-sm" id="gc-btn" data-bind="visible: parseInt($data?.jmx?.version?.() ?? 0) &gt; 0, click: gc">Garbage Collect</button>
                     </div>
                 </div>
 
@@ -193,9 +201,14 @@
                             </div>
                         </div>
                         <!-- /ko -->
-                        <div class="cache-show-all-row" data-bind="visible: hiddenDbxCacheCount($data?.jmx?.Cache?.(), showAllCaches) &gt; 0">
-                            <button type="button" class="btn btn-link btn-sm cache-show-all" data-bind="click: expandAllCaches">
+                        <div class="cache-show-all-row" data-bind="visible: hiddenDbxCacheCount($data?.jmx?.Cache?.(), showAllCaches) &gt; 0 || showAllCaches()">
+                            <button type="button" class="btn btn-link btn-sm cache-show-all" data-bind="click: toggleAllCaches">
+                                <!-- ko if: showAllCaches() -->
+                                Show fewer caches
+                                <!-- /ko -->
+                                <!-- ko ifnot: showAllCaches() -->
                                 Show all <span data-bind="text: dbxCacheGroupCount($data?.jmx?.Cache?.())">0</span> caches
+                                <!-- /ko -->
                             </button>
                         </div>
                     </div>
@@ -248,6 +261,26 @@
             </section>
 
             <section class="col-lg-5 workload-panel">
+                <div class="box dashboard-panel dashboard-panel-slim" data-bind="visible: cpuMetricsAvailable($data.jmx)">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">CPU</h3>
+                    </div>
+                    <div class="box-body no-padding">
+                        <div class="cpu-gauge-row">
+                            <div class="cpu-gauge-cell cpu-gauge-process">
+                                <div class="cpu-gauge-chart" id="cpu-process-gauge" role="img" aria-label="Process CPU load"/>
+                                <span class="cpu-gauge-value" data-bind="text: formatCpuLoad(processCpuLoad($data.jmx))">0%</span>
+                                <span class="cpu-gauge-label">Process</span>
+                            </div>
+                            <div class="cpu-gauge-cell cpu-gauge-system">
+                                <div class="cpu-gauge-chart" id="cpu-system-gauge" role="img" aria-label="System CPU load"/>
+                                <span class="cpu-gauge-value" data-bind="text: formatCpuLoad(systemCpuLoad($data.jmx))">0%</span>
+                                <span class="cpu-gauge-label">System</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="box dashboard-panel activity-panel">
                     <div class="box-header">
                         <i class="fa fa-tasks"/>
@@ -413,10 +446,6 @@
                                     </tbody>
                                 </table>
                             </div>
-                            <p class="help-block text-muted small activity-uri-hint" data-bind="visible: showTrackUriHint">
-                                Request URIs show <strong>—</strong> because <strong>Track request URI</strong> is off on the server.
-                                Enable it under <strong>Recent query recording</strong> below to populate this column for HTTP-triggered queries.
-                            </p>
                         </div>
                         </div>
 
@@ -433,60 +462,53 @@
                             <!-- /ko -->
                         </div>
 
-                        <div class="activity-panel-settings" id="activity-panel-settings">
-                            <div class="activity-display-retention" id="activity-display-retention-wrap">
-                                <div class="activity-settings-heading">Monex display</div>
-                                <div class="activity-recent-config-row">
-                                    <label for="display-retention-preset" class="control-label">Keep visible for</label>
-                                    <div class="activity-recent-config-controls">
-                                        <select class="form-control input-sm" id="display-retention-preset" title="How long ended or dropped activity rows stay visible in Monex"/>
-                                        <span class="activity-recent-config-custom" id="display-retention-custom-wrap" hidden="hidden">
-                                            <input type="number" class="form-control input-sm" id="display-retention-custom" min="1" step="1" title="Custom display retention in minutes"/>
-                                            <span class="activity-recent-config-unit">minutes</span>
-                                        </span>
-                                    </div>
-                                </div>
-                                <p class="help-block text-muted small activity-display-hint">Monex only — applies to running queries, waiting threads, and recent queries while this page stays open. KPI counts stay live. Preference is saved in this browser.</p>
+                        <div class="activity-panel-settings activity-recording-panel" id="activity-panel-settings" data-bind="css: { 'activity-recording-panel--uri-off': showTrackUriHint }">
+                            <div class="activity-recording-panel-header" id="configure-history-wrap">
+                                <h4 class="activity-recording-panel-title">Recent query recording</h4>
+                                <span class="activity-recording-panel-context">Server · Recent queries table above</span>
                             </div>
-                            <div class="activity-recent-config" id="configure-history-wrap">
-                                <div class="activity-settings-heading">Recent query recording</div>
-                                <form id="configure-history" class="activity-recent-config-form">
-                                    <fieldset class="activity-recent-config-fieldset">
-                                        <legend class="sr-only">Recent query recording</legend>
-                                        <div class="activity-recent-config-row">
+                            <div class="activity-recording-callout" id="activity-uri-tracking-callout" data-bind="visible: showTrackUriHint" role="status">
+                                <i class="fa fa-info-circle" aria-hidden="true"/>
+                                <p>URI column shows <strong>—</strong> because request URI tracking is off. Enable <strong>Record request URI</strong> below, then click <strong>Set</strong>.</p>
+                            </div>
+                            <form id="configure-history" class="activity-recording-form">
+                                <fieldset class="activity-recording-fieldset">
+                                    <legend class="sr-only">Recent query recording</legend>
+                                    <div class="activity-recording-fields activity-recording-fields-split">
+                                        <div class="activity-recording-field">
                                             <label for="threshold-preset" class="control-label">Slow query threshold</label>
-                                            <div class="activity-recent-config-controls">
+                                            <div class="activity-recording-controls">
                                                 <select class="form-control input-sm" id="threshold-preset" title="Only queries slower than this are recorded"/>
-                                                <span class="activity-recent-config-custom" id="threshold-custom-wrap" hidden="hidden">
+                                                <span class="activity-recording-custom" id="threshold-custom-wrap" hidden="hidden">
                                                     <input type="number" class="form-control input-sm" id="threshold-custom" min="1" step="1" title="Custom threshold in milliseconds"/>
-                                                    <span class="activity-recent-config-unit">ms</span>
+                                                    <span class="activity-recording-unit">ms</span>
                                                 </span>
                                             </div>
                                         </div>
-                                        <div class="activity-recent-config-row">
+                                        <div class="activity-recording-field">
                                             <label for="history-preset" class="control-label">Keep on server for</label>
-                                            <div class="activity-recent-config-controls">
+                                            <div class="activity-recording-controls">
                                                 <select class="form-control input-sm" id="history-preset" title="How long eXist retains entries in rolling history"/>
-                                                <span class="activity-recent-config-custom" id="history-custom-wrap" hidden="hidden">
+                                                <span class="activity-recording-custom" id="history-custom-wrap" hidden="hidden">
                                                     <input type="number" class="form-control input-sm" id="history-custom" min="1" step="1" title="Custom retention in minutes"/>
-                                                    <span class="activity-recent-config-unit">minutes</span>
+                                                    <span class="activity-recording-unit">minutes</span>
                                                 </span>
                                             </div>
                                         </div>
-                                        <div class="activity-recent-config-row activity-recent-config-row-check">
-                                            <label class="activity-recent-config-check">
-                                                <input type="checkbox" id="track-uri" title="Fill the URI column (small overhead)"/> Record request URI
-                                            </label>
-                                        </div>
-                                        <div class="activity-recent-config-actions">
+                                    </div>
+                                    <div class="activity-recording-toolbar">
+                                        <label class="activity-recording-uri-check" for="track-uri">
+                                            <input type="checkbox" id="track-uri" title="Fill the URI column (small overhead)"/> Record request URI
+                                        </label>
+                                        <div class="activity-recording-actions">
                                             <button type="submit" class="btn btn-primary btn-sm" id="configure">Set</button>
-                                            <span class="activity-recent-config-status" id="configure-status" aria-live="polite"/>
-                                            <span class="activity-recent-config-dirty text-warning" id="configure-dirty" hidden="hidden">Unsaved changes</span>
+                                            <span class="activity-recording-status" id="configure-status" aria-live="polite"/>
+                                            <span class="activity-recording-dirty text-warning" id="configure-dirty" hidden="hidden">Unsaved changes</span>
                                         </div>
-                                    </fieldset>
-                                </form>
-                                <p class="help-block text-muted small activity-history-hint">Server recording for <strong>Recent queries</strong> only. Set updates eXist rules (threshold, server history, URI). Reloading clears row buffers but not this browser preference.</p>
-                            </div>
+                                    </div>
+                                </fieldset>
+                            </form>
+                            <p class="activity-recording-footnote">Set updates eXist immediately. Reloading clears row buffers in this browser; display retention stays in the toolbar.</p>
                         </div>
                     </div>
                 </div>
@@ -509,22 +531,6 @@
                     <dd data-bind="text: jmx.SystemInfo.DefaultEncoding"/>
                     <dt>Locale</dt>
                     <dd data-bind="text: jmx.SystemInfo.DefaultLocale"/>
-                    <!-- ko if: $data.jmx.UnixOperatingSystem -->
-                    <dt>System CPU</dt>
-                    <dd data-bind="text: parseFloat($data.jmx.UnixOperatingSystem.SystemCpuLoad).toPrecision(4)"/>
-                    <dt>Process CPU</dt>
-                    <dd data-bind="text: parseFloat($data.jmx.UnixOperatingSystem.ProcessCpuLoad).toPrecision(4)"/>
-                    <!-- /ko -->
-                    <!-- ko if: $data.jmx.OperatingSystemImpl -->
-                    <dt>System CPU</dt>
-                    <dd data-bind="text: parseFloat($data?.jmx?.OperatingSystemImpl?.SystemCpuLoad?.() ?? 0).toPrecision(4)"/>
-                    <dt>Process CPU</dt>
-                    <dd data-bind="text: parseFloat($data?.jmx?.OperatingSystemImpl?.ProcessCpuLoad?.() ?? 0).toPrecision(4)"/>
-                    <dt>Free memory</dt>
-                    <dd data-bind="text: parseInt($data?.jmx?.OperatingSystemImpl?.FreePhysicalMemorySize?.() ?? 0)"/>
-                    <dt>Total memory</dt>
-                    <dd data-bind="text: parseInt($data?.jmx?.OperatingSystemImpl?.TotalPhysicalMemorySize?.() ?? 0)"/>
-                    <!-- /ko -->
                 </dl>
             </div>
         </div>

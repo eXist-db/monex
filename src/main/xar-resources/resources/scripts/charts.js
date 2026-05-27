@@ -112,6 +112,25 @@ var MonexCharts = (function() {
         };
     }
 
+    function semicircleGaugeOptions() {
+        return {
+            responsive: true,
+            maintainAspectRatio: false,
+            rotation: -90,
+            circumference: 180,
+            cutout: "72%",
+            animation: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    enabled: false
+                }
+            }
+        };
+    }
+
     function timelineChartOptions(onPointClick) {
         return {
             responsive: true,
@@ -186,6 +205,7 @@ var MonexCharts = (function() {
         colorForIndex: colorForIndex,
         flotDatasetToChartJs: flotDatasetToChartJs,
         liveChartOptions: liveChartOptions,
+        semicircleGaugeOptions: semicircleGaugeOptions,
         timelineChartOptions: timelineChartOptions
     };
 }());

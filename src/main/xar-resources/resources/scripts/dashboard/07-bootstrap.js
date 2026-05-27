@@ -45,6 +45,7 @@ $(function() {
         }
 
         $("#poll-period").ionRangeSlider({
+            skin: "monex",
             min: 0.5,
             max: 60.0,
             from: 1.0,
@@ -59,17 +60,34 @@ $(function() {
         $("#pause-btn").on("click", function() {
             JMX.connection.togglePolling();
         });
+        function redrawCpuGauges() {
+            if (Monex.cpuGauge) {
+                Monex.cpuGauge.resize();
+            }
+        }
+
         JMX.connection.poll(function(data) {
             initCharts();
             for (var i = 0; i < charts.length; i++) {
                 charts[i].update(data);
             }
+            if (Monex.cpuGauge && data && data.jmx) {
+                Monex.cpuGauge.update(data.jmx);
+            }
+            window.requestAnimationFrame(function() {
+                for (var j = 0; j < charts.length; j++) {
+                    charts[j].replot();
+                }
+                redrawCpuGauges();
+            });
         });
         $("#dashboard").on("expanded.boxwidget", ".box", function() {
             redrawCharts();
+            redrawCpuGauges();
         });
         $(window).on("resize.dashboardCharts", function() {
             redrawCharts();
+            redrawCpuGauges();
         });
     });
 });

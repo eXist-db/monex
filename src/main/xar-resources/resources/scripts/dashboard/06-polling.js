@@ -225,8 +225,8 @@ JMX.connection = (function() {
                                     JMX.connection.invoke("gc", "java.lang:type=Memory");
                                 };
                                 viewModel.showAllCaches = ko.observable(false);
-                                viewModel.expandAllCaches = function() {
-                                    viewModel.showAllCaches(true);
+                                viewModel.toggleAllCaches = function() {
+                                    viewModel.showAllCaches(!viewModel.showAllCaches());
                                 };
                                 JMX.util.initActivityPanelSettings(data.jmx.ProcessReport);
                                 if (name == "localhost") {

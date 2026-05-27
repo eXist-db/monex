@@ -137,6 +137,60 @@ function memoryUsedPercent(heap) {
     return Math.round(used / (max / 100));
 }
 
+function cpuOsNode(jmx) {
+    if (!jmx) {
+        return null;
+    }
+    if (jmx.CpuLoad) {
+        return jmx.CpuLoad;
+    }
+    return jmx.OperatingSystemImpl || jmx.UnixOperatingSystem || null;
+}
+
+function cpuMetricsAvailable(jmx) {
+    return !!cpuOsNode(jmx);
+}
+
+function cpuLoadRatio(jmx, key) {
+    var node = cpuOsNode(jmx);
+    if (!node) {
+        return 0;
+    }
+    var raw = jmxValue(node[key]);
+    var num = parseFloat(raw);
+    if (isNaN(num) || num < 0) {
+        return 0;
+    }
+    return num;
+}
+
+function processCpuLoad(jmx) {
+    return cpuLoadRatio(jmx, "ProcessCpuLoad");
+}
+
+function systemCpuLoad(jmx) {
+    return cpuLoadRatio(jmx, "SystemCpuLoad");
+}
+
+function processCpuLoadPercent(jmx) {
+    return Math.min(100, Math.round(processCpuLoad(jmx) * 100));
+}
+
+function systemCpuLoadPercent(jmx) {
+    return Math.min(100, Math.round(systemCpuLoad(jmx) * 100));
+}
+
+function formatCpuLoad(ratio) {
+    var pct = Math.max(0, (parseFloat(ratio) || 0) * 100);
+    if (pct > 0 && pct < 0.1) {
+        return pct.toFixed(2) + "%";
+    }
+    if (pct < 10) {
+        return pct.toFixed(1) + "%";
+    }
+    return Math.round(pct) + "%";
+}
+
 function readyVectorModels(vector) {
     if (!vector || !vector.models) {
         return [];
@@ -273,6 +327,12 @@ Monex.kpi = {
     memoryUsedMb: memoryUsedMb,
     memoryMaxMb: memoryMaxMb,
     memoryUsedPercent: memoryUsedPercent,
+    cpuMetricsAvailable: cpuMetricsAvailable,
+    processCpuLoad: processCpuLoad,
+    systemCpuLoad: systemCpuLoad,
+    processCpuLoadPercent: processCpuLoadPercent,
+    systemCpuLoadPercent: systemCpuLoadPercent,
+    formatCpuLoad: formatCpuLoad,
     readyVectorModels: readyVectorModels,
     vectorMissingCount: vectorMissingCount,
     vectorModelLabel: vectorModelLabel,

@@ -89,6 +89,8 @@ describe('Monex index page', () => {
         if ($body.find('.cache-show-all').length) {
           cy.get('.cache-show-all').click()
           cy.get('.cache-file-row').should('have.length.at.least', 3)
+          cy.get('.cache-show-all').contains('Show fewer caches').click()
+          cy.get('.cache-show-all').contains('Show all').should('be.visible')
         }
       })
     })
@@ -107,16 +109,16 @@ describe('Monex index page', () => {
       cy.get('#pause-btn').click()
 
       cy.get('#activity-panel-settings').should('be.visible')
-      cy.contains('.activity-settings-heading', 'Monex display').should('be.visible')
-      cy.contains('label', 'Keep visible for').should('be.visible')
+      cy.get('.dashboard-toolbar').contains('label', 'Keep visible').should('be.visible')
       cy.get('#display-retention-preset option').should('have.length.at.least', 5)
       cy.get('#display-retention-preset').should('have.value', '300000')
 
-      cy.contains('.activity-settings-heading', 'Recent query recording').should('be.visible')
+      cy.contains('.activity-recording-panel-title', 'Recent query recording').should('be.visible')
       cy.contains('label', 'Slow query threshold').should('be.visible')
       cy.contains('label', 'Keep on server for').should('be.visible')
       cy.contains('label', 'Record request URI').should('be.visible')
-      cy.get('.activity-display-hint').should('contain', 'running queries, waiting threads, and recent queries')
+      cy.get('.activity-recording-fields-split').should('be.visible')
+      cy.get('.activity-recording-footnote').should('be.visible')
     })
 
     it('should keep server history changes unsaved without affecting dashboard display retention', () => {
@@ -241,9 +243,28 @@ describe('Monex index page', () => {
 
       cy.contains('.box-title', 'Java Memory')
         .parents('.box')
-        .find('button')
-        .contains('Garbage Collect')
+        .find('#gc-btn')
         .should('be.visible')
+        .and('have.class', 'btn-primary')
+    })
+
+    it('should show CPU in its own panel and keep OS metrics out of the footer', () => {
+      cy.wait(1500)
+      cy.get('#pause-btn').click()
+
+      cy.contains('.box-title', 'Java Memory').should('be.visible')
+      cy.get('#memory-graph').should('exist')
+      cy.get('.memory-sparkline-wrap').should('be.visible')
+      cy.get('.cpu-compact-row').should('not.exist')
+
+      cy.contains('.box-title', 'CPU').should('be.visible')
+      cy.get('#cpu-process-gauge').should('exist')
+      cy.get('#cpu-system-gauge').should('exist')
+      cy.get('#cpu-process-gauge canvas').should('exist')
+      cy.get('#cpu-system-gauge canvas').should('exist')
+      cy.get('.cpu-gauge-value').should('have.length', 2)
+      cy.get('.dashboard-system-footer').contains('Free memory').should('not.exist')
+      cy.get('.dashboard-system-footer').contains('System CPU').should('not.exist')
     })
 
     it('should label the memory sparkline time window', () => {
