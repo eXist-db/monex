@@ -1,0 +1,57 @@
+src/main/xar-resources/modules/remote.xql
+  s_12ba9537e61ac7::t_871bcff5ff6b4b 19
+src/main/xar-resources/resources/scripts/dashboard/06-polling.js
+  s_12ba9537e61ac7::t_405ae635470390 223
+  s_12ba9537e61ac7::t_0bb7d1d634dd73 245
+  s_12ba9537e61ac7::t_c6848ec27b1d15 197
+src/main/xar-resources/modules/app.xql
+  s_12ba9537e61ac7::t_8e70cfec809156 56
+  s_12ba9537e61ac7::t_3f4b5c69f5f97b 74-82
+  s_12ba9537e61ac7::t_e0d820399e91c7 644-648
+  s_12ba9537e61ac7::t_47553f9bc17e5b 54-55,57-63
+  s_12ba9537e61ac7::t_b6bc69f98deb5d 577-593,604-607,614,624
+src/main/xar-resources/modules/job.xql
+  s_12ba9537e61ac7::t_00d6d150e1df6e 176
+src/main/xar-resources/index.html
+  s_12ba9537e61ac7::t_c06c46e5fc2c99 212
+  s_12ba9537e61ac7::t_de2693999469e8 213-215,217-219,223-231,236
+  s_12ba9537e61ac7::t_1c3c8227ff7208 216
+  s_12ba9537e61ac7::t_69411e1563d201 205
+  s_12ba9537e61ac7::t_bf3204e05b8554 75-81,83-86
+  s_12ba9537e61ac7::t_25979552ca2730 82
+src/main/xar-resources/resources/scripts/dashboard/08-vector.js
+  s_12ba9537e61ac7::t_5c9f5154f87a0f 128-136,154
+  s_12ba9537e61ac7::t_92e850c671d615 93-100
+  s_12ba9537e61ac7::t_78b873d56fca94 1-80,82-92,101-127,137-141,149-153,155-195
+  s_12ba9537e61ac7::t_449e001a123a42 142-148
+  s_12ba9537e61ac7::t_3006725348fdc2 81
+src/main/xar-resources/timelines.html
+  s_12ba9537e61ac7::t_86d1f1e25e6ac5 159-206
+src/test/cypress/e2e/monitoring_spec.cy.js
+  s_12ba9537e61ac7::t_355e147f2a19f6 55-57,59-61
+  s_12ba9537e61ac7::t_3a90e13ed03169 41,45-54,62-67
+  s_12ba9537e61ac7::t_e05d2ab619d0cb 40,42-44,58,68-69
+src/main/xar-resources/resources/scripts/dashboard/04-kpi.js
+  s_12ba9537e61ac7::t_4faaa825112466 181-210,212-220,222,227-228,236,245
+  s_12ba9537e61ac7::t_8569a97d349e29 211
+  s_12ba9537e61ac7::t_d30e9b4798abbb 280-284
+src/main/xar-resources/resources/scripts/details.js
+  s_12ba9537e61ac7::t_77f4af1035cfeb 33,35
+  s_12ba9537e61ac7::t_133ff49a0bb812 34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "c30903b9609b57e5f74e7e3b34d1f1de129bed72",
+  "prompts": {},
+  "sessions": {
+    "s_12ba9537e61ac7": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "844524c2-10c0-461d-af7c-9e33465ffc79",
+        "model": "composer-2.5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
