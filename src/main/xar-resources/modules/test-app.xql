@@ -77,6 +77,36 @@ function testapp:vector-alert-cache-pressure() {
         )
 };
 
+declare
+    %test:assertEquals((), ())
+function testapp:counter-deltas-requires-two-samples() {
+    app:counter-deltas(42)
+};
+
+declare
+    %test:assertEquals("5 3", "5 3")
+function testapp:counter-deltas-increments() {
+    string-join(app:counter-deltas((10, 15, 18)), " ")
+};
+
+declare
+    %test:assertEquals("0 10", "0 10")
+function testapp:counter-deltas-clamps-counter-reset() {
+    string-join(app:counter-deltas((100, 50, 60)), " ")
+};
+
+declare
+    %test:assertEquals("0 5 7", "0 5 7")
+function testapp:vector-embed-counter-deltas() {
+    string-join(app:counter-deltas((0, 0, 5, 12)), " ")
+};
+
+declare
+    %test:assertEquals("2 3", "2 3")
+function testapp:vector-knn-counter-deltas() {
+    string-join(app:counter-deltas((1, 3, 6)), " ")
+};
+
 declare variable $testapp:mock-profile :=
     <stats:calls xmlns:stats="http://exist-db.org/xquery/profiling">
         <stats:function name="util:binary-to-string" elapsed="0.008" calls="20" source="/db/system/repo/templating-1.2.1/content/lib.xqm [-1:-1]"/>
