@@ -1,0 +1,70 @@
+src/main/xar-resources/resources/scripts/charts.js
+  s_12ba9537e61ac7::t_17e68706e91413 208
+  s_12ba9537e61ac7::t_62bd3d185ce6ad 115-133
+src/main/xar-resources/resources/css/style.css
+  s_12ba9537e61ac7::t_4defe243a9f42f 836,838-841,844-847,850-854,857-860,863-872,875-878,881,884-889
+  s_12ba9537e61ac7::t_48d11008814923 106
+  s_12ba9537e61ac7::t_ca6b6797ad323f 565-583,585-601,604-611,615-616,618-629,632-639,641,644-656,658-665
+  s_12ba9537e61ac7::t_ad8c80640dd414 518,527-552
+  s_12ba9537e61ac7::t_d024742091832e 820
+  s_12ba9537e61ac7::t_d8bc10b5ad29af 828-829,832-835,873-874
+  s_12ba9537e61ac7::t_b0173c35155027 855-856,861-862
+  s_12ba9537e61ac7::t_1595cec77ece68 109
+  s_12ba9537e61ac7::t_47193caca4ca49 1020
+  s_12ba9537e61ac7::t_306fef1be0d053 584,602-603,612-614,617,630-631,640,642-643,657,666-667
+  s_12ba9537e61ac7::t_17e471fc3cc552 126-313
+  s_12ba9537e61ac7::t_ea652918aa2391 830-831,837,842-843,848-849,879-880,882-883,890-891
+src/main/xar-resources/index.html
+  s_12ba9537e61ac7::t_6e7077a6a4ed96 121
+  s_12ba9537e61ac7::t_4dee96289ea697 25,28-35
+  s_12ba9537e61ac7::t_d32f7188075a10 137
+  s_12ba9537e61ac7::t_49198e89fe87d8 264-283
+  s_12ba9537e61ac7::t_d6c6d34a2966ce 465-468,470-478,480,482,484,488,490,492,494,498-503,505-506,508-511
+  s_12ba9537e61ac7::t_b0fd45d7c57bef 204-209,211
+src/main/xar-resources/resources/scripts/dashboard/06-polling.js
+  s_12ba9537e61ac7::t_ddd2f3545d306b 228-229
+src/main/xar-resources/resources/scripts/dashboard/07-bootstrap.js
+  s_12ba9537e61ac7::t_2bd579b836168a 48
+  s_12ba9537e61ac7::t_fd6d0c1e59115e 77-80,82
+  s_12ba9537e61ac7::t_d1422cf26b4bc2 63-68,74-75,81,86,90
+src/main/xar-resources/resources/scripts/util.js
+  s_12ba9537e61ac7::t_4082fd629a2575 631-656
+  s_12ba9537e61ac7::t_f29c2b03957e25 735
+src/main/xar-resources/resources/scripts/dashboard/05-charts.js
+  s_12ba9537e61ac7::t_b1814f076c3d7d 122,130-131,135-136,143-146
+  s_12ba9537e61ac7::t_9db3680e396cdc 56-57,60-62
+  s_12ba9537e61ac7::t_08a7af22e1f66b 121,123-129,132-134,137-142,163,167
+  s_12ba9537e61ac7::t_e1cb4efb49c4a2 87
+  s_12ba9537e61ac7::t_b1c7fbbeecb9d7 110-113
+  s_12ba9537e61ac7::t_5583a9ce5b4e9b 29-35
+  s_12ba9537e61ac7::t_2f2358318ddfb7 58-59
+src/test/cypress/e2e/monitoring_spec.cy.js
+  s_12ba9537e61ac7::t_1df6960e1a086c 92-93
+  s_12ba9537e61ac7::t_1cf27783990d6d 246,248-250,252-254,266-267
+  s_12ba9537e61ac7::t_16661fba8ae2c4 116,120-121
+  s_12ba9537e61ac7::t_2ccf0cfceb3a4e 112
+  s_12ba9537e61ac7::t_834196080e84e4 251,256-260
+  s_12ba9537e61ac7::t_c6f7bddde5ad17 255
+  s_12ba9537e61ac7::t_779ebb35cb30a9 261-265
+src/main/xar-resources/resources/scripts/dashboard/09-cpu-gauge.js
+  s_12ba9537e61ac7::t_534645a8719d54 1-75
+src/main/xar-resources/resources/scripts/dashboard/04-kpi.js
+  s_12ba9537e61ac7::t_d3e5e77554e6a3 330-335
+  s_12ba9537e61ac7::t_8084e7ad6e0fa2 140-193
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "69e562f36401a6126a04bfb474237643cbd8c452",
+  "prompts": {},
+  "sessions": {
+    "s_12ba9537e61ac7": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "844524c2-10c0-461d-af7c-9e33465ffc79",
+        "model": "composer-2.5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
