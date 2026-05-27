@@ -1,0 +1,25 @@
+src/test/cypress/fixtures/jmx-vector-store-only.xml
+  s_12ba9537e61ac7::t_e9c8a30504c980 1-14
+src/test/cypress/e2e/remote_spec.cy.js
+  s_12ba9537e61ac7::t_e10be1e7c69bc9 13-25
+src/main/xar-resources/modules/test-app.xql
+  s_12ba9537e61ac7::t_258501ce58a7ab 80-109
+src/test/cypress/e2e/vector_adapter_spec.cy.js
+  s_12ba9537e61ac7::t_85611c2656e0ac 1-79
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "978fd9da9389bc4f0bd1e84e2e5329bd54845a07",
+  "prompts": {},
+  "sessions": {
+    "s_12ba9537e61ac7": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "844524c2-10c0-461d-af7c-9e33465ffc79",
+        "model": "composer-2.5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
