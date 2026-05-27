@@ -16,7 +16,7 @@ let $baseURL :=
         $instance/@url || "/status?operation=" || $operation || "&amp;token=" || $instance/@token
     else
         $instance/@url ||
-        "/status?c=instances&amp;c=processes&amp;c=locking&amp;c=memory&amp;c=caches&amp;c=system&amp;c=operatingsystem&amp;token=" ||
+        "/status?c=instances&amp;c=processes&amp;c=locking&amp;c=memory&amp;c=caches&amp;c=system&amp;c=operatingsystem&amp;c=vector&amp;token=" ||
         $instance/@token
 let $extraParams :=
     string-join(

@@ -30,6 +30,9 @@ $(function() {
         }
         var viewModel = ko.mapping.fromJS(data);
         viewModel.url = "";
+        viewModel.vector = createVectorViewModel(null);
+        viewModel.vectorStore = Monex.vector.createVectorStoreViewModel(null);
+        Monex.vector.syncVectorFromJmx(viewModel, data.jmx);
         Monex.activity.attachDashboardViewModel(viewModel, { livePoll: false });
         Monex.activity.getDetailsFlyout = function() {
             return viewModel.activityFlyout;

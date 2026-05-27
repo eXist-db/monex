@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmx:jmx xmlns:jmx="http://exist-db.org/jmx" version="1">
+    <jmx:VectorStore name="org.exist.management.exist:type=VectorStore">
+        <jmx:FileName>vector.dbx</jmx:FileName>
+        <jmx:Available>true</jmx:Available>
+        <jmx:FileSize>8192</jmx:FileSize>
+        <jmx:EntryCount>0</jmx:EntryCount>
+        <jmx:PersistenceBackend>vector.dbx</jmx:PersistenceBackend>
+        <jmx:EntryCountKnown>true</jmx:EntryCountKnown>
+        <jmx:FormatVersion>1</jmx:FormatVersion>
+        <jmx:InstanceId>exist</jmx:InstanceId>
+        <jmx:Name>org.exist.management.exist:type=VectorStore</jmx:Name>
+    </jmx:VectorStore>
+    <jmx:VectorEmbedding name="org.exist.management.exist:type=VectorEmbedding">
+        <jmx:Available>true</jmx:Available>
+        <jmx:PersistenceBackend>lucene</jmx:PersistenceBackend>
+        <jmx:ModelCount>10</jmx:ModelCount>
+        <jmx:ReadyModelCount>1</jmx:ReadyModelCount>
+        <jmx:LoadedProviderCount>0</jmx:LoadedProviderCount>
+        <jmx:EmbedCallCount>0</jmx:EmbedCallCount>
+        <jmx:EmbedTotalTimeNanos>0</jmx:EmbedTotalTimeNanos>
+        <jmx:EmbedLastTimeNanos>0</jmx:EmbedLastTimeNanos>
+        <jmx:KnnQueryCount>0</jmx:KnnQueryCount>
+        <jmx:KnnTotalTimeNanos>0</jmx:KnnTotalTimeNanos>
+        <jmx:KnnLastTimeNanos>0</jmx:KnnLastTimeNanos>
+        <jmx:Models>
+            <jmx:row>
+                <jmx:dimension>384</jmx:dimension>
+                <jmx:id>all-MiniLM-L12-v2</jmx:id>
+                <jmx:message>Model directory not found under exist.home; ensure onnx-models/all-MiniLM-L12-v2 exists with model.onnx and tokenizer.json or adjust conf.xml/vector-field model-path.</jmx:message>
+                <jmx:path>onnx-models/all-MiniLM-L12-v2</jmx:path>
+                <jmx:provider>ONNX</jmx:provider>
+                <jmx:source>builtin</jmx:source>
+                <jmx:status>missing</jmx:status>
+            </jmx:row>
+            <jmx:row>
+                <jmx:dimension>384</jmx:dimension>
+                <jmx:id>all-MiniLM-L6-v2</jmx:id>
+                <jmx:message/>
+                <jmx:path>onnx-models/all-MiniLM-L6-v2</jmx:path>
+                <jmx:provider>ONNX</jmx:provider>
+                <jmx:source>builtin</jmx:source>
+                <jmx:status>available</jmx:status>
+            </jmx:row>
+            <jmx:row>
+                <jmx:dimension>384</jmx:dimension>
+                <jmx:id>embed-english-light-v3.0</jmx:id>
+                <jmx:message>Model directory not found under exist.home; ensure onnx-models/embed-english-light-v3.0 exists with model.onnx and tokenizer.json or adjust conf.xml/vector-field model-path.</jmx:message>
+                <jmx:path>onnx-models/embed-english-light-v3.0</jmx:path>
+                <jmx:provider>ONNX</jmx:provider>
+                <jmx:source>builtin</jmx:source>
+                <jmx:status>missing</jmx:status>
+            </jmx:row>
+            <jmx:row>
+                <jmx:dimension>1024</jmx:dimension>
+                <jmx:id>embed-english-v3.0</jmx:id>
+                <jmx:message>Model directory not found under exist.home; ensure onnx-models/embed-english-v3.0 exists with model.onnx and tokenizer.json or adjust conf.xml/vector-field model-path.</jmx:message>
+                <jmx:path>onnx-models/embed-english-v3.0</jmx:path>
+                <jmx:provider>ONNX</jmx:provider>
+                <jmx:source>builtin</jmx:source>
+                <jmx:status>missing</jmx:status>
+            </jmx:row>
+            <jmx:row>
+                <jmx:dimension>384</jmx:dimension>
+                <jmx:id>embed-multilingual-light-v3.0</jmx:id>
+                <jmx:message>Model directory not found under exist.home; ensure onnx-models/embed-multilingual-light-v3.0 exists with model.onnx and tokenizer.json or adjust conf.xml/vector-field model-path.</jmx:message>
+                <jmx:path>onnx-models/embed-multilingual-light-v3.0</jmx:path>
+                <jmx:provider>ONNX</jmx:provider>
+                <jmx:source>builtin</jmx:source>
+                <jmx:status>missing</jmx:status>
+            </jmx:row>
+            <jmx:row>
+                <jmx:dimension>1024</jmx:dimension>
+                <jmx:id>embed-multilingual-v3.0</jmx:id>
+                <jmx:message>Model directory not found under exist.home; ensure onnx-models/embed-multilingual-v3.0 exists with model.onnx and tokenizer.json or adjust conf.xml/vector-field model-path.</jmx:message>
+                <jmx:path>onnx-models/embed-multilingual-v3.0</jmx:path>
+                <jmx:provider>ONNX</jmx:provider>
+                <jmx:source>builtin</jmx:source>
+                <jmx:status>missing</jmx:status>
+            </jmx:row>
+            <jmx:row>
+                <jmx:dimension>384</jmx:dimension>
+                <jmx:id>paraphrase-MiniLM-L3-v2</jmx:id>
+                <jmx:message>Model directory not found under exist.home; ensure onnx-models/paraphrase-MiniLM-L3-v2 exists with model.onnx and tokenizer.json or adjust conf.xml/vector-field model-path.</jmx:message>
+                <jmx:path>onnx-models/paraphrase-MiniLM-L3-v2</jmx:path>
+                <jmx:provider>ONNX</jmx:provider>
+                <jmx:source>builtin</jmx:source>
+                <jmx:status>missing</jmx:status>
+            </jmx:row>
+            <jmx:row>
+                <jmx:dimension>3072</jmx:dimension>
+                <jmx:id>text-embedding-3-large</jmx:id>
+                <jmx:message>Model directory not found under exist.home; ensure onnx-models/text-embedding-3-large exists with model.onnx and tokenizer.json or adjust conf.xml/vector-field model-path.</jmx:message>
+                <jmx:path>onnx-models/text-embedding-3-large</jmx:path>
+                <jmx:provider>ONNX</jmx:provider>
+                <jmx:source>builtin</jmx:source>
+                <jmx:status>missing</jmx:status>
+            </jmx:row>
+            <jmx:row>
+                <jmx:dimension>1536</jmx:dimension>
+                <jmx:id>text-embedding-3-small</jmx:id>
+                <jmx:message>Model directory not found under exist.home; ensure onnx-models/text-embedding-3-small exists with model.onnx and tokenizer.json or adjust conf.xml/vector-field model-path.</jmx:message>
+                <jmx:path>onnx-models/text-embedding-3-small</jmx:path>
+                <jmx:provider>ONNX</jmx:provider>
+                <jmx:source>builtin</jmx:source>
+                <jmx:status>missing</jmx:status>
+            </jmx:row>
+            <jmx:row>
+                <jmx:dimension>1536</jmx:dimension>
+                <jmx:id>text-embedding-ada-002</jmx:id>
+                <jmx:message>Model directory not found under exist.home; ensure onnx-models/text-embedding-ada-002 exists with model.onnx and tokenizer.json or adjust conf.xml/vector-field model-path.</jmx:message>
+                <jmx:path>onnx-models/text-embedding-ada-002</jmx:path>
+                <jmx:provider>ONNX</jmx:provider>
+                <jmx:source>builtin</jmx:source>
+                <jmx:status>missing</jmx:status>
+            </jmx:row>
+        </jmx:Models>
+        <jmx:InstanceId>exist</jmx:InstanceId>
+        <jmx:Name>org.exist.management.exist:type=VectorEmbedding</jmx:Name>
+    </jmx:VectorEmbedding>
+</jmx:jmx>

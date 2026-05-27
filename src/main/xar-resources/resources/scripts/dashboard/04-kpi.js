@@ -178,13 +178,54 @@ function vectorStatusClass(status) {
     }
 }
 
+function vectorEmbeddingsKpiVisible(viewModel) {
+    return !!(viewModel && viewModel.vector && viewModel.vector.available && viewModel.vector.available());
+}
+
+function vectorEmbeddingsKpiText(vector) {
+    if (!vector || !vector.available || !vector.available()) {
+        return "—";
+    }
+    var ready = vector.ready();
+    var total = vector.total();
+    return ready + " / " + total;
+}
+
+function vectorEmbeddingsKpiClass(vector) {
+    if (!vector || !vector.available || !vector.available()) {
+        return {};
+    }
+    var ready = vector.ready();
+    var total = vector.total();
+    if (total > 0 && ready === 0) {
+        return { "kpi-critical": true };
+    }
+    if (total > 0 && ready < total) {
+        return { "kpi-warn": true };
+    }
+    return {};
+}
+
+function vectorEntriesKpiVisible(viewModel) {
+    return !!(viewModel && viewModel.vectorStore &&
+        viewModel.vectorStore.available && viewModel.vectorStore.available());
+}
+
+function vectorEntriesKpiText(vectorStore) {
+    if (!vectorStore || !vectorStore.entryCountKnown || !vectorStore.entryCountKnown()) {
+        return "—";
+    }
+    return String(vectorStore.entryCount());
+}
+
 function createVectorViewModel(data) {
-    var payload = data || { available: false, models: [], ready: 0, total: 0 };
+    var payload = data || { available: false, models: [], ready: 0, total: 0, persistenceBackend: "" };
     return {
         available: ko.observable(!!payload.available),
         models: ko.observableArray(payload.models || []),
         ready: ko.observable(payload.ready || 0),
-        total: ko.observable(payload.total || 0)
+        total: ko.observable(payload.total || 0),
+        persistenceBackend: ko.observable(payload.persistenceBackend || "")
     };
 }
 
@@ -192,7 +233,7 @@ function updateVectorDiagnostics(model, data) {
     if (!model) {
         return;
     }
-    var payload = data || { available: false, models: [], ready: 0, total: 0 };
+    var payload = data || { available: false, models: [], ready: 0, total: 0, persistenceBackend: "" };
     if (!model.vector) {
         model.vector = createVectorViewModel(payload);
         return;
@@ -201,6 +242,7 @@ function updateVectorDiagnostics(model, data) {
     model.vector.ready(payload.ready || 0);
     model.vector.total(payload.total || 0);
     model.vector.models(payload.models || []);
+    model.vector.persistenceBackend(payload.persistenceBackend || "");
 }
 
 function uptime(data) {
@@ -235,6 +277,11 @@ Monex.kpi = {
     vectorMissingCount: vectorMissingCount,
     vectorModelLabel: vectorModelLabel,
     vectorStatusClass: vectorStatusClass,
+    vectorEmbeddingsKpiVisible: vectorEmbeddingsKpiVisible,
+    vectorEmbeddingsKpiText: vectorEmbeddingsKpiText,
+    vectorEmbeddingsKpiClass: vectorEmbeddingsKpiClass,
+    vectorEntriesKpiVisible: vectorEntriesKpiVisible,
+    vectorEntriesKpiText: vectorEntriesKpiText,
     createVectorViewModel: createVectorViewModel,
     updateVectorDiagnostics: updateVectorDiagnostics,
     uptime: uptime

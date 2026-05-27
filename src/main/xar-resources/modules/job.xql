@@ -173,7 +173,7 @@ declare function job:ping($instance as element(instance)) as xs:boolean {
             $instance/@url || "/status?operation=" || $local:operation || "&amp;token=" || $instance/@token
         else
             $instance/@url ||
-            "/status?c=instances&amp;c=processes&amp;c=locking&amp;c=memory&amp;c=caches&amp;c=system&amp;c=operatingsystem&amp;token=" ||
+            "/status?c=instances&amp;c=processes&amp;c=locking&amp;c=memory&amp;c=caches&amp;c=system&amp;c=operatingsystem&amp;c=vector&amp;token=" ||
             $instance/@token
     let $request :=
         <http:request method="GET" href="{$url}" timeout="30"/>

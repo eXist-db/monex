@@ -72,6 +72,18 @@
                 <span class="kpi-value"><span data-bind="text: sharedPoolKpiPercent($data.jmx)">0</span>%</span>
             </div>
             <!-- /ko -->
+            <!-- ko if: vectorEmbeddingsKpiVisible($data) -->
+            <div class="kpi-cell kpi-neutral" data-bind="css: vectorEmbeddingsKpiClass(vector), attr: { title: vector.persistenceBackend() ? ('KNN persistence: ' + vector.persistenceBackend()) : '' }">
+                <span class="kpi-label">Embeddings</span>
+                <span class="kpi-value" data-bind="text: vectorEmbeddingsKpiText(vector)">—</span>
+            </div>
+            <!-- /ko -->
+            <!-- ko if: vectorEntriesKpiVisible($data) -->
+            <div class="kpi-cell kpi-neutral" data-bind="attr: { title: (vectorStore &amp;&amp; vectorStore.persistenceBackend()) ? ('Store backend: ' + vectorStore.persistenceBackend()) : '' }">
+                <span class="kpi-label">Vector entries</span>
+                <span class="kpi-value" data-bind="text: vectorEntriesKpiText(vectorStore)">—</span>
+            </div>
+            <!-- /ko -->
         </div>
 
         <div class="row dashboard-main">
@@ -190,23 +202,38 @@
                 </div>
 
                 <div class="box dashboard-panel" data-bind="with: vector">
-                    <div class="box-header">
+                    <div class="box-header" data-bind="attr: { title: available() &amp;&amp; persistenceBackend() ? ('Embedding persistence: ' + persistenceBackend()) : '' }">
                         <h3 class="box-title">Embeddings</h3>
                         <div class="box-tools pull-right">
                             <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"/></button>
                         </div>
                     </div>
                     <div class="box-body embedding-status">
-                        <div class="embedding-status-line" data-bind="visible: available() === false">
+                        <div class="embedding-status-line" data-bind="visible: $root.vectorStore &amp;&amp; $root.vectorStore.available(), attr: { title: ($root.vectorStore &amp;&amp; $root.vectorStore.persistenceBackend()) ? ('Store backend: ' + $root.vectorStore.persistenceBackend()) : '' }">
+                            <span class="embedding-dot ready"/>
+                            <span>
+                                Vector store
+                                <span class="embedding-detail" data-bind="text: $root.vectorStoreSummaryText"/>
+                            </span>
+                        </div>
+                        <div class="embedding-status-line" data-bind="visible: available() === false &amp;&amp; (!$root.vectorStore || !$root.vectorStore.available())">
                             <span class="embedding-dot unavailable"/>
                             <span>Vector extension not available</span>
                         </div>
-                        <div class="embedding-status-line" data-bind="visible: available() &amp;&amp; ready() === 0">
+                        <div class="embedding-status-line" data-bind="visible: available() === false &amp;&amp; $root.vectorStore &amp;&amp; $root.vectorStore.available()">
+                            <span class="embedding-dot not-ready"/>
+                            <span>Embedding extension not loaded (vector store active)</span>
+                        </div>
+                        <div class="embedding-status-line" data-bind="visible: available() &amp;&amp; total() === 0">
+                            <span class="embedding-dot not-ready"/>
+                            <span>No embedding models configured</span>
+                        </div>
+                        <div class="embedding-status-line" data-bind="visible: available() &amp;&amp; ready() === 0 &amp;&amp; total() &gt; 0">
                             <span class="embedding-dot not-ready"/>
                             <span>
                                 No model ready
                                 <span class="embedding-detail" data-bind="visible: total() &gt; 0">
-                                    (<span data-bind="text: vectorMissingCount($data)"/> configured, ONNX files missing)
+                                    (<span data-bind="text: vectorMissingCount($data)"/> configured, not ready)
                                 </span>
                             </span>
                         </div>

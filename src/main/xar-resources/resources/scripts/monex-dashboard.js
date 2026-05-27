@@ -871,13 +871,54 @@ function vectorStatusClass(status) {
     }
 }
 
+function vectorEmbeddingsKpiVisible(viewModel) {
+    return !!(viewModel && viewModel.vector && viewModel.vector.available && viewModel.vector.available());
+}
+
+function vectorEmbeddingsKpiText(vector) {
+    if (!vector || !vector.available || !vector.available()) {
+        return "—";
+    }
+    var ready = vector.ready();
+    var total = vector.total();
+    return ready + " / " + total;
+}
+
+function vectorEmbeddingsKpiClass(vector) {
+    if (!vector || !vector.available || !vector.available()) {
+        return {};
+    }
+    var ready = vector.ready();
+    var total = vector.total();
+    if (total > 0 && ready === 0) {
+        return { "kpi-critical": true };
+    }
+    if (total > 0 && ready < total) {
+        return { "kpi-warn": true };
+    }
+    return {};
+}
+
+function vectorEntriesKpiVisible(viewModel) {
+    return !!(viewModel && viewModel.vectorStore &&
+        viewModel.vectorStore.available && viewModel.vectorStore.available());
+}
+
+function vectorEntriesKpiText(vectorStore) {
+    if (!vectorStore || !vectorStore.entryCountKnown || !vectorStore.entryCountKnown()) {
+        return "—";
+    }
+    return String(vectorStore.entryCount());
+}
+
 function createVectorViewModel(data) {
-    var payload = data || { available: false, models: [], ready: 0, total: 0 };
+    var payload = data || { available: false, models: [], ready: 0, total: 0, persistenceBackend: "" };
     return {
         available: ko.observable(!!payload.available),
         models: ko.observableArray(payload.models || []),
         ready: ko.observable(payload.ready || 0),
-        total: ko.observable(payload.total || 0)
+        total: ko.observable(payload.total || 0),
+        persistenceBackend: ko.observable(payload.persistenceBackend || "")
     };
 }
 
@@ -885,7 +926,7 @@ function updateVectorDiagnostics(model, data) {
     if (!model) {
         return;
     }
-    var payload = data || { available: false, models: [], ready: 0, total: 0 };
+    var payload = data || { available: false, models: [], ready: 0, total: 0, persistenceBackend: "" };
     if (!model.vector) {
         model.vector = createVectorViewModel(payload);
         return;
@@ -894,6 +935,7 @@ function updateVectorDiagnostics(model, data) {
     model.vector.ready(payload.ready || 0);
     model.vector.total(payload.total || 0);
     model.vector.models(payload.models || []);
+    model.vector.persistenceBackend(payload.persistenceBackend || "");
 }
 
 function uptime(data) {
@@ -928,6 +970,11 @@ Monex.kpi = {
     vectorMissingCount: vectorMissingCount,
     vectorModelLabel: vectorModelLabel,
     vectorStatusClass: vectorStatusClass,
+    vectorEmbeddingsKpiVisible: vectorEmbeddingsKpiVisible,
+    vectorEmbeddingsKpiText: vectorEmbeddingsKpiText,
+    vectorEmbeddingsKpiClass: vectorEmbeddingsKpiClass,
+    vectorEntriesKpiVisible: vectorEntriesKpiVisible,
+    vectorEntriesKpiText: vectorEntriesKpiText,
     createVectorViewModel: createVectorViewModel,
     updateVectorDiagnostics: updateVectorDiagnostics,
     uptime: uptime
@@ -1285,7 +1332,7 @@ JMX.connection = (function() {
             var name = currentInstance.name();
             if (name == "localhost") {
                 url = location.pathname.replace(/^(.*?)\/(apps\/)?monex\/.*$/, "$1") +
-                    "/status?c=instances&c=processes&c=locking&c=memory&c=caches&c=system&c=operatingsystem&token=" + currentInstance.token;
+                    "/status?c=instances&c=processes&c=locking&c=memory&c=caches&c=system&c=operatingsystem&c=vector&token=" + currentInstance.token;
             } else {
                 url = "modules/remote.xql?name=" + name;
             }
@@ -1311,6 +1358,7 @@ JMX.connection = (function() {
                                 viewModel = ko.mapping.fromJS(data);
                                 Monex.activity.attachDashboardViewModel(viewModel, { livePoll: true });
                                 viewModel.vector = createVectorViewModel(null);
+                                viewModel.vectorStore = Monex.vector.createVectorStoreViewModel(null);
                                 viewModel.gc = function() {
                                     JMX.connection.invoke("gc", "java.lang:type=Memory");
                                 };
@@ -1325,20 +1373,6 @@ JMX.connection = (function() {
                                     viewModel.url = currentInstance.url().replace(/\/exist\/?$/, "");
                                 }
                                 ko.applyBindings(viewModel, rootDom);
-                                if (name === "localhost") {
-                                    $.ajax({
-                                        url: "modules/vector.xql",
-                                        type: "GET",
-                                        dataType: "json",
-                                        timeout: 10000,
-                                        success: function(vectorData) {
-                                            updateVectorDiagnostics(viewModel, vectorData);
-                                        },
-                                        error: function(xhr, status, error) {
-                                            console.warn("vector diagnostics poll failed:", status, error);
-                                        }
-                                    });
-                                }
                             } else {
                                 Monex.activity.cleanupActivityTooltips();
                                 ko.mapping.fromJS(data, viewModel);
@@ -1346,6 +1380,7 @@ JMX.connection = (function() {
                                     viewModel.activityFlyout.afterPoll();
                                 }
                             }
+                            Monex.vector.syncVectorFromJmx(viewModel, data.jmx);
                             updatePollStatus(viewModel, pollStarted, pollFinished);
                             var liveRunning = runningQueryCount(data.jmx);
                             if (liveRunning > lastLiveRunningQueryCount) {
@@ -1355,20 +1390,6 @@ JMX.connection = (function() {
                         }
                         if (onUpdate) {
                             onUpdate(data);
-                        }
-                        if (viewModel && name === "localhost") {
-                            $.ajax({
-                                url: "modules/vector.xql",
-                                type: "GET",
-                                dataType: "json",
-                                timeout: 10000,
-                                success: function(vectorData) {
-                                    updateVectorDiagnostics(viewModel, vectorData);
-                                },
-                                error: function(xhr, status, error) {
-                                    console.warn("vector diagnostics poll failed:", status, error);
-                                }
-                            });
                         }
                         setTimeout(function() { JMX.connection.poll(onUpdate); }, effectivePollDelay());
                     } else {
@@ -1522,3 +1543,199 @@ $(function() {
         });
     });
 });
+
+/*
+ * SPDX LGPL-2.1-or-later
+ * Copyright (C) 2014 The eXist-db Authors
+ */
+var Monex = window.Monex || {};
+window.Monex = Monex;
+
+function normalizeVectorModelRow(row) {
+    if (!row) {
+        return null;
+    }
+    var source = row.value || row;
+    var status = jmxValue(source.status) || jmxValue(source.Status) || "";
+    var provider = jmxValue(source.provider) || jmxValue(source.Provider) || "";
+    if (!provider && status === "http") {
+        provider = "HTTP";
+    }
+    return {
+        id: jmxValue(source.id) || jmxValue(source.Id) || "",
+        source: jmxValue(source.source) || jmxValue(source.Source) || "",
+        path: jmxValue(source.path) || jmxValue(source.Path) || "",
+        dimension: parseInt(jmxValue(source.dimension) || jmxValue(source.Dimension), 10) || 0,
+        status: status,
+        message: jmxValue(source.message) || jmxValue(source.Message) || "",
+        provider: provider
+    };
+}
+
+function jmxVectorStorePayload(storeNode) {
+    if (!storeNode) {
+        return null;
+    }
+    var available = jmxValue(storeNode.Available);
+    return {
+        available: available === true || available === "true",
+        entryCountKnown: (function() {
+            var known = jmxValue(storeNode.EntryCountKnown);
+            return known === true || known === "true";
+        })(),
+        entryCount: parseInt(jmxValue(storeNode.EntryCount), 10) || 0,
+        fileSize: parseInt(jmxValue(storeNode.FileSize), 10) || 0,
+        formatVersion: parseInt(jmxValue(storeNode.FormatVersion), 10) || 0,
+        persistenceBackend: jmxValue(storeNode.PersistenceBackend) || "vector.dbx"
+    };
+}
+
+function jmxVectorToPayload(jmx) {
+    if (!jmx) {
+        return {
+            available: false,
+            total: 0,
+            ready: 0,
+            models: [],
+            store: null
+        };
+    }
+    var store = jmxVectorStorePayload(jmx.VectorStore);
+    if (!jmx.VectorEmbedding) {
+        return {
+            available: false,
+            total: 0,
+            ready: 0,
+            models: [],
+            store: store
+        };
+    }
+    var emb = jmx.VectorEmbedding;
+    var modelsRaw = jmxValue(emb.Models);
+    var models = [];
+    if (modelsRaw && modelsRaw.length) {
+        for (var i = 0; i < modelsRaw.length; i++) {
+            models.push(normalizeVectorModelRow(modelsRaw[i]));
+        }
+    }
+    return {
+        available: true,
+        total: parseInt(jmxValue(emb.ModelCount), 10) || 0,
+        ready: parseInt(jmxValue(emb.ReadyModelCount), 10) || 0,
+        models: models,
+        store: store,
+        persistenceBackend: jmxValue(emb.PersistenceBackend) || "lucene",
+        metrics: {
+            embedCallCount: parseInt(jmxValue(emb.EmbedCallCount), 10) || 0,
+            knnQueryCount: parseInt(jmxValue(emb.KnnQueryCount), 10) || 0,
+            loadedProviderCount: parseInt(jmxValue(emb.LoadedProviderCount), 10) || 0,
+            persistenceBackend: jmxValue(emb.PersistenceBackend) || "lucene"
+        }
+    };
+}
+
+function createVectorStoreViewModel(store) {
+    if (!store) {
+        store = {
+            available: false,
+            entryCountKnown: false,
+            entryCount: 0,
+            fileSize: 0,
+            formatVersion: 0,
+            persistenceBackend: "vector.dbx"
+        };
+    }
+    return {
+        available: ko.observable(!!store.available),
+        entryCountKnown: ko.observable(!!store.entryCountKnown),
+        entryCount: ko.observable(store.entryCount || 0),
+        fileSize: ko.observable(store.fileSize || 0),
+        formatVersion: ko.observable(store.formatVersion || 0),
+        persistenceBackend: ko.observable(store.persistenceBackend || "vector.dbx")
+    };
+}
+
+function updateVectorStoreViewModel(model, store) {
+    if (!model || !store) {
+        return;
+    }
+    if (!model.vectorStore) {
+        model.vectorStore = createVectorStoreViewModel(store);
+        return;
+    }
+    model.vectorStore.available(!!store.available);
+    model.vectorStore.entryCountKnown(!!store.entryCountKnown);
+    model.vectorStore.entryCount(store.entryCount || 0);
+    model.vectorStore.fileSize(store.fileSize || 0);
+    model.vectorStore.formatVersion(store.formatVersion || 0);
+    model.vectorStore.persistenceBackend(store.persistenceBackend || "vector.dbx");
+}
+
+function ensureVectorStoreSummaryComputed(viewModel) {
+    if (!viewModel || viewModel.vectorStoreSummaryText) {
+        return;
+    }
+    viewModel.vectorStoreSummaryText = ko.pureComputed(function() {
+        return Monex.vector.vectorStoreSummary(viewModel.vectorStore);
+    });
+}
+
+function syncVectorFromJmx(viewModel, jmx) {
+    if (!viewModel) {
+        return;
+    }
+    var payload = jmxVectorToPayload(jmx);
+    Monex.kpi.updateVectorDiagnostics(viewModel, {
+        available: payload.available,
+        total: payload.total,
+        ready: payload.ready,
+        models: payload.models,
+        persistenceBackend: payload.persistenceBackend || ""
+    });
+    if (payload.store) {
+        updateVectorStoreViewModel(viewModel, payload.store);
+    } else if (viewModel.vectorStore) {
+        viewModel.vectorStore.available(false);
+    }
+    ensureVectorStoreSummaryComputed(viewModel);
+}
+
+function formatVectorFileSize(bytes) {
+    var n = parseInt(bytes, 10) || 0;
+    if (n < 1024) {
+        return n + " B";
+    }
+    if (n < 1024 * 1024) {
+        return Math.round(n / 1024) + " KB";
+    }
+    return (n / (1024 * 1024)).toFixed(1) + " MB";
+}
+
+function vectorStoreSummary(store) {
+    if (!store) {
+        return "";
+    }
+    var available = typeof store.available === "function" ? store.available() : store.available;
+    if (!available) {
+        return "";
+    }
+    var parts = [];
+    var known = typeof store.entryCountKnown === "function" ? store.entryCountKnown() : store.entryCountKnown;
+    if (known) {
+        var count = typeof store.entryCount === "function" ? store.entryCount() : store.entryCount;
+        parts.push(count + " entries");
+    }
+    var size = typeof store.fileSize === "function" ? store.fileSize() : store.fileSize;
+    if (size >= 0) {
+        parts.push(formatVectorFileSize(size));
+    }
+    return parts.join(" · ");
+}
+
+Monex.vector = {
+    jmxVectorToPayload: jmxVectorToPayload,
+    syncVectorFromJmx: syncVectorFromJmx,
+    createVectorStoreViewModel: createVectorStoreViewModel,
+    formatVectorFileSize: formatVectorFileSize,
+    vectorStoreSummary: vectorStoreSummary
+};

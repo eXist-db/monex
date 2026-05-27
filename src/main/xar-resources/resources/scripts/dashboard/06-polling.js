@@ -194,7 +194,7 @@ JMX.connection = (function() {
             var name = currentInstance.name();
             if (name == "localhost") {
                 url = location.pathname.replace(/^(.*?)\/(apps\/)?monex\/.*$/, "$1") +
-                    "/status?c=instances&c=processes&c=locking&c=memory&c=caches&c=system&c=operatingsystem&token=" + currentInstance.token;
+                    "/status?c=instances&c=processes&c=locking&c=memory&c=caches&c=system&c=operatingsystem&c=vector&token=" + currentInstance.token;
             } else {
                 url = "modules/remote.xql?name=" + name;
             }
@@ -220,6 +220,7 @@ JMX.connection = (function() {
                                 viewModel = ko.mapping.fromJS(data);
                                 Monex.activity.attachDashboardViewModel(viewModel, { livePoll: true });
                                 viewModel.vector = createVectorViewModel(null);
+                                viewModel.vectorStore = Monex.vector.createVectorStoreViewModel(null);
                                 viewModel.gc = function() {
                                     JMX.connection.invoke("gc", "java.lang:type=Memory");
                                 };
@@ -234,20 +235,6 @@ JMX.connection = (function() {
                                     viewModel.url = currentInstance.url().replace(/\/exist\/?$/, "");
                                 }
                                 ko.applyBindings(viewModel, rootDom);
-                                if (name === "localhost") {
-                                    $.ajax({
-                                        url: "modules/vector.xql",
-                                        type: "GET",
-                                        dataType: "json",
-                                        timeout: 10000,
-                                        success: function(vectorData) {
-                                            updateVectorDiagnostics(viewModel, vectorData);
-                                        },
-                                        error: function(xhr, status, error) {
-                                            console.warn("vector diagnostics poll failed:", status, error);
-                                        }
-                                    });
-                                }
                             } else {
                                 Monex.activity.cleanupActivityTooltips();
                                 ko.mapping.fromJS(data, viewModel);
@@ -255,6 +242,7 @@ JMX.connection = (function() {
                                     viewModel.activityFlyout.afterPoll();
                                 }
                             }
+                            Monex.vector.syncVectorFromJmx(viewModel, data.jmx);
                             updatePollStatus(viewModel, pollStarted, pollFinished);
                             var liveRunning = runningQueryCount(data.jmx);
                             if (liveRunning > lastLiveRunningQueryCount) {
@@ -264,20 +252,6 @@ JMX.connection = (function() {
                         }
                         if (onUpdate) {
                             onUpdate(data);
-                        }
-                        if (viewModel && name === "localhost") {
-                            $.ajax({
-                                url: "modules/vector.xql",
-                                type: "GET",
-                                dataType: "json",
-                                timeout: 10000,
-                                success: function(vectorData) {
-                                    updateVectorDiagnostics(viewModel, vectorData);
-                                },
-                                error: function(xhr, status, error) {
-                                    console.warn("vector diagnostics poll failed:", status, error);
-                                }
-                            });
                         }
                         setTimeout(function() { JMX.connection.poll(onUpdate); }, effectivePollDelay());
                     } else {

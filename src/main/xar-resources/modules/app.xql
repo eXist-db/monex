@@ -51,6 +51,16 @@ declare variable $app:default-timeline-xpaths := map {
     "slow-queries-graph": ("max($jmx//jmx:mostRecentExecutionDuration)",
             "avg($jmx//jmx:mostRecentExecutionDuration)")
     (: full path is $jmx/jmx:ProcessReport/jmx:RecentQueryHistory/jmx:row/jmx:mostRecentExecutionDuration :)
+    ,
+    "vector-entries-graph": (
+        "if (string(($jmx//jmx:VectorStore/jmx:EntryCountKnown)[1]) = 'true') then ($jmx//jmx:VectorStore/jmx:EntryCount)[1] else ()"
+    ),
+    "vector-embed-rate-graph": (
+        "($jmx//jmx:VectorEmbedding/jmx:EmbedCallCount)[1]"
+    ),
+    "vector-knn-rate-graph": (
+        "($jmx//jmx:VectorEmbedding/jmx:KnnQueryCount)[1]"
+    )
 };
 
 declare variable $app:default-timeline-labels := map {
@@ -61,7 +71,15 @@ declare variable $app:default-timeline-labels := map {
     "vector-cache-graph": ("vector.dbx BTREE Used (pages)", "vector.dbx DATA Used (pages)"),
     "cache-pool-graph": ("Shared pool used (MB)", "Configured pool (MB)"),
     "cache-hitrate-graph": ("dom.dbx DATA hit rate (%)", "vector.dbx DATA hit rate (%)"),
-    "slow-queries-graph": ("Slowest Query", "Average Query")
+    "slow-queries-graph": ("Slowest Query", "Average Query"),
+    "vector-entries-graph": ("Vector store entries"),
+    "vector-embed-rate-graph": ("Embed calls per interval"),
+    "vector-knn-rate-graph": ("KNN queries per interval")
+};
+
+declare variable $app:default-timeline-series-types := map {
+    "vector-embed-rate-graph": ("counter-delta"),
+    "vector-knn-rate-graph": ("counter-delta")
 };
 
 declare variable $app:default-timeline-type := "lines";
@@ -556,6 +574,23 @@ declare function app:jmxs-for-time-interval($instance as xs:string, $start as xs
     ))
 };
 
+(: Evaluates a timeline xpath across each JMX snapshot in order. :)
+declare function app:timeline-eval($jmxs as node()+, $xpath as xs:string) as xs:double* {
+    let $expression := "for $jmx in $jmxs return number((("|| $xpath ||"),0)[1])"
+    return util:eval($expression, true())
+};
+
+(: Per-interval increase for monotonic JMX counters (negative deltas treated as 0). :)
+declare function app:counter-deltas($values as xs:double*) as xs:double* {
+    if (count($values) lt 2) then
+        ()
+    else
+        for $i in 2 to count($values)
+        let $prev := $values[$i - 1]
+        let $curr := $values[$i]
+        return max((0, $curr - $prev))
+};
+
 (: Executes the given timeline queries and returns unprocessed results.
  : Sequences of equal length and corresponding order should be passed as xpaths, labels, and types arguments. :)
 declare function app:make-timeline($instance as xs:string, $xpaths as xs:string+, $labels as xs:string+, $types as xs:string+, $start as xs:dateTime, $end as xs:dateTime) as item()* {
@@ -566,15 +601,17 @@ declare function app:make-timeline($instance as xs:string, $xpaths as xs:string+
             {
                 let $timestamps := (for $jmx in $jmxs return app:time-to-milliseconds(xs:dateTime($jmx/jmx:timestamp)))
                 for $xpath at $n in $xpaths
-                let $expression := "for $jmx in $jmxs return number((("|| $xpath ||"),0)[1])"
-                let $values := util:eval($expression, true())
+                let $raw-values := app:timeline-eval($jmxs, $xpath)
+                let $is-delta := $types[$n] = "counter-delta"
+                let $values := if ($is-delta) then app:counter-deltas($raw-values) else $raw-values
+                let $time-offset := if ($is-delta) then 1 else 0
                 return
                     <json:value json:array="true">
                         <label>{$labels[$n]}</label>
                         <data> 
                         {
                             for $val at $pos in $values
-                            let $time := $timestamps[$pos]
+                            let $time := $timestamps[$pos + $time-offset]
                             order by $time ascending
                             return
                                 <json:value json:array="true">
@@ -584,7 +621,7 @@ declare function app:make-timeline($instance as xs:string, $xpaths as xs:string+
                         }
                         </data>
                         {
-                        element { $types[$n] } {
+                        element { if ($is-delta) then "lines" else $types[$n] } {
                             <show>true</show>
                         }   }
                     </json:value>
@@ -604,7 +641,11 @@ function app:default-timeline($node as node(), $model as map(*), $instance as xs
     let $timespec := app:process-time-interval-params($start, $end)
     let $xpaths := $app:default-timeline-xpaths($gid)
     let $labels := $app:default-timeline-labels($gid)
-    let $types := for $i in (1 to count($xpaths)) return $app:default-timeline-type
+    let $types :=
+        if (map:contains($app:default-timeline-series-types, $gid)) then
+            $app:default-timeline-series-types($gid)
+        else
+            for $i in (1 to count($xpaths)) return $app:default-timeline-type
     return
         app:make-timeline($instance, $xpaths, $labels, $types, $timespec[1], $timespec[2])
 };

@@ -37,6 +37,36 @@ describe('Monex index page', () => {
       cy.get('.kpi-strip .kpi-label').contains('Uptime').should('be.visible')
     })
 
+    it('should populate embeddings panel from JMX vector MBeans', () => {
+      cy.waitForMonitoringViewModel({ timeout: 20000 })
+      cy.get('#pause-btn').click()
+
+      cy.window().then((win) => {
+        const vm = win.JMX.connection.getViewModel()
+        expect(vm.vector.available(), 'vector extension via JMX').to.eq(true)
+        expect(vm.vector.total(), 'model count').to.be.greaterThan(0)
+        expect(vm.vector.ready(), 'ready models').to.be.greaterThan(0)
+        expect(vm.vectorStore && vm.vectorStore.available(), 'vector store').to.eq(true)
+
+        const ready = win.Monex.kpi.readyVectorModels(vm.vector)
+        expect(ready.length).to.be.greaterThan(0)
+        const label = win.Monex.kpi.vectorModelLabel(ready[0])
+        expect(label).to.match(/MiniLM-L6-v2/)
+
+        expect(win.Monex.kpi.vectorEmbeddingsKpiText(vm.vector)).to.match(/^\d+ \/ \d+$/)
+        expect(win.Monex.kpi.vectorEntriesKpiVisible(vm)).to.eq(true)
+      })
+
+      cy.get('.kpi-strip .kpi-label').contains('Embeddings').should('be.visible')
+      cy.get('.kpi-strip .kpi-label').contains('Vector entries').should('be.visible')
+
+      cy.contains('.box-title', 'Embeddings')
+        .parents('.box')
+        .find('.embedding-status-line')
+        .contains('MiniLM-L6-v2')
+        .should('be.visible')
+    })
+
     it('should format shared cache pool as memory with utilization bar', () => {
       cy.wait(1500)
       cy.get('#pause-btn').click()
