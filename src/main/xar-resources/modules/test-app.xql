@@ -10,7 +10,74 @@ import module namespace app="http://exist-db.org/apps/admin/templates" at "app.x
 
 declare namespace test="http://exist-db.org/xquery/xqsuite";
 
-declare variable $testapp:mock-profile := 
+declare namespace jmx="http://exist-db.org/jmx";
+
+declare variable $testapp:vector-jmx :=
+    <jmx xmlns="http://exist-db.org/jmx">
+        <VectorStore>
+            <EntryCountKnown>true</EntryCountKnown>
+            <EntryCount>0</EntryCount>
+        </VectorStore>
+        <VectorEmbedding>
+            <ModelCount>10</ModelCount>
+            <ReadyModelCount>1</ReadyModelCount>
+        </VectorEmbedding>
+    </jmx>
+;
+
+declare variable $testapp:vector-jmx-no-ready :=
+    copy $modified := $testapp:vector-jmx
+    modify (
+        replace value of node $modified/VectorEmbedding/ReadyModelCount with "0"
+    )
+    return $modified
+;
+
+declare
+    %test:assertEquals(true(), true())
+function testapp:vector-alert-ready-models-not-missing() {
+    not(app:evaluate-alert-condition(
+        $testapp:vector-jmx,
+        "exists($jmx//VectorEmbedding) and number(($jmx//VectorEmbedding/ReadyModelCount)[1]) = 0 and number(($jmx//VectorEmbedding/ModelCount)[1]) > 0"
+    ))
+};
+
+declare
+    %test:assertEquals(true(), true())
+function testapp:vector-alert-ready-models-fires-when-none-ready() {
+    app:evaluate-alert-condition(
+        $testapp:vector-jmx-no-ready,
+        "exists($jmx//VectorEmbedding) and number(($jmx//VectorEmbedding/ReadyModelCount)[1]) = 0 and number(($jmx//VectorEmbedding/ModelCount)[1]) > 0"
+    )
+};
+
+declare
+    %test:assertEquals(true(), true())
+function testapp:vector-alert-entry-count-below-threshold() {
+    not(app:evaluate-alert-condition(
+        $testapp:vector-jmx,
+        "string(($jmx//VectorStore/EntryCountKnown)[1]) = 'true' and number(($jmx//VectorStore/EntryCount)[1]) > 100000"
+    ))
+};
+
+declare
+    %test:assertEquals(true(), true())
+function testapp:vector-alert-cache-pressure() {
+    let $jmx :=
+        <jmx xmlns="http://exist-db.org/jmx">
+            <Cache name="org.exist.management.exist:CacheManager=CacheManagerImpl,Cache=org.exist.storage.cache.CacheImpl,name=vector.dbx,cache-type=DATA">
+                <Used>95</Used>
+                <Size>100</Size>
+            </Cache>
+        </jmx>
+    return
+        app:evaluate-alert-condition(
+            $jmx,
+            "let $c := ($jmx//Cache[contains(@name, 'name=vector.dbx,cache-type=DATA')])[1] return exists($c) and number($c/Size) gt 0 and (number($c/Used) div number($c/Size)) gt 0.9"
+        )
+};
+
+declare variable $testapp:mock-profile :=
     <stats:calls xmlns:stats="http://exist-db.org/xquery/profiling">
         <stats:function name="util:binary-to-string" elapsed="0.008" calls="20" source="/db/system/repo/templating-1.2.1/content/lib.xqm [-1:-1]"/>
         <stats:function name="templates:process-output" elapsed="0.0" calls="3" source="/db/system/repo/templating-1.2.1/content/templates.xqm [237:17]"/>

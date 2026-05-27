@@ -85,6 +85,27 @@
         &lt;alert name="More than 40 threads waiting for locks to be released" condition="count($jmx//LockManager/WaitingThreads/row) &amp;gt; 40"/&gt;
     &lt;/poll&gt;
 &lt;/instance&gt;</code></pre>
+                <h4>Vector alerts (eXist 7+)</h4>
+                <p>Monex polls <code>c=vector</code> automatically, so snapshot XML includes
+                    <code>VectorStore</code> and (when the extension is loaded)
+                    <code>VectorEmbedding</code>. Alert conditions are XPath expressions evaluated
+                    with <code>$jmx</code> bound to the poll response root; elements use the JMX
+                    namespace implicitly (write <code>VectorStore/EntryCount</code>, not
+                    <code>jmx:VectorStore</code>).</p>
+                <pre><code class="language-xml">&lt;!-- Embedding models configured but none ready (missing ONNX, unreachable HTTP model, etc.) --&gt;
+&lt;alert name="Vector models configured but none ready"
+       condition="exists($jmx//VectorEmbedding) and number(($jmx//VectorEmbedding/ReadyModelCount)[1]) = 0 and number(($jmx//VectorEmbedding/ModelCount)[1]) &amp;gt; 0"/&gt;
+
+&lt;!-- Vector store entry count exceeds threshold (only when EntryCountKnown is true) --&gt;
+&lt;alert name="Vector store entries above 100k"
+       condition="string(($jmx//VectorStore/EntryCountKnown)[1]) = 'true' and number(($jmx//VectorStore/EntryCount)[1]) &amp;gt; 100000"/&gt;
+
+&lt;!-- vector.dbx DATA cache pages nearly full --&gt;
+&lt;alert name="vector.dbx DATA cache above 90%"
+       condition="let $c := ($jmx//Cache[contains(@name, 'name=vector.dbx,cache-type=DATA')])[1] return exists($c) and number($c/Size) gt 0 and (number($c/Used) div number($c/Size)) gt 0.9"/&gt;</code></pre>
+                <p>Adjust numeric thresholds to match your deployment. When the vector extension is
+                    absent, <code>VectorEmbedding</code> is omitted and the first alert stays silent;
+                    <code>VectorStore</code> may still be present from exist-core.</p>
                 <p>The attributes of &lt;instance&gt; are:</p>
                 <table class="table">
                     <tr>

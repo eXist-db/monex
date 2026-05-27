@@ -19,8 +19,14 @@
 -->
 <instances>
     <!--instance name="my.server.com" url="http://my.server.com:8080/exist" token="" cron="0 * * * * ?">
-        <poll cron="0/30 * * * * ?">
+        <poll cron="0/30 * * * * ?" store="true">
             <alert name="More than 30 threads waiting for locks to be released" condition="count($jmx//LockManager/WaitingThreads/row) > 30"/>
+            <alert name="Vector models configured but none ready"
+                condition="exists($jmx//VectorEmbedding) and number(($jmx//VectorEmbedding/ReadyModelCount)[1]) = 0 and number(($jmx//VectorEmbedding/ModelCount)[1]) > 0"/>
+            <alert name="Vector store entries above 100k"
+                condition="string(($jmx//VectorStore/EntryCountKnown)[1]) = 'true' and number(($jmx//VectorStore/EntryCount)[1]) > 100000"/>
+            <alert name="vector.dbx DATA cache above 90%"
+                condition="let $c := ($jmx//Cache[contains(@name, 'name=vector.dbx,cache-type=DATA')])[1] return exists($c) and number($c/Size) gt 0 and (number($c/Used) div number($c/Size)) gt 0.9"/>
         </poll>
     </instance-->
 </instances>

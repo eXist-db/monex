@@ -574,6 +574,17 @@ declare function app:jmxs-for-time-interval($instance as xs:string, $start as xs
     ))
 };
 
+declare function app:evaluate-alert-condition($jmx as element(jmx:jmx), $condition as xs:string) as xs:boolean {
+    let $jmxs := $jmx
+    return boolean((
+        util:eval(
+            "declare default element namespace 'http://exist-db.org/jmx';" ||
+            "for $jmx in $jmxs return (" || $condition || ")",
+            true()
+        )
+    )[1])
+};
+
 (: Evaluates a timeline xpath across each JMX snapshot in order. :)
 declare function app:timeline-eval($jmxs as node()+, $xpath as xs:string) as xs:double* {
     let $expression := "for $jmx in $jmxs return number((("|| $xpath ||"),0)[1])"
