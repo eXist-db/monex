@@ -1,0 +1,29 @@
+src/main/xar-resources/modules/app.xql
+  s_12ba9537e61ac7::t_54a0375f91e04c 578-585
+  s_12ba9537e61ac7::t_ec8e0a42fefed5 577,586-587
+src/main/xar-resources/instances.xml
+  s_12ba9537e61ac7::t_f82e8d5992a8d9 22,24-29
+src/main/xar-resources/modules/test-app.xql
+  s_12ba9537e61ac7::t_297ecc2501f62f 13-14,16-25,29-33,78-80
+  s_12ba9537e61ac7::t_961cef8da166cb 15,26-28,34-77
+src/main/xar-resources/remotes.html
+  s_12ba9537e61ac7::t_75d9c27a006eed 88-108
+src/main/xar-resources/modules/job.xql
+  s_12ba9537e61ac7::t_bb6a05f80a0282 207
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "d8352d9f06ef9baa201f303a0918ddaf5ef44ee3",
+  "prompts": {},
+  "sessions": {
+    "s_12ba9537e61ac7": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "844524c2-10c0-461d-af7c-9e33465ffc79",
+        "model": "composer-2.5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
