@@ -273,13 +273,13 @@ function vectorEntriesKpiText(vectorStore) {
 }
 
 function createVectorViewModel(data) {
-    var payload = data || { available: false, models: [], ready: 0, total: 0, persistenceBackend: "" };
+    var payload = data || { available: false, models: [], ready: 0, total: 0, knnBackend: "" };
     return {
         available: ko.observable(!!payload.available),
         models: ko.observableArray(payload.models || []),
         ready: ko.observable(payload.ready || 0),
         total: ko.observable(payload.total || 0),
-        persistenceBackend: ko.observable(payload.persistenceBackend || "")
+        knnBackend: ko.observable(payload.knnBackend || "")
     };
 }
 
@@ -287,7 +287,7 @@ function updateVectorDiagnostics(model, data) {
     if (!model) {
         return;
     }
-    var payload = data || { available: false, models: [], ready: 0, total: 0, persistenceBackend: "" };
+    var payload = data || { available: false, models: [], ready: 0, total: 0, knnBackend: "" };
     if (!model.vector) {
         model.vector = createVectorViewModel(payload);
         return;
@@ -296,7 +296,7 @@ function updateVectorDiagnostics(model, data) {
     model.vector.ready(payload.ready || 0);
     model.vector.total(payload.total || 0);
     model.vector.models(payload.models || []);
-    model.vector.persistenceBackend(payload.persistenceBackend || "");
+    model.vector.knnBackend(payload.knnBackend || "");
 }
 
 function uptime(data) {

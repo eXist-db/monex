@@ -81,13 +81,13 @@
             </div>
             <!-- /ko -->
             <!-- ko if: vectorEmbeddingsKpiVisible($data) -->
-            <div class="kpi-cell kpi-neutral" data-bind="css: vectorEmbeddingsKpiClass(vector), attr: { title: vector.persistenceBackend() ? ('KNN persistence: ' + vector.persistenceBackend()) : '' }">
+            <div class="kpi-cell kpi-neutral" data-bind="css: vectorEmbeddingsKpiClass(vector), attr: { title: vector.knnBackend() ? ('KNN backend: ' + vector.knnBackend()) : '' }">
                 <span class="kpi-label">Embeddings</span>
                 <span class="kpi-value" data-bind="text: vectorEmbeddingsKpiText(vector)">—</span>
             </div>
             <!-- /ko -->
             <!-- ko if: vectorEntriesKpiVisible($data) -->
-            <div class="kpi-cell kpi-neutral" data-bind="attr: { title: (vectorStore &amp;&amp; vectorStore.persistenceBackend()) ? ('Store backend: ' + vectorStore.persistenceBackend()) : '' }">
+            <div class="kpi-cell kpi-neutral" data-bind="attr: { title: (vectorStore &amp;&amp; vectorStore.storageBackend()) ? ('Storage backend: ' + vectorStore.storageBackend()) : '' }">
                 <span class="kpi-label">Vector entries</span>
                 <span class="kpi-value" data-bind="text: vectorEntriesKpiText(vectorStore)">—</span>
             </div>
@@ -215,14 +215,14 @@
                 </div>
 
                 <div class="box dashboard-panel" data-bind="with: vector">
-                    <div class="box-header" data-bind="attr: { title: available() &amp;&amp; persistenceBackend() ? ('Embedding persistence: ' + persistenceBackend()) : '' }">
+                    <div class="box-header" data-bind="attr: { title: available() &amp;&amp; knnBackend() ? ('KNN backend: ' + knnBackend()) : '' }">
                         <h3 class="box-title">Embeddings</h3>
                         <div class="box-tools pull-right">
                             <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"/></button>
                         </div>
                     </div>
                     <div class="box-body embedding-status">
-                        <div class="embedding-status-line" data-bind="visible: $root.vectorStore &amp;&amp; $root.vectorStore.available(), attr: { title: ($root.vectorStore &amp;&amp; $root.vectorStore.persistenceBackend()) ? ('Store backend: ' + $root.vectorStore.persistenceBackend()) : '' }">
+                        <div class="embedding-status-line" data-bind="visible: $root.vectorStore &amp;&amp; $root.vectorStore.available(), attr: { title: ($root.vectorStore &amp;&amp; $root.vectorStore.storageBackend()) ? ('Storage backend: ' + $root.vectorStore.storageBackend()) : '' }">
                             <span class="embedding-dot ready"/>
                             <span>
                                 Vector store
@@ -264,6 +264,9 @@
                 <div class="box dashboard-panel dashboard-panel-slim" data-bind="visible: cpuMetricsAvailable($data.jmx)">
                     <div class="box-header with-border">
                         <h3 class="box-title">CPU</h3>
+                        <div class="box-tools pull-right">
+                            <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"/></button>
+                        </div>
                     </div>
                     <div class="box-body no-padding">
                         <div class="cpu-gauge-row">

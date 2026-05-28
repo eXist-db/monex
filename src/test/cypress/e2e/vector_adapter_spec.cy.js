@@ -30,18 +30,19 @@ describe('Vector JMX adapter', () => {
         expect(payload.store.entryCountKnown).to.eq(true)
         expect(payload.store.entryCount).to.eq(0)
         expect(payload.store.fileSize).to.eq(8192)
-        expect(payload.store.persistenceBackend).to.eq('vector.dbx')
+        expect(payload.store.storageBackend).to.eq('vector.dbx')
       })
     })
   })
 
-  it('maps full embedding JMX to former vector.xql totals', () => {
+  it('maps full embedding JMX to dashboard totals', () => {
     cy.window().then((win) => {
       jmxPayloadFromFixture(win, 'jmx-vector-sample.xml').then((payload) => {
         expect(payload.available).to.eq(true)
         expect(payload.total).to.eq(10)
         expect(payload.ready).to.eq(1)
-        expect(payload.persistenceBackend).to.eq('lucene')
+        expect(payload.knnBackend).to.eq('lucene')
+        expect(payload.metrics.knnBackend).to.eq('lucene')
         expect(payload.metrics.embedCallCount).to.eq(0)
         expect(payload.metrics.knnQueryCount).to.eq(0)
 

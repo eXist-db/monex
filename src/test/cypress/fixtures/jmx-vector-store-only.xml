@@ -5,7 +5,7 @@
         <jmx:Available>true</jmx:Available>
         <jmx:FileSize>8192</jmx:FileSize>
         <jmx:EntryCount>0</jmx:EntryCount>
-        <jmx:PersistenceBackend>vector.dbx</jmx:PersistenceBackend>
+        <jmx:StorageBackend>vector.dbx</jmx:StorageBackend>
         <jmx:EntryCountKnown>true</jmx:EntryCountKnown>
         <jmx:FormatVersion>1</jmx:FormatVersion>
         <jmx:InstanceId>exist</jmx:InstanceId>

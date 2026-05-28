@@ -966,13 +966,13 @@ function vectorEntriesKpiText(vectorStore) {
 }
 
 function createVectorViewModel(data) {
-    var payload = data || { available: false, models: [], ready: 0, total: 0, persistenceBackend: "" };
+    var payload = data || { available: false, models: [], ready: 0, total: 0, knnBackend: "" };
     return {
         available: ko.observable(!!payload.available),
         models: ko.observableArray(payload.models || []),
         ready: ko.observable(payload.ready || 0),
         total: ko.observable(payload.total || 0),
-        persistenceBackend: ko.observable(payload.persistenceBackend || "")
+        knnBackend: ko.observable(payload.knnBackend || "")
     };
 }
 
@@ -980,7 +980,7 @@ function updateVectorDiagnostics(model, data) {
     if (!model) {
         return;
     }
-    var payload = data || { available: false, models: [], ready: 0, total: 0, persistenceBackend: "" };
+    var payload = data || { available: false, models: [], ready: 0, total: 0, knnBackend: "" };
     if (!model.vector) {
         model.vector = createVectorViewModel(payload);
         return;
@@ -989,7 +989,7 @@ function updateVectorDiagnostics(model, data) {
     model.vector.ready(payload.ready || 0);
     model.vector.total(payload.total || 0);
     model.vector.models(payload.models || []);
-    model.vector.persistenceBackend(payload.persistenceBackend || "");
+    model.vector.knnBackend(payload.knnBackend || "");
 }
 
 function uptime(data) {
@@ -1706,7 +1706,9 @@ function jmxVectorStorePayload(storeNode) {
         entryCount: parseInt(jmxValue(storeNode.EntryCount), 10) || 0,
         fileSize: parseInt(jmxValue(storeNode.FileSize), 10) || 0,
         formatVersion: parseInt(jmxValue(storeNode.FormatVersion), 10) || 0,
-        persistenceBackend: jmxValue(storeNode.PersistenceBackend) || "vector.dbx"
+        storageBackend: jmxValue(storeNode.StorageBackend) ||
+            jmxValue(storeNode.PersistenceBackend) ||
+            "vector.dbx"
     };
 }
 
@@ -1731,6 +1733,9 @@ function jmxVectorToPayload(jmx) {
         };
     }
     var emb = jmx.VectorEmbedding;
+    var knnBackend = jmxValue(emb.KnnBackend) ||
+        jmxValue(emb.PersistenceBackend) ||
+        "lucene";
     var modelsRaw = jmxValue(emb.Models);
     var models = [];
     if (modelsRaw && modelsRaw.length) {
@@ -1744,12 +1749,12 @@ function jmxVectorToPayload(jmx) {
         ready: parseInt(jmxValue(emb.ReadyModelCount), 10) || 0,
         models: models,
         store: store,
-        persistenceBackend: jmxValue(emb.PersistenceBackend) || "lucene",
+        knnBackend: knnBackend,
         metrics: {
             embedCallCount: parseInt(jmxValue(emb.EmbedCallCount), 10) || 0,
             knnQueryCount: parseInt(jmxValue(emb.KnnQueryCount), 10) || 0,
             loadedProviderCount: parseInt(jmxValue(emb.LoadedProviderCount), 10) || 0,
-            persistenceBackend: jmxValue(emb.PersistenceBackend) || "lucene"
+            knnBackend: knnBackend
         }
     };
 }
@@ -1762,7 +1767,7 @@ function createVectorStoreViewModel(store) {
             entryCount: 0,
             fileSize: 0,
             formatVersion: 0,
-            persistenceBackend: "vector.dbx"
+            storageBackend: "vector.dbx"
         };
     }
     return {
@@ -1771,7 +1776,7 @@ function createVectorStoreViewModel(store) {
         entryCount: ko.observable(store.entryCount || 0),
         fileSize: ko.observable(store.fileSize || 0),
         formatVersion: ko.observable(store.formatVersion || 0),
-        persistenceBackend: ko.observable(store.persistenceBackend || "vector.dbx")
+        storageBackend: ko.observable(store.storageBackend || "vector.dbx")
     };
 }
 
@@ -1788,7 +1793,7 @@ function updateVectorStoreViewModel(model, store) {
     model.vectorStore.entryCount(store.entryCount || 0);
     model.vectorStore.fileSize(store.fileSize || 0);
     model.vectorStore.formatVersion(store.formatVersion || 0);
-    model.vectorStore.persistenceBackend(store.persistenceBackend || "vector.dbx");
+    model.vectorStore.storageBackend(store.storageBackend || "vector.dbx");
 }
 
 function ensureVectorStoreSummaryComputed(viewModel) {
@@ -1810,7 +1815,7 @@ function syncVectorFromJmx(viewModel, jmx) {
         total: payload.total,
         ready: payload.ready,
         models: payload.models,
-        persistenceBackend: payload.persistenceBackend || ""
+        knnBackend: payload.knnBackend || ""
     });
     if (payload.store) {
         updateVectorStoreViewModel(viewModel, payload.store);
