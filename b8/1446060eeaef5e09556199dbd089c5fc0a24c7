@@ -1,0 +1,41 @@
+src/main/xar-resources/resources/scripts/dashboard/06-polling.js
+  s_96c32dd88574e5::t_dafc41c44938e0 197
+src/main/xar-resources/details.html
+  s_96c32dd88574e5::t_cd7962b7e0dfd8 204
+  s_96c32dd88574e5::t_0bbe3a0d02fbf2 195
+src/main/xar-resources/modules/remote.xql
+  s_96c32dd88574e5::t_e2a3a300b0a979 19
+src/main/xar-resources/resources/scripts/util.js
+  s_96c32dd88574e5::t_ff7e7dc5ad7ff3 275-281,285-298
+  s_96c32dd88574e5::t_580d287d8286f8 794
+  s_96c32dd88574e5::t_1cef8d27478c2a 226-227
+src/main/xar-resources/resources/scripts/dashboard/04-kpi.js
+  s_96c32dd88574e5::t_bf5f95d437b61e 390-393
+  s_96c32dd88574e5::t_0a9464f0890f7f 194-250
+src/main/xar-resources/modules/job.xql
+  s_96c32dd88574e5::t_10a992b6311553 176
+src/main/xar-resources/resources/scripts/dashboard/03-activity.js
+  s_96c32dd88574e5::t_7e2caab374aea8 82-85
+src/main/xar-resources/resources/css/style.css
+  s_96c32dd88574e5::t_79edcc09c55fc5 477-478
+src/main/xar-resources/index.html
+  s_96c32dd88574e5::t_0aa8b3149b3a8b 324
+  s_96c32dd88574e5::t_2784ba967b98d0 334
+  s_96c32dd88574e5::t_0dce10c5b452e0 135-154
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "b81446060eeaef5e09556199dbd089c5fc0a24c7",
+  "prompts": {},
+  "sessions": {
+    "s_96c32dd88574e5": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "97e3a87c-fb43-4e98-b07e-e4ff18eb545c",
+        "model": "composer-2.5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
