@@ -1,0 +1,19 @@
+src/test/cypress/e2e/monitoring_spec.cy.js
+  s_2ae7e45e20da67::t_e77222d859e196 55
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "54ae5da5790cfd700af8b2197491e6078a95ebe0",
+  "prompts": {},
+  "sessions": {
+    "s_2ae7e45e20da67": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_191091b6affe22YcVuS0Pbv3Cm",
+        "model": "big-pickle"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
