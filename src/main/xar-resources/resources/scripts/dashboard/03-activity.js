@@ -83,6 +83,27 @@ function runningQueryElapsedText(row) {
     return JMX.util.formatQueryElapsed(JMX.util.jmxFieldText(JMX.util.runningQueryField(row, "elapsed")));
 }
 
+var RUNNING_QUERY_ELAPSED_WARN_MS = 5000;
+var RUNNING_QUERY_ELAPSED_CRITICAL_MS = 30000;
+
+function runningQueryElapsedMs(row) {
+    var raw = JMX.util.jmxFieldText(JMX.util.runningQueryField(row, "elapsed"));
+    var parsed = parseInt(raw, 10);
+    return isNaN(parsed) ? 0 : parsed;
+}
+
+function runningQueryElapsedClass(row) {
+    if (activityRowEnded(row)) {
+        return {};
+    }
+    var ms = runningQueryElapsedMs(row);
+    return {
+        "activity-elapsed-warn": ms >= RUNNING_QUERY_ELAPSED_WARN_MS &&
+            ms < RUNNING_QUERY_ELAPSED_CRITICAL_MS,
+        "activity-elapsed-critical": ms >= RUNNING_QUERY_ELAPSED_CRITICAL_MS
+    };
+}
+
 function activityUriTitle(row) {
     return JMX.util.activityUriTitle(JMX.util.activityRequestUri(row));
 }

@@ -478,10 +478,22 @@ body > .header .logo {
 .activity-query-table .activity-elapsed-cell {
     width: 12%;
     white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    font-size: 12px;
+}
+
+.activity-elapsed-warn {
+    color: #db8b0b;
+    font-weight: 600;
+}
+
+.activity-elapsed-critical {
+    color: #c0392b;
+    font-weight: 600;
 }
 
 .activity-panel .activity-table-scroll {
-    max-height: 200px;
+    max-height: min(240px, 38vh);
     overflow: auto;
     padding-bottom: 8px;
     -webkit-overflow-scrolling: touch;
@@ -724,6 +736,33 @@ body > .header .logo {
     font-size: 12px;
     color: #999;
     font-weight: normal;
+}
+
+.kpi-strip .kpi-meta {
+    display: block;
+    font-size: 11px;
+    line-height: 1.2;
+    color: #888;
+    margin-top: 2px;
+}
+
+.capacity-disk-subhead {
+    margin-top: 8px;
+}
+
+.cache-collection-subhead {
+    margin-bottom: 0;
+}
+
+.dashboard-system-footer .database-status-label {
+    margin-right: 6px;
+    vertical-align: middle;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.hit-rate {
+    color: #666;
 }
 
 .dashboard-main {

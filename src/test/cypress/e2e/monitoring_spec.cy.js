@@ -57,7 +57,7 @@ describe('Monex index page', () => {
         expect(win.Monex.kpi.vectorEntriesKpiVisible(vm)).to.eq(true)
       })
 
-      cy.get('.kpi-strip .kpi-label').contains('Embeddings').should('be.visible')
+      cy.get('.kpi-strip .kpi-label').contains('Models').should('be.visible')
       cy.get('.kpi-strip .kpi-label').contains('Vector entries').should('be.visible')
 
       cy.contains('.box-title', 'Embeddings')

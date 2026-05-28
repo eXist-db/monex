@@ -263,13 +263,42 @@ function cacheSegmentSummary(cache) {
     return used + "/" + size;
 }
 
-function cacheShowHitRate(hits, fails) {
+function cacheShowHitRate(hits, fails, showAll) {
     var h = parseInt(hits, 10) || 0;
     var f = parseInt(fails, 10) || 0;
     if (h + f === 0) {
         return false;
     }
+    var expanded = ko.isObservable(showAll) ? showAll() : !!showAll;
+    if (expanded) {
+        return true;
+    }
     return (h / (h + f)) < 0.95;
+}
+
+function cacheHitRateClass(hits, fails, showAll) {
+    var h = parseInt(hits, 10) || 0;
+    var f = parseInt(fails, 10) || 0;
+    if (h + f === 0) {
+        return "hit-rate";
+    }
+    var expanded = ko.isObservable(showAll) ? showAll() : !!showAll;
+    if (expanded) {
+        return "hit-rate";
+    }
+    return (h / (h + f)) < 0.95 ? "hit-warn" : "hit-rate";
+}
+
+function collectionCacheBudgetMb(jmx) {
+    if (!jmx || !jmx.Database) {
+        return 0;
+    }
+    var bytes = parseInt(jmxValue(jmx.Database.CollectionCacheMem), 10) || 0;
+    return Math.round(bytes / 1024 / 1024);
+}
+
+function collectionCacheBudgetVisible(jmx) {
+    return collectionCacheBudgetMb(jmx) > 0;
 }
 
 Monex.caches = {
@@ -290,7 +319,10 @@ Monex.caches = {
     visibleDbxCacheGroups: visibleDbxCacheGroups,
     hiddenDbxCacheCount: hiddenDbxCacheCount,
     cacheSegmentSummary: cacheSegmentSummary,
-    cacheShowHitRate: cacheShowHitRate
+    cacheShowHitRate: cacheShowHitRate,
+    cacheHitRateClass: cacheHitRateClass,
+    collectionCacheBudgetMb: collectionCacheBudgetMb,
+    collectionCacheBudgetVisible: collectionCacheBudgetVisible
 };
 
 /*
@@ -376,6 +408,27 @@ function activityUriLabel(row) {
 
 function runningQueryElapsedText(row) {
     return JMX.util.formatQueryElapsed(JMX.util.jmxFieldText(JMX.util.runningQueryField(row, "elapsed")));
+}
+
+var RUNNING_QUERY_ELAPSED_WARN_MS = 5000;
+var RUNNING_QUERY_ELAPSED_CRITICAL_MS = 30000;
+
+function runningQueryElapsedMs(row) {
+    var raw = JMX.util.jmxFieldText(JMX.util.runningQueryField(row, "elapsed"));
+    var parsed = parseInt(raw, 10);
+    return isNaN(parsed) ? 0 : parsed;
+}
+
+function runningQueryElapsedClass(row) {
+    if (activityRowEnded(row)) {
+        return {};
+    }
+    var ms = runningQueryElapsedMs(row);
+    return {
+        "activity-elapsed-warn": ms >= RUNNING_QUERY_ELAPSED_WARN_MS &&
+            ms < RUNNING_QUERY_ELAPSED_CRITICAL_MS,
+        "activity-elapsed-critical": ms >= RUNNING_QUERY_ELAPSED_CRITICAL_MS
+    };
 }
 
 function activityUriTitle(row) {
@@ -723,6 +776,26 @@ function maxBrokerCount(jmx) {
     return parseInt(jmxValue(jmx.Database.TotalBrokers), 10) || 0;
 }
 
+function availableBrokerCount(jmx) {
+    if (!jmx || !jmx.Database) {
+        return null;
+    }
+    var raw = jmxValue(jmx.Database.AvailableBrokers);
+    if (raw === undefined || raw === null || raw === "") {
+        return null;
+    }
+    var parsed = parseInt(raw, 10);
+    return isNaN(parsed) ? null : parsed;
+}
+
+function brokerKpiSubline(jmx) {
+    var available = availableBrokerCount(jmx);
+    if (available === null) {
+        return "";
+    }
+    return available + " free";
+}
+
 function brokerPoolPercent(jmx) {
     var active = activeBrokerCount(jmx);
     var max = maxBrokerCount(jmx);
@@ -945,6 +1018,63 @@ function diskDirectoryLabel(jmx, prefix) {
         " (" + diskDirectoryUsedPercent(jmx, prefix) + "%)";
 }
 
+function journalDiskDistinct(jmx) {
+    if (!diskMetricsAvailable(jmx)) {
+        return false;
+    }
+    return !(
+        diskDirectoryBytes(jmx, "DataDirectoryUsedSpace") ===
+            diskDirectoryBytes(jmx, "JournalDirectoryUsedSpace") &&
+        diskDirectoryBytes(jmx, "DataDirectoryTotalSpace") ===
+            diskDirectoryBytes(jmx, "JournalDirectoryTotalSpace")
+    );
+}
+
+function diskKpiPercent(jmx) {
+    if (!diskMetricsAvailable(jmx)) {
+        return 0;
+    }
+    var pct = dataDirectoryUsedPercent(jmx);
+    if (journalDiskDistinct(jmx)) {
+        pct = Math.max(pct, journalDirectoryUsedPercent(jmx));
+    }
+    return pct;
+}
+
+function diskKpiVisible(jmx) {
+    return diskKpiPercent(jmx) >= JMX_CAPACITY_THRESHOLDS.warn;
+}
+
+function diskKpiClass(jmx) {
+    var pct = diskKpiPercent(jmx);
+    return {
+        "kpi-warn": pct >= JMX_CAPACITY_THRESHOLDS.warn && pct < JMX_CAPACITY_THRESHOLDS.critical,
+        "kpi-critical": pct >= JMX_CAPACITY_THRESHOLDS.critical
+    };
+}
+
+function databaseStatus(jmx) {
+    if (!jmx || !jmx.Database) {
+        return "";
+    }
+    return jmxValue(jmx.Database.Status) || "";
+}
+
+function databaseStatusClass(jmx) {
+    var status = String(databaseStatus(jmx) || "").toUpperCase();
+    return {
+        "label-success": status === "OPERATIONAL",
+        "label-warning": status !== "" && status !== "OPERATIONAL"
+    };
+}
+
+function databaseExistHome(jmx) {
+    if (!jmx || !jmx.Database) {
+        return "";
+    }
+    return jmxValue(jmx.Database.ExistHome) || "";
+}
+
 function readyVectorModels(vector) {
     if (!vector || !vector.models) {
         return [];
@@ -997,6 +1127,30 @@ function vectorEmbeddingsKpiText(vector) {
     var ready = vector.ready();
     var total = vector.total();
     return ready + " / " + total;
+}
+
+function vectorEmbeddingsKpiTitle(vector) {
+    if (!vector || !vector.available || !vector.available()) {
+        return "";
+    }
+    var ready = vector.ready();
+    var total = vector.total();
+    return ready + " ready · " + total + " in catalog";
+}
+
+function vectorCatalogPanelLine(vector) {
+    if (!vector || !vector.available || !vector.available()) {
+        return "";
+    }
+    var ready = vector.ready();
+    var total = vector.total();
+    if (total === 0) {
+        return "";
+    }
+    if (ready >= total) {
+        return ready + " model" + (ready === 1 ? "" : "s") + " ready";
+    }
+    return ready + " ready · " + total + " in catalog";
 }
 
 function vectorEmbeddingsKpiClass(vector) {
@@ -1067,6 +1221,8 @@ Monex.kpi = {
     JMX_KPI_THRESHOLDS: JMX_KPI_THRESHOLDS,
     activeBrokerCount: activeBrokerCount,
     maxBrokerCount: maxBrokerCount,
+    availableBrokerCount: availableBrokerCount,
+    brokerKpiSubline: brokerKpiSubline,
     brokerPoolPercent: brokerPoolPercent,
     runningQueryCount: runningQueryCount,
     bufferedRunningQueryCount: bufferedRunningQueryCount,
@@ -1088,12 +1244,21 @@ Monex.kpi = {
     dataDirectoryUsedPercent: dataDirectoryUsedPercent,
     journalDirectoryUsedPercent: journalDirectoryUsedPercent,
     diskDirectoryLabel: diskDirectoryLabel,
+    journalDiskDistinct: journalDiskDistinct,
+    diskKpiPercent: diskKpiPercent,
+    diskKpiVisible: diskKpiVisible,
+    diskKpiClass: diskKpiClass,
+    databaseStatus: databaseStatus,
+    databaseStatusClass: databaseStatusClass,
+    databaseExistHome: databaseExistHome,
     readyVectorModels: readyVectorModels,
     vectorMissingCount: vectorMissingCount,
     vectorModelLabel: vectorModelLabel,
     vectorStatusClass: vectorStatusClass,
     vectorEmbeddingsKpiVisible: vectorEmbeddingsKpiVisible,
     vectorEmbeddingsKpiText: vectorEmbeddingsKpiText,
+    vectorEmbeddingsKpiTitle: vectorEmbeddingsKpiTitle,
+    vectorCatalogPanelLine: vectorCatalogPanelLine,
     vectorEmbeddingsKpiClass: vectorEmbeddingsKpiClass,
     vectorEntriesKpiVisible: vectorEntriesKpiVisible,
     vectorEntriesKpiText: vectorEntriesKpiText,

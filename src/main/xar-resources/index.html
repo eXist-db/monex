@@ -61,6 +61,7 @@
                     <span data-bind="text: activeBrokerCount($data.jmx)">?</span>
                     <span class="kpi-sub">/ <span data-bind="text: maxBrokerCount($data.jmx)">?</span></span>
                 </span>
+                <span class="kpi-meta" data-bind="visible: brokerKpiSubline($data.jmx), text: brokerKpiSubline($data.jmx)"/>
             </div>
             <div class="kpi-cell" data-bind="css: kpiCellClass('runningQueries', runningQueryCount($data.jmx), $data.jmx)">
                 <span class="kpi-label">Queries</span>
@@ -80,9 +81,15 @@
                 <span class="kpi-value"><span data-bind="text: sharedPoolKpiPercent($data.jmx)">0</span>%</span>
             </div>
             <!-- /ko -->
+            <!-- ko if: diskKpiVisible($data.jmx) -->
+            <div class="kpi-cell" data-bind="css: diskKpiClass($data.jmx)">
+                <span class="kpi-label">Disk</span>
+                <span class="kpi-value"><span data-bind="text: diskKpiPercent($data.jmx)">0</span>%</span>
+            </div>
+            <!-- /ko -->
             <!-- ko if: vectorEmbeddingsKpiVisible($data) -->
-            <div class="kpi-cell kpi-neutral" data-bind="css: vectorEmbeddingsKpiClass(vector), attr: { title: vector.knnBackend() ? ('KNN backend: ' + vector.knnBackend()) : '' }">
-                <span class="kpi-label">Embeddings</span>
+            <div class="kpi-cell kpi-neutral" data-bind="css: vectorEmbeddingsKpiClass(vector), attr: { title: (vectorEmbeddingsKpiTitle(vector) + (vector.knnBackend() ? (' · KNN: ' + vector.knnBackend()) : '')) }">
+                <span class="kpi-label">Models</span>
                 <span class="kpi-value" data-bind="text: vectorEmbeddingsKpiText(vector)">—</span>
             </div>
             <!-- /ko -->
@@ -133,6 +140,7 @@
                             </div>
                         </div>
                         <!-- ko if: diskMetricsAvailable($data.jmx) -->
+                        <p class="panel-subhead capacity-disk-subhead">Disk</p>
                         <div class="broker-pool-row disk-capacity-row">
                             <div class="gauge-headline">
                                 <strong>Data directory</strong>
@@ -142,6 +150,7 @@
                                 <div class="progress-bar" data-bind="css: capacityBarClass(dataDirectoryUsedPercent($data.jmx)), style: { width: dataDirectoryUsedPercent($data.jmx) + '%' }"/>
                             </div>
                         </div>
+                        <!-- ko if: journalDiskDistinct($data.jmx) -->
                         <div class="broker-pool-row disk-capacity-row">
                             <div class="gauge-headline">
                                 <strong>Journal directory</strong>
@@ -151,6 +160,7 @@
                                 <div class="progress-bar" data-bind="css: capacityBarClass(journalDirectoryUsedPercent($data.jmx)), style: { width: journalDirectoryUsedPercent($data.jmx) + '%' }"/>
                             </div>
                         </div>
+                        <!-- /ko -->
                         <!-- /ko -->
                     </div>
                     <div class="box-footer">
@@ -181,6 +191,11 @@
                             </div>
                         </div>
                         <!-- /ko -->
+                        <!-- ko if: collectionCacheBudgetVisible($data.jmx) -->
+                        <p class="panel-subhead cache-collection-subhead" title="Configured collection cache budget from Database.CollectionCacheMem">
+                            Collection cache budget: <span data-bind="text: collectionCacheBudgetMb($data.jmx)"/> MB
+                        </p>
+                        <!-- /ko -->
                         <p class="panel-subhead cache-index-subhead" title="Used / max pages held in cache for each index file">Index page caches</p>
                         <!-- ko foreach: visibleDbxCacheGroups($data?.jmx?.Cache?.(), showAllCaches) -->
                         <div class="cache-file-row">
@@ -192,8 +207,8 @@
                                         <span class="cache-type">BTREE</span>
                                         <span>
                                             <span data-bind="text: cacheSegmentSummary($data)"/>
-                                            <!-- ko if: cacheShowHitRate(Hits(), Fails()) -->
-                                            · <span class="hit-warn" data-bind="text: cacheHitRate(Hits(), Fails())"/>
+                                            <!-- ko if: cacheShowHitRate(Hits(), Fails(), $root.showAllCaches) -->
+                                            · <span data-bind="text: cacheHitRate(Hits(), Fails()), css: cacheHitRateClass(Hits(), Fails(), $root.showAllCaches)"/>
                                             <!-- /ko -->
                                         </span>
                                     </div>
@@ -208,8 +223,8 @@
                                         <span class="cache-type">DATA</span>
                                         <span>
                                             <span data-bind="text: cacheSegmentSummary($data)"/>
-                                            <!-- ko if: cacheShowHitRate(Hits(), Fails()) -->
-                                            · <span class="hit-warn" data-bind="text: cacheHitRate(Hits(), Fails())"/>
+                                            <!-- ko if: cacheShowHitRate(Hits(), Fails(), $root.showAllCaches) -->
+                                            · <span data-bind="text: cacheHitRate(Hits(), Fails()), css: cacheHitRateClass(Hits(), Fails(), $root.showAllCaches)"/>
                                             <!-- /ko -->
                                         </span>
                                     </div>
@@ -242,6 +257,10 @@
                         </div>
                     </div>
                     <div class="box-body embedding-status">
+                        <div class="embedding-status-line embedding-catalog-summary" data-bind="visible: available() &amp;&amp; total() &gt; 0 &amp;&amp; ready() &gt; 0">
+                            <span class="embedding-dot ready"/>
+                            <span data-bind="text: vectorCatalogPanelLine($data)"/>
+                        </div>
                         <div class="embedding-status-line" data-bind="visible: $root.vectorStore &amp;&amp; $root.vectorStore.available(), attr: { title: ($root.vectorStore &amp;&amp; $root.vectorStore.storageBackend()) ? ('Storage backend: ' + $root.vectorStore.storageBackend()) : '' }">
                             <span class="embedding-dot ready"/>
                             <span>
@@ -266,7 +285,7 @@
                             <span>
                                 No model ready
                                 <span class="embedding-detail" data-bind="visible: total() &gt; 0">
-                                    (<span data-bind="text: vectorMissingCount($data)"/> configured, not ready)
+                                    (<span data-bind="text: vectorMissingCount($data)"/> in catalog, not installed)
                                 </span>
                             </span>
                         </div>
@@ -331,7 +350,7 @@
                                     <tbody data-bind="foreach: { data: runningQueriesForDisplay, afterRender: initActivityRow }">
                                         <tr data-bind="css: { 'activity-row-ended': activityEnded }, attr: { 'data-activity-row-key': activityRowFlyoutKey($data) }">
                                             <td class="activity-id-cell" data-bind="text: ( $data.thread ?? $data.value?.thread ?? $data.id ?? $data.value?.id )"/>
-                                            <td class="activity-elapsed-cell" data-bind="text: runningQueryElapsedText($data)"/>
+                                            <td class="activity-elapsed-cell" data-bind="text: runningQueryElapsedText($data), css: runningQueryElapsedClass($data)"/>
                                             <td class="activity-source-cell">
                                                 <span class="source-key" data-bind="text: ( $data?.sourceKey?.() ?? $data?.value?.sourceKey?.() ?? $data?.sourceKey ?? $data?.value?.sourceKey ?? '' )?.replace(/^.*\/([^\/]+)$/, '$1') ?? '???', attr: { title: ( $data?.sourceKey?.() ?? $data?.value?.sourceKey?.() ?? $data?.sourceKey ?? $data?.value?.sourceKey ?? '' ) }" data-toggle="tooltip"/>
                                             </td>
@@ -542,6 +561,7 @@
 
         <div class="dashboard-system-footer">
             <span class="system-summary">
+                <span class="label database-status-label" data-bind="visible: databaseStatus($data.jmx), text: databaseStatus($data.jmx), css: databaseStatusClass($data.jmx)"/>
                 <span data-bind="text: jmx.SystemInfo.ProductName"/> <span data-bind="text: jmx.SystemInfo.ProductVersion"/>
                 · <span data-bind="text: jmx.SystemInfo.OperatingSystem"/>
                 · Java <span data-template="app:java-version-inline"/>
@@ -556,6 +576,8 @@
                     <dd data-bind="text: jmx.SystemInfo.DefaultEncoding"/>
                     <dt>Locale</dt>
                     <dd data-bind="text: jmx.SystemInfo.DefaultLocale"/>
+                    <dt>eXist home</dt>
+                    <dd data-bind="text: databaseExistHome($data.jmx)"/>
                 </dl>
             </div>
         </div>

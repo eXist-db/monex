@@ -248,13 +248,42 @@ function cacheSegmentSummary(cache) {
     return used + "/" + size;
 }
 
-function cacheShowHitRate(hits, fails) {
+function cacheShowHitRate(hits, fails, showAll) {
     var h = parseInt(hits, 10) || 0;
     var f = parseInt(fails, 10) || 0;
     if (h + f === 0) {
         return false;
     }
+    var expanded = ko.isObservable(showAll) ? showAll() : !!showAll;
+    if (expanded) {
+        return true;
+    }
     return (h / (h + f)) < 0.95;
+}
+
+function cacheHitRateClass(hits, fails, showAll) {
+    var h = parseInt(hits, 10) || 0;
+    var f = parseInt(fails, 10) || 0;
+    if (h + f === 0) {
+        return "hit-rate";
+    }
+    var expanded = ko.isObservable(showAll) ? showAll() : !!showAll;
+    if (expanded) {
+        return "hit-rate";
+    }
+    return (h / (h + f)) < 0.95 ? "hit-warn" : "hit-rate";
+}
+
+function collectionCacheBudgetMb(jmx) {
+    if (!jmx || !jmx.Database) {
+        return 0;
+    }
+    var bytes = parseInt(jmxValue(jmx.Database.CollectionCacheMem), 10) || 0;
+    return Math.round(bytes / 1024 / 1024);
+}
+
+function collectionCacheBudgetVisible(jmx) {
+    return collectionCacheBudgetMb(jmx) > 0;
 }
 
 Monex.caches = {
@@ -275,5 +304,8 @@ Monex.caches = {
     visibleDbxCacheGroups: visibleDbxCacheGroups,
     hiddenDbxCacheCount: hiddenDbxCacheCount,
     cacheSegmentSummary: cacheSegmentSummary,
-    cacheShowHitRate: cacheShowHitRate
+    cacheShowHitRate: cacheShowHitRate,
+    cacheHitRateClass: cacheHitRateClass,
+    collectionCacheBudgetMb: collectionCacheBudgetMb,
+    collectionCacheBudgetVisible: collectionCacheBudgetVisible
 };
