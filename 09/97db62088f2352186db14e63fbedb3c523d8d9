@@ -1,0 +1,79 @@
+src/main/xar-resources/resources/css/style.css
+  s_96c32dd88574e5::t_a152d7658c6604 108-111,114-116,119-123,126-216
+  s_96c32dd88574e5::t_6bd7609680411b 103-107,112-113,117-118,124-125,217-276
+src/main/xar-resources/resources/scripts/util.js
+  s_96c32dd88574e5::t_f045a45230a50b 565
+src/main/xar-resources/index.html
+  s_96c32dd88574e5::t_60555ee40970b2 313-314
+  s_96c32dd88574e5::t_902f924bd95f02 106,128-132,136,138-139,141,169,173,175-178,207
+  s_96c32dd88574e5::t_dcab2d98a6c49c 36-38
+  s_96c32dd88574e5::t_0dce10c5b452e0 181,184-185,187-188,190,193-194,196-197
+  s_96c32dd88574e5::t_c2c9c3a8e02323 321-324,326-327,330-331,334-337,339-342,344-347,350-366,372
+  s_96c32dd88574e5::t_769450fe6c6489 485
+  s_96c32dd88574e5::t_c1bcea9d18085e 78-82
+  s_96c32dd88574e5::t_2a56d0a6f0f852 598,608,614
+  s_96c32dd88574e5::t_07ded0e838e540 102-104,111,124,133-135,137,142,165-167,170-172,174,179-180,182-183,186,189,191-192,195,198-204,208-228
+  s_96c32dd88574e5::t_3c88f4bf4c85fa 61-65,68
+  s_96c32dd88574e5::t_9c9313cc44e742 516
+  s_12ba9537e61ac7::t_567a263d7362de 370
+  s_96c32dd88574e5::t_839d36559a358f 77
+  s_96c32dd88574e5::t_abfa6b27a22d99 391
+  s_96c32dd88574e5::t_d76fa93af2c15b 561-585,588-595,599-607,609-611
+  s_96c32dd88574e5::t_05bd2243f53cee 532
+  s_96c32dd88574e5::t_e011c90270d33a 348-349
+src/test/cypress/e2e/monitoring_spec.cy.js
+  s_96c32dd88574e5::t_87074b46be5b3c 66-67
+  s_96c32dd88574e5::t_90ec90239c0c07 250
+  s_96c32dd88574e5::t_f0f92e80ef0272 261,265-272,274-277
+  s_96c32dd88574e5::t_040e08d454c2b1 71,74
+  s_96c32dd88574e5::t_ae5dc57ff723c4 33
+  s_96c32dd88574e5::t_cccd13ade7a13b 118-120,125,136
+  s_96c32dd88574e5::t_79eb96a675a1c0 30
+  s_96c32dd88574e5::t_f7f1b2b6e53722 127
+  s_96c32dd88574e5::t_879f18ff67eb77 29,31-32,38,43
+  s_96c32dd88574e5::t_78affca3a1a297 254
+  s_96c32dd88574e5::t_32b3cb72165acd 72-73
+src/main/xar-resources/resources/scripts/dashboard/04-kpi.js
+  s_96c32dd88574e5::t_898e24b4cb931b 573-575
+  s_96c32dd88574e5::t_a43e77d98d7a84 46-47,50-64,66
+  s_96c32dd88574e5::t_dcefb38f14c086 42-45
+  s_96c32dd88574e5::t_ae6d00a38de9b1 584
+  s_96c32dd88574e5::t_ae5bce7529b1c2 478-492
+  s_96c32dd88574e5::t_49ff3ccf65c59e 65
+  s_96c32dd88574e5::t_6f5cc69ff6330a 539
+  s_96c32dd88574e5::t_13c4c5308e96ea 540-541
+  s_96c32dd88574e5::t_a1e4c98d58a422 372-385,388-403
+src/main/xar-resources/resources/scripts/dashboard/03-activity.js
+  s_96c32dd88574e5::t_0b92abc4cbbca3 107-128
+  s_96c32dd88574e5::t_89d054207fcaf3 324
+src/main/xar-resources/details.html
+  s_96c32dd88574e5::t_811bc845c4c9f5 322
+  s_96c32dd88574e5::t_ae0f4ce4055601 204
+  s_96c32dd88574e5::t_889e1c3665db28 338
+  s_96c32dd88574e5::t_27772fcf0e4fcb 291
+  s_96c32dd88574e5::t_302f6dd60cfab7 86,101-110,112-116,119
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "0997db62088f2352186db14e63fbedb3c523d8d9",
+  "prompts": {},
+  "sessions": {
+    "s_12ba9537e61ac7": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "844524c2-10c0-461d-af7c-9e33465ffc79",
+        "model": "composer-2.5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    },
+    "s_96c32dd88574e5": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "97e3a87c-fb43-4e98-b07e-e4ff18eb545c",
+        "model": "composer-2.5"
+      },
+      "human_author": null
+    }
+  }
+}
