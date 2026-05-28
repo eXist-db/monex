@@ -17,7 +17,11 @@
 }
 
 body > .header .logo {
-    text-align: left;
+    display: flex;
+    align-items: stretch;
+    min-height: 0;
+    --host-gauge-chart-width: min(100%, 168px);
+    --host-gauge-chart-height: 84px;
 }
 
 #console tr>td:nth-child(1) {
@@ -98,6 +102,335 @@ body > .header .logo {
 .form-inline .fa-refresh {
     display: none;
     margin-left: 55px;
+}
+
+.workload-panel {
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-host-row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.dashboard-host-row > [class*="col-"] {
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-host-row .host-resource-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0;
+}
+
+.dashboard-host-row .host-resource-body {
+    flex: 1;
+    min-height: 0;
+}
+
+.dashboard-host-row .host-gauge-body {
+    display: flex;
+    align-items: stretch;
+    min-height: 0;
+    --host-gauge-chart-width: 100%;
+    --host-gauge-chart-height: auto;
+}
+
+.dashboard-host-row .host-sparkline-wrap {
+    height: 180px;
+    min-height: 180px;
+}
+
+.dashboard-host-row .host-sparkline-wrap .chart,
+.dashboard-host-row .host-sparkline-wrap .memory-sparkline {
+    height: 180px !important;
+    min-height: 180px;
+}
+
+.host-resource-empty {
+    margin: 16px;
+    font-size: 13px;
+    color: #888;
+}
+
+.host-gauge-row {
+    flex: 1;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 12px 8px;
+    width: 100%;
+}
+
+.host-gauge-cell {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 50%;
+    text-align: center;
+}
+
+.host-gauge-body .cpu-gauge-chart {
+    display: block;
+    width: 100%;
+    height: 240px;
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+.host-gauge-body .cpu-gauge-chart canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.host-gauge-body .cpu-gauge-value {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 20%;
+    padding: 0 2px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.15;
+    color: #444;
+    pointer-events: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.host-gauge-body .cpu-gauge-label {
+    display: block;
+    margin-top: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #888;
+}
+
+.host-gauge-body .disk-gauge-data .cpu-gauge-value {
+    color: rgb(0, 166, 90);
+}
+
+.host-gauge-body .disk-gauge-journal .cpu-gauge-value {
+    color: rgb(0, 192, 239);
+}
+
+.host-gauge-body .cpu-gauge-process .cpu-gauge-value {
+    color: rgb(60, 141, 188);
+}
+
+.host-gauge-body .cpu-gauge-system .cpu-gauge-value {
+    color: rgb(243, 156, 18);
+}
+
+.broker-pool-stacked {
+    display: flex;
+}
+
+.broker-pool-stacked .progress-bar {
+    box-shadow: none;
+}
+
+.broker-pool-stacked .broker-segment-idle {
+    background-color: #c5cdd6;
+}
+
+.broker-pool-legend {
+    display: flex;
+    gap: 16px;
+    padding: 0 16px 12px;
+    font-size: 11px;
+    color: #888;
+}
+
+.broker-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.broker-legend-swatch {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+}
+
+.broker-legend-in-use {
+    background: #3c8dbc;
+}
+
+.broker-legend-idle {
+    background: #c5cdd6;
+}
+
+.embedding-catalog-line {
+    margin: 0 0 8px;
+    padding: 0 16px;
+    font-size: 13px;
+}
+
+.embedding-model-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.embedding-store-cell {
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.activity-recording-gear {
+    margin-left: 4px;
+    padding: 0 4px;
+    vertical-align: baseline;
+    color: #888;
+}
+
+.activity-recording-gear:hover,
+.activity-recording-gear:focus {
+    color: #333;
+    text-decoration: none;
+}
+
+.cpu-bar-row {
+    padding: 14px 16px;
+}
+
+.cpu-bar-row + .cpu-bar-row {
+    border-top: 1px solid #f0f0f0;
+}
+
+.dashboard-toolbar #recording-settings-btn {
+    margin-left: 8px;
+}
+
+.kpi-status-cell .kpi-value-status .label {
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.embedding-panel-body {
+    padding: 12px 16px 16px;
+}
+
+.embedding-facts {
+    margin: 0 0 12px;
+}
+
+.embedding-fact {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.embedding-fact dt {
+    width: 72px;
+    font-weight: 600;
+    font-size: 12px;
+    color: #666;
+    margin: 0;
+}
+
+.embedding-fact dd {
+    flex: 1;
+    margin: 0;
+    font-size: 13px;
+}
+
+.embedding-models-table {
+    margin-bottom: 0;
+    font-size: 12px;
+}
+
+.embedding-unavailable {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+
+.embedding-no-ready {
+    font-size: 13px;
+    margin: 0 0 8px;
+}
+
+#recording-settings-modal .modal-subtitle {
+    margin: 4px 0 0;
+    font-size: 12px;
+    color: #888;
+    font-weight: normal;
+}
+
+.broker-pool-meta {
+    font-size: 12px;
+    color: #888;
+    font-weight: normal;
+}
+
+.embedding-panel-headline {
+    margin: 0;
+    padding: 12px 16px 0;
+    font-size: 13px;
+    color: #444;
+}
+
+.embedding-panel-headline .kpi-sub {
+    font-size: 12px;
+    color: #999;
+    font-weight: normal;
+}
+
+.embedding-headline-label {
+    color: #666;
+    font-weight: normal;
+}
+
+.activity-section-hint {
+    margin: 0;
+    padding: 0 12px 8px;
+    font-size: 12px;
+    line-height: 1.45;
+    color: #888;
+}
+
+.dashboard-settings-panel {
+    margin-top: 16px;
+    margin-bottom: 16px;
+}
+
+.dashboard-settings-panel .box-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.dashboard-settings-panel .box-title {
+    margin-right: 8px;
+}
+
+.dashboard-settings-context {
+    font-size: 12px;
+    color: #888;
+    font-weight: normal;
+}
+
+.dashboard-settings-panel .activity-recording-panel-body {
+    padding: 12px 16px 16px;
 }
 
 .workload-panel .activity-panel {

@@ -562,7 +562,8 @@ JMX.util = (function() {
         if (report && report.TrackRequestURI !== undefined) {
             populateRecentQueryForm(report);
         } else {
-            $("#configure-history-wrap").hide();
+            $("#recording-settings-btn").hide();
+            $("#recent-queries-settings-btn").hide();
         }
     }
 

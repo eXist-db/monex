@@ -2,22 +2,18 @@
  * SPDX LGPL-2.1-or-later
  * Copyright (C) 2014 The eXist-db Authors
  */
-Monex.cpuGauge = (function() {
+Monex.capacityGauge = (function() {
     "use strict";
 
-    var PROCESS_COLOR = "rgb(60, 141, 188)";
-    var SYSTEM_COLOR = "rgb(243, 156, 18)";
-    var TRACK_COLOR = "#eceff3";
+var PROCESS_COLOR = "rgb(60, 141, 188)";
+var SYSTEM_COLOR = "rgb(243, 156, 18)";
+var DATA_DISK_COLOR = "rgb(0, 166, 90)";
+var JOURNAL_DISK_COLOR = "rgb(0, 192, 239)";
+var MEMORY_COLOR = "rgb(221, 75, 57)";
+var TRACK_COLOR = "#eceff3";
     var gauges = [];
 
-    function gaugePercent(jmx, key) {
-        var ratio = key === "process" ?
-            Monex.kpi.processCpuLoad(jmx) :
-            Monex.kpi.systemCpuLoad(jmx);
-        return Math.min(100, Math.max(0, ratio * 100));
-    }
-
-    function createGauge(container, color, key) {
+    function createGauge(container, color) {
         var canvas = MonexCharts.ensureCanvas(container);
         var chart = new Chart(canvas, {
             type: "doughnut",
@@ -33,27 +29,50 @@ Monex.cpuGauge = (function() {
         });
         return {
             chart: chart,
-            key: key
+            percent: function() {
+                return 0;
+            }
         };
+    }
+
+    function registerGauge(id, color, percentFn) {
+        var node = document.getElementById(id);
+        if (!node) {
+            return;
+        }
+        var gauge = createGauge(node, color);
+        gauge.percent = percentFn;
+        gauges.push(gauge);
     }
 
     function init() {
         if (gauges.length > 0) {
             return;
         }
-        var processNode = document.getElementById("cpu-process-gauge");
-        var systemNode = document.getElementById("cpu-system-gauge");
-        if (!processNode || !systemNode) {
-            return;
-        }
-        gauges.push(createGauge(processNode, PROCESS_COLOR, "process"));
-        gauges.push(createGauge(systemNode, SYSTEM_COLOR, "system"));
+        registerGauge("cpu-process-gauge", PROCESS_COLOR, function(jmx) {
+            return Monex.kpi.processCpuLoadPercent(jmx);
+        });
+        registerGauge("cpu-system-gauge", SYSTEM_COLOR, function(jmx) {
+            return Monex.kpi.systemCpuLoadPercent(jmx);
+        });
+        registerGauge("disk-data-gauge", DATA_DISK_COLOR, function(jmx) {
+            return Monex.kpi.dataDirectoryUsedPercent(jmx);
+        });
+        registerGauge("disk-journal-gauge", JOURNAL_DISK_COLOR, function(jmx) {
+            return Monex.kpi.journalDirectoryUsedPercent(jmx);
+        });
+        registerGauge("memory-usage-gauge", MEMORY_COLOR, function(jmx) {
+            if (!jmx || !jmx.MemoryImpl || !jmx.MemoryImpl.HeapMemoryUsage) {
+                return 0;
+            }
+            return Monex.kpi.memoryUsedPercent(jmx.MemoryImpl.HeapMemoryUsage());
+        });
     }
 
     function update(jmx) {
         init();
         for (var i = 0; i < gauges.length; i++) {
-            var pct = gaugePercent(jmx, gauges[i].key);
+            var pct = Math.min(100, Math.max(0, gauges[i].percent(jmx) || 0));
             gauges[i].chart.data.datasets[0].data = [pct, 100 - pct];
             gauges[i].chart.update("none");
         }
@@ -73,3 +92,5 @@ Monex.cpuGauge = (function() {
         resize: resize
     };
 }());
+
+Monex.cpuGauge = Monex.capacityGauge;

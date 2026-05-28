@@ -104,6 +104,28 @@ function runningQueryElapsedClass(row) {
     };
 }
 
+function recentQueryField(row, name) {
+    if (!row || !name) {
+        return undefined;
+    }
+    if (row[name] !== undefined && row[name] !== null) {
+        return ko.isObservable(row[name]) ? row[name]() : row[name];
+    }
+    if (row.value && row.value[name] !== undefined && row.value[name] !== null) {
+        return ko.isObservable(row.value[name]) ? row.value[name]() : row.value[name];
+    }
+    return undefined;
+}
+
+function recentQueryElapsedText(row) {
+    var formatted = JMX.util.formatQueryElapsed(recentQueryField(row, "mostRecentExecutionDuration"));
+    return formatted || "—";
+}
+
+function workloadHot(jmx) {
+    return runningQueryCount(jmx) > 0 || waitingThreadCount(jmx) > 0;
+}
+
 function activityUriTitle(row) {
     return JMX.util.activityUriTitle(JMX.util.activityRequestUri(row));
 }
@@ -299,6 +321,7 @@ Monex.activity.attachDashboardViewModel = function(viewModel, options) {
     viewModel.showTrackUriHint = ko.pureComputed(function() {
         return showTrackUriHint(viewModel.jmx);
     });
+    viewModel.showMissingVectorModels = ko.observable(false);
     viewModel.activityFlyout = Monex.activity.createFlyoutModel(options);
 
     if (options.livePoll !== false) {

@@ -26,15 +26,21 @@ describe('Monex index page', () => {
       cy.wait(1500)
       cy.get('#pause-btn').click()
 
-      cy.contains('.box-title', 'Java Memory').should('be.visible')
+      cy.get('.dashboard-host-row').should('be.visible')
+      cy.contains('.box-title', 'JVM heap').should('be.visible')
+      cy.contains('.box-title', 'Disk').should('be.visible')
+      cy.contains('.box-title', 'CPU').should('be.visible')
+      cy.contains('.box-title', 'Broker pool').should('be.visible')
       cy.contains('.box-title', 'Page Caches').should('be.visible')
       cy.contains('.box-title', 'Embeddings').should('be.visible')
       cy.contains('.box-title', 'Activity').should('be.visible')
 
+      cy.get('.kpi-strip .kpi-label').contains('Status').should('be.visible')
       cy.get('.kpi-strip .kpi-label').contains('Brokers').should('be.visible')
       cy.get('.kpi-strip .kpi-label').contains('Queries').should('be.visible')
       cy.get('.kpi-strip .kpi-label').contains('Waiting').should('be.visible')
       cy.get('.kpi-strip .kpi-label').contains('Uptime').should('be.visible')
+      cy.get('.dashboard-system-footer .database-status-label').should('not.exist')
     })
 
     it('should populate embeddings panel from JMX vector MBeans', () => {
@@ -57,14 +63,17 @@ describe('Monex index page', () => {
         expect(win.Monex.kpi.vectorEntriesKpiVisible(vm)).to.eq(true)
       })
 
-      cy.get('.kpi-strip .kpi-label').contains('Models').should('be.visible')
-      cy.get('.kpi-strip .kpi-label').contains('Vector entries').should('be.visible')
+      cy.get('.kpi-strip .kpi-label').contains('Models').should('not.exist')
+      cy.get('.kpi-strip .kpi-label').contains('Vector entries').should('not.exist')
 
       cy.contains('.box-title', 'Embeddings')
         .parents('.box')
-        .find('.embedding-status-line')
-        .contains('MiniLM-L6-v2')
-        .should('be.visible')
+        .within(() => {
+          cy.contains('.embedding-catalog-line', 'Catalog:').should('be.visible')
+          cy.get('.embedding-models-table').contains('MiniLM-L6-v2').should('be.visible')
+          cy.get('.embedding-dot.ready').should('exist')
+          cy.get('.embedding-store-cell').should('have.attr', 'title').and('match', /vector\.dbx/)
+        })
     })
 
     it('should format shared cache pool as memory with utilization bar', () => {
@@ -108,22 +117,47 @@ describe('Monex index page', () => {
       cy.wait(1500)
       cy.get('#pause-btn').click()
 
-      cy.get('#activity-panel-settings').should('be.visible')
+      cy.get('#recording-settings-btn').should('be.visible').click()
+      cy.get('#recording-settings-modal').should('be.visible')
+      cy.get('#recording-settings-modal .modal-title').contains('Server recording').should('be.visible')
       cy.get('.dashboard-toolbar').contains('label', 'Keep visible').should('be.visible')
       cy.get('#display-retention-preset option').should('have.length.at.least', 5)
       cy.get('#display-retention-preset').should('have.value', '300000')
 
-      cy.contains('.activity-recording-panel-title', 'Recent query recording').should('be.visible')
+      cy.get('#activity-panel-settings').should('not.exist')
       cy.contains('label', 'Slow query threshold').should('be.visible')
-      cy.contains('label', 'Keep on server for').should('be.visible')
+      cy.contains('label', 'Record on server for').should('be.visible')
       cy.contains('label', 'Record request URI').should('be.visible')
       cy.get('.activity-recording-fields-split').should('be.visible')
       cy.get('.activity-recording-footnote').should('be.visible')
+      cy.get('#threshold-preset').should('not.be.disabled')
+      cy.get('#history-preset').should('not.be.disabled')
+      cy.get('#track-uri').should('not.be.disabled')
+      cy.get('#configure').should('not.be.disabled')
+
+      cy.get('#recording-settings-modal .close').click()
+      cy.get('#recent-queries-settings-btn').should('be.visible').click()
+      cy.get('#recording-settings-modal').should('be.visible')
+      cy.get('#threshold-preset option').should('have.length.at.least', 5)
+    })
+
+    it('should accept recording threshold input from the settings modal', () => {
+      cy.wait(1500)
+      cy.get('#pause-btn').click()
+      cy.get('#recent-queries-settings-btn').click()
+      cy.get('#recording-settings-modal').should('be.visible')
+
+      cy.get('#threshold-preset').select('custom')
+      cy.get('#threshold-custom-wrap').should('be.visible')
+      cy.get('#threshold-custom').clear().type('750')
+      cy.get('#threshold-custom').should('have.value', '750')
+      cy.get('#configure-dirty').should('be.visible')
     })
 
     it('should keep server history changes unsaved without affecting dashboard display retention', () => {
       cy.wait(1500)
       cy.get('#pause-btn').click()
+      cy.get('#recording-settings-btn').click()
 
       cy.window().then((win) => {
         const displayBefore = win.JMX.util.dashboardDisplayRetentionMs()
@@ -237,34 +271,53 @@ describe('Monex index page', () => {
       })
     })
 
-    it('should keep garbage collect in the java memory panel', () => {
+    it('should keep garbage collect in the JVM heap panel', () => {
       cy.wait(1500)
       cy.get('#pause-btn').click()
 
-      cy.contains('.box-title', 'Java Memory')
+      cy.contains('.box-title', 'JVM heap')
         .parents('.box')
         .find('#gc-btn')
         .should('be.visible')
         .and('have.class', 'btn-primary')
     })
 
-    it('should show CPU in its own panel and keep OS metrics out of the footer', () => {
+    it('should show CPU and disk gauges in the host row and keep OS metrics out of the footer', () => {
       cy.wait(1500)
       cy.get('#pause-btn').click()
 
-      cy.contains('.box-title', 'Java Memory').should('be.visible')
-      cy.get('#memory-graph').should('exist')
-      cy.get('.memory-sparkline-wrap').should('be.visible')
-      cy.get('.cpu-compact-row').should('not.exist')
+      cy.get('.dashboard-host-row').within(() => {
+        cy.contains('.box-title', 'JVM heap').should('be.visible')
+        cy.get('#memory-graph').should('exist')
+        cy.get('.host-sparkline-wrap').should('be.visible')
+        cy.contains('.box-title', 'CPU').should('be.visible')
+        cy.get('#cpu-process-gauge').should('exist')
+        cy.get('#cpu-system-gauge').should('exist')
+        cy.get('#cpu-process-gauge canvas').should('exist')
+        cy.get('#cpu-system-gauge canvas').should('exist')
+        cy.get('#disk-data-gauge').should('exist')
+        cy.get('#disk-data-gauge canvas').should('exist')
+      })
 
-      cy.contains('.box-title', 'CPU').should('be.visible')
-      cy.get('#cpu-process-gauge').should('exist')
-      cy.get('#cpu-system-gauge').should('exist')
-      cy.get('#cpu-process-gauge canvas').should('exist')
-      cy.get('#cpu-system-gauge canvas').should('exist')
-      cy.get('.cpu-gauge-value').should('have.length', 2)
+      cy.get('.cpu-bar-row').should('not.exist')
+      cy.get('.workload-panel-cpu').should('not.exist')
+      cy.get('.cpu-compact-row').should('not.exist')
       cy.get('.dashboard-system-footer').contains('Free memory').should('not.exist')
       cy.get('.dashboard-system-footer').contains('System CPU').should('not.exist')
+    })
+
+    it('should show broker pool as stacked in-use and idle segments', () => {
+      cy.wait(1500)
+      cy.get('#pause-btn').click()
+
+      cy.contains('.box-title', 'Broker pool')
+        .parents('.box')
+        .within(() => {
+          cy.get('.broker-pool-stacked .broker-segment-in-use').should('exist')
+          cy.get('.broker-pool-stacked .broker-segment-idle').should('exist')
+          cy.get('.broker-pool-legend').contains('In use').should('be.visible')
+          cy.get('.broker-pool-legend').contains('Idle').should('be.visible')
+        })
     })
 
     it('should label the memory sparkline time window', () => {

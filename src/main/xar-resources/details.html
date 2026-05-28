@@ -83,7 +83,7 @@
                 <!-- ko if: $data.jmx.MemoryImpl && $data.jmx.MemoryImpl.HeapMemoryUsage -->
                 <div class="box dashboard-panel">
                     <div class="box-header">
-                        <h3 class="box-title">Java Memory</h3>
+                        <h3 class="box-title">JVM heap</h3>
                     </div>
                     <div class="box-body no-padding">
                         <div class="gauge-block" data-bind="with: jmx.MemoryImpl.HeapMemoryUsage">
@@ -98,21 +98,29 @@
                                 <div class="progress-bar" data-bind="css: capacityBarClass(memoryUsedPercent($data)), style: { width: memoryUsedPercent($data) + '%' }"/>
                             </div>
                         </div>
-                        <div class="broker-pool-row">
+                    </div>
+                </div>
+                <!-- /ko -->
+
+                <div class="box dashboard-panel">
+                    <div class="box-header">
+                        <h3 class="box-title">Broker pool</h3>
+                    </div>
+                    <div class="box-body no-padding">
+                        <div class="gauge-block broker-pool-row">
                             <div class="gauge-headline">
-                                <strong>Broker pool</strong>
-                                <span>
-                                    <span data-bind="text: activeBrokerCount($parent.jmx)">0</span> /
-                                    <span data-bind="text: maxBrokerCount($parent.jmx)">0</span> active
-                                </span>
+                                <strong>
+                                    <span data-bind="text: activeBrokerCount($data.jmx)">0</span> /
+                                    <span data-bind="text: maxBrokerCount($data.jmx)">0</span> active
+                                </strong>
+                                <span class="broker-pool-meta" data-bind="visible: brokerPoolSubline($data.jmx), text: brokerPoolSubline($data.jmx)"/>
                             </div>
                             <div class="progress xs">
-                                <div class="progress-bar" data-bind="css: capacityBarClass(brokerPoolPercent($parent.jmx)), style: { width: brokerPoolPercent($parent.jmx) + '%' }"/>
+                                <div class="progress-bar" data-bind="css: capacityBarClass(brokerPoolPercent($data.jmx)), style: { width: brokerPoolPercent($data.jmx) + '%' }"/>
                             </div>
                         </div>
                     </div>
                 </div>
-                <!-- /ko -->
 
                 <div class="box dashboard-panel">
                     <div class="box-header">
@@ -193,7 +201,7 @@
                                         <tr>
                                             <th>Id</th>
                                             <th>Elapsed</th>
-                                            <th>Source</th>
+                                            <th>Query source</th>
                                             <th>Status</th>
                                             <th>URI</th>
                                         </tr>
@@ -280,6 +288,7 @@
                                 Active threads
                                 <span class="workload-count">(<span data-bind="text: $data?.jmx?.Database?.ActiveBrokersMap?.()?.length ?? 0">0</span>)</span>
                             </h4>
+                            <p class="activity-section-hint">Broker threads with stack traces. Running queries above may share these thread ids.</p>
                             <table class="table table-striped">
                                 <thead>
                                     <tr>
@@ -310,7 +319,7 @@
                                     <thead>
                                         <tr>
                                             <th>Time</th>
-                                            <th>Source</th>
+                                            <th>Resource</th>
                                             <th>Elapsed</th>
                                             <th>URI</th>
                                         </tr>
@@ -326,7 +335,7 @@
                                             <td class="activity-source-cell">
                                                 <span class="source-key" data-bind="text: ( $data?.sourceKey?.() ?? $data?.sourceKey ?? '' )?.replace(/^.*\/([^\/]+)$/, '$1') ?? '???', attr: { title: ( $data?.sourceKey?.() ?? $data?.sourceKey ?? '' ) }" data-toggle="tooltip"/>
                                             </td>
-                                            <td class="activity-elapsed-cell" data-bind="text: ( $data?.mostRecentExecutionDuration?.() ?? $data?.mostRecentExecutionDuration ?? '' )"/>
+                                            <td class="activity-elapsed-cell" data-bind="text: recentQueryElapsedText($data)"/>
                                             <td class="activity-uri-cell">
                                                 <a class="activity-uri-link" href="#" role="button" aria-label="Show full request URI" data-bind="visible: activityUriLabel($data) !== '—', click: function(d, e) { return $root.activityFlyout.toggleUri(d, e, $root.url); }, text: activityUriLabel($data)"/>
                                                 <span class="text-muted" data-bind="visible: activityUriLabel($data) === '—'">—</span>

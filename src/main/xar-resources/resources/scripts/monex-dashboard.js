@@ -431,6 +431,28 @@ function runningQueryElapsedClass(row) {
     };
 }
 
+function recentQueryField(row, name) {
+    if (!row || !name) {
+        return undefined;
+    }
+    if (row[name] !== undefined && row[name] !== null) {
+        return ko.isObservable(row[name]) ? row[name]() : row[name];
+    }
+    if (row.value && row.value[name] !== undefined && row.value[name] !== null) {
+        return ko.isObservable(row.value[name]) ? row.value[name]() : row.value[name];
+    }
+    return undefined;
+}
+
+function recentQueryElapsedText(row) {
+    var formatted = JMX.util.formatQueryElapsed(recentQueryField(row, "mostRecentExecutionDuration"));
+    return formatted || "—";
+}
+
+function workloadHot(jmx) {
+    return runningQueryCount(jmx) > 0 || waitingThreadCount(jmx) > 0;
+}
+
 function activityUriTitle(row) {
     return JMX.util.activityUriTitle(JMX.util.activityRequestUri(row));
 }
@@ -626,6 +648,7 @@ Monex.activity.attachDashboardViewModel = function(viewModel, options) {
     viewModel.showTrackUriHint = ko.pureComputed(function() {
         return showTrackUriHint(viewModel.jmx);
     });
+    viewModel.showMissingVectorModels = ko.observable(false);
     viewModel.activityFlyout = Monex.activity.createFlyoutModel(options);
 
     if (options.livePoll !== false) {
@@ -789,11 +812,31 @@ function availableBrokerCount(jmx) {
 }
 
 function brokerKpiSubline(jmx) {
-    var available = availableBrokerCount(jmx);
-    if (available === null) {
+    return brokerPoolSubline(jmx);
+}
+
+function brokerPoolSubline(jmx) {
+    var idle = availableBrokerCount(jmx);
+    if (idle === null) {
         return "";
     }
-    return available + " free";
+    return idle + " idle";
+}
+
+function brokerPoolSummaryText(jmx) {
+    var active = activeBrokerCount(jmx);
+    var max = maxBrokerCount(jmx);
+    var idle = availableBrokerCount(jmx);
+    var parts = [active + " in use"];
+    if (idle !== null) {
+        parts.push(idle + " idle");
+    }
+    parts.push(max + " configured max");
+    return parts.join(" · ");
+}
+
+function brokerPoolSummaryTitle() {
+    return "ActiveBrokers in use · AvailableBrokers idle · MaxBrokers configured maximum";
 }
 
 function brokerPoolPercent(jmx) {
@@ -803,6 +846,27 @@ function brokerPoolPercent(jmx) {
         return 0;
     }
     return Math.round(active / (max / 100));
+}
+
+function brokerInUsePercent(jmx) {
+    var max = maxBrokerCount(jmx);
+    if (max <= 0) {
+        return 0;
+    }
+    return Math.round(activeBrokerCount(jmx) / max * 100);
+}
+
+function brokerIdlePercent(jmx) {
+    var max = maxBrokerCount(jmx);
+    var idle = availableBrokerCount(jmx);
+    if (max <= 0 || idle === null) {
+        return 0;
+    }
+    return Math.round(idle / max * 100);
+}
+
+function brokerPoolLegendText(jmx) {
+    return activeBrokerCount(jmx) + " / " + maxBrokerCount(jmx);
 }
 
 function runningQueryCount(jmx) {
@@ -1086,6 +1150,27 @@ function readyVectorModels(vector) {
     });
 }
 
+function catalogVectorModels(vector) {
+    if (!vector || !vector.models) {
+        return [];
+    }
+    return ko.isObservable(vector.models) ? vector.models() : vector.models;
+}
+
+function visibleCatalogModels(viewModel, vector) {
+    var models = catalogVectorModels(vector);
+    var showMissing = viewModel && viewModel.showMissingVectorModels &&
+        typeof viewModel.showMissingVectorModels === "function" &&
+        viewModel.showMissingVectorModels();
+    if (showMissing) {
+        return models;
+    }
+    return models.filter(function(model) {
+        var status = ko.isObservable(model.status) ? model.status() : model.status;
+        return status === "available";
+    });
+}
+
 function vectorMissingCount(vector) {
     if (!vector) {
         return 0;
@@ -1099,10 +1184,71 @@ function vectorModelLabel(model) {
     if (!model) {
         return "";
     }
-    var id = ko.isObservable(model.id) ? model.id() : model.id;
+    return vectorModelName(model) + " · " + vectorModelSpec(model);
+}
+
+function vectorModelName(model) {
+    if (!model) {
+        return "";
+    }
+    return ko.isObservable(model.id) ? model.id() : model.id;
+}
+
+function vectorModelSpec(model) {
+    if (!model) {
+        return "";
+    }
     var dimension = ko.isObservable(model.dimension) ? model.dimension() : model.dimension;
     var provider = ko.isObservable(model.provider) ? model.provider() : model.provider;
-    return id + " · " + dimension + "d · " + provider;
+    return dimension + "d · " + provider;
+}
+
+function vectorModelStatusDotClass(model) {
+    if (!model) {
+        return "not-ready";
+    }
+    var status = ko.isObservable(model.status) ? model.status() : model.status;
+    return status === "available" ? "ready" : "not-ready";
+}
+
+function vectorCatalogCountText(vector) {
+    if (!vector || !vector.available || !vector.available()) {
+        return "0";
+    }
+    return String(vector.total());
+}
+
+function vectorModelStoreSummary(viewModel) {
+    if (!viewModel || !viewModel.vectorStore || !viewModel.vectorStore.available ||
+        !viewModel.vectorStore.available()) {
+        return "—";
+    }
+    if (viewModel.vectorStoreSummaryText) {
+        return viewModel.vectorStoreSummaryText();
+    }
+    return Monex.vector.vectorStoreSummary(viewModel.vectorStore);
+}
+
+function vectorModelStoreTooltip(viewModel) {
+    if (!viewModel || !viewModel.vectorStore) {
+        return "";
+    }
+    return vectorStoreEntryTooltip(viewModel.vectorStore);
+}
+
+function vectorPanelVisible(viewModel) {
+    if (!viewModel) {
+        return false;
+    }
+    var vector = viewModel.vector;
+    var store = viewModel.vectorStore;
+    if (vector && typeof vector.available === "function" && vector.available()) {
+        return true;
+    }
+    if (store && typeof store.available === "function" && store.available()) {
+        return true;
+    }
+    return false;
 }
 
 function vectorStatusClass(status) {
@@ -1138,6 +1284,18 @@ function vectorEmbeddingsKpiTitle(vector) {
     return ready + " ready · " + total + " in catalog";
 }
 
+function vectorEmbeddingsKpiClass(vector) {
+    if (!vector || !vector.available || !vector.available()) {
+        return {};
+    }
+    var ready = vector.ready();
+    var total = vector.total();
+    if (total > 0 && ready === 0) {
+        return { "kpi-critical": true };
+    }
+    return {};
+}
+
 function vectorCatalogPanelLine(vector) {
     if (!vector || !vector.available || !vector.available()) {
         return "";
@@ -1153,18 +1311,6 @@ function vectorCatalogPanelLine(vector) {
     return ready + " ready · " + total + " in catalog";
 }
 
-function vectorEmbeddingsKpiClass(vector) {
-    if (!vector || !vector.available || !vector.available()) {
-        return {};
-    }
-    var ready = vector.ready();
-    var total = vector.total();
-    if (total > 0 && ready === 0) {
-        return { "kpi-critical": true };
-    }
-    return {};
-}
-
 function vectorEntriesKpiVisible(viewModel) {
     return !!(viewModel && viewModel.vectorStore &&
         viewModel.vectorStore.available && viewModel.vectorStore.available());
@@ -1175,6 +1321,21 @@ function vectorEntriesKpiText(vectorStore) {
         return "—";
     }
     return String(vectorStore.entryCount());
+}
+
+function vectorStoreEntryTooltip(store) {
+    var backend = "";
+    if (store && store.storageBackend) {
+        backend = typeof store.storageBackend === "function" ? store.storageBackend() : store.storageBackend;
+    }
+    var parts = [
+        "Entries stored in the vector database file (vector.dbx)",
+        "Not the same as Lucene vector-field index definitions in Browse Indexes"
+    ];
+    if (backend) {
+        parts.push("Storage backend: " + backend);
+    }
+    return parts.join(". ");
 }
 
 function createVectorViewModel(data) {
@@ -1223,7 +1384,13 @@ Monex.kpi = {
     maxBrokerCount: maxBrokerCount,
     availableBrokerCount: availableBrokerCount,
     brokerKpiSubline: brokerKpiSubline,
+    brokerPoolSubline: brokerPoolSubline,
+    brokerPoolSummaryText: brokerPoolSummaryText,
+    brokerPoolSummaryTitle: brokerPoolSummaryTitle,
     brokerPoolPercent: brokerPoolPercent,
+    brokerInUsePercent: brokerInUsePercent,
+    brokerIdlePercent: brokerIdlePercent,
+    brokerPoolLegendText: brokerPoolLegendText,
     runningQueryCount: runningQueryCount,
     bufferedRunningQueryCount: bufferedRunningQueryCount,
     bufferedRecentQueryCount: bufferedRecentQueryCount,
@@ -1252,8 +1419,17 @@ Monex.kpi = {
     databaseStatusClass: databaseStatusClass,
     databaseExistHome: databaseExistHome,
     readyVectorModels: readyVectorModels,
+    catalogVectorModels: catalogVectorModels,
+    visibleCatalogModels: visibleCatalogModels,
     vectorMissingCount: vectorMissingCount,
     vectorModelLabel: vectorModelLabel,
+    vectorModelName: vectorModelName,
+    vectorModelSpec: vectorModelSpec,
+    vectorModelStatusDotClass: vectorModelStatusDotClass,
+    vectorCatalogCountText: vectorCatalogCountText,
+    vectorModelStoreSummary: vectorModelStoreSummary,
+    vectorModelStoreTooltip: vectorModelStoreTooltip,
+    vectorPanelVisible: vectorPanelVisible,
     vectorStatusClass: vectorStatusClass,
     vectorEmbeddingsKpiVisible: vectorEmbeddingsKpiVisible,
     vectorEmbeddingsKpiText: vectorEmbeddingsKpiText,
@@ -1262,6 +1438,7 @@ Monex.kpi = {
     vectorEmbeddingsKpiClass: vectorEmbeddingsKpiClass,
     vectorEntriesKpiVisible: vectorEntriesKpiVisible,
     vectorEntriesKpiText: vectorEntriesKpiText,
+    vectorStoreEntryTooltip: vectorStoreEntryTooltip,
     createVectorViewModel: createVectorViewModel,
     updateVectorDiagnostics: updateVectorDiagnostics,
     uptime: uptime
@@ -2096,22 +2273,18 @@ Monex.vector = {
  * SPDX LGPL-2.1-or-later
  * Copyright (C) 2014 The eXist-db Authors
  */
-Monex.cpuGauge = (function() {
+Monex.capacityGauge = (function() {
     "use strict";
 
-    var PROCESS_COLOR = "rgb(60, 141, 188)";
-    var SYSTEM_COLOR = "rgb(243, 156, 18)";
-    var TRACK_COLOR = "#eceff3";
+var PROCESS_COLOR = "rgb(60, 141, 188)";
+var SYSTEM_COLOR = "rgb(243, 156, 18)";
+var DATA_DISK_COLOR = "rgb(0, 166, 90)";
+var JOURNAL_DISK_COLOR = "rgb(0, 192, 239)";
+var MEMORY_COLOR = "rgb(221, 75, 57)";
+var TRACK_COLOR = "#eceff3";
     var gauges = [];
 
-    function gaugePercent(jmx, key) {
-        var ratio = key === "process" ?
-            Monex.kpi.processCpuLoad(jmx) :
-            Monex.kpi.systemCpuLoad(jmx);
-        return Math.min(100, Math.max(0, ratio * 100));
-    }
-
-    function createGauge(container, color, key) {
+    function createGauge(container, color) {
         var canvas = MonexCharts.ensureCanvas(container);
         var chart = new Chart(canvas, {
             type: "doughnut",
@@ -2127,27 +2300,50 @@ Monex.cpuGauge = (function() {
         });
         return {
             chart: chart,
-            key: key
+            percent: function() {
+                return 0;
+            }
         };
+    }
+
+    function registerGauge(id, color, percentFn) {
+        var node = document.getElementById(id);
+        if (!node) {
+            return;
+        }
+        var gauge = createGauge(node, color);
+        gauge.percent = percentFn;
+        gauges.push(gauge);
     }
 
     function init() {
         if (gauges.length > 0) {
             return;
         }
-        var processNode = document.getElementById("cpu-process-gauge");
-        var systemNode = document.getElementById("cpu-system-gauge");
-        if (!processNode || !systemNode) {
-            return;
-        }
-        gauges.push(createGauge(processNode, PROCESS_COLOR, "process"));
-        gauges.push(createGauge(systemNode, SYSTEM_COLOR, "system"));
+        registerGauge("cpu-process-gauge", PROCESS_COLOR, function(jmx) {
+            return Monex.kpi.processCpuLoadPercent(jmx);
+        });
+        registerGauge("cpu-system-gauge", SYSTEM_COLOR, function(jmx) {
+            return Monex.kpi.systemCpuLoadPercent(jmx);
+        });
+        registerGauge("disk-data-gauge", DATA_DISK_COLOR, function(jmx) {
+            return Monex.kpi.dataDirectoryUsedPercent(jmx);
+        });
+        registerGauge("disk-journal-gauge", JOURNAL_DISK_COLOR, function(jmx) {
+            return Monex.kpi.journalDirectoryUsedPercent(jmx);
+        });
+        registerGauge("memory-usage-gauge", MEMORY_COLOR, function(jmx) {
+            if (!jmx || !jmx.MemoryImpl || !jmx.MemoryImpl.HeapMemoryUsage) {
+                return 0;
+            }
+            return Monex.kpi.memoryUsedPercent(jmx.MemoryImpl.HeapMemoryUsage());
+        });
     }
 
     function update(jmx) {
         init();
         for (var i = 0; i < gauges.length; i++) {
-            var pct = gaugePercent(jmx, gauges[i].key);
+            var pct = Math.min(100, Math.max(0, gauges[i].percent(jmx) || 0));
             gauges[i].chart.data.datasets[0].data = [pct, 100 - pct];
             gauges[i].chart.update("none");
         }
@@ -2167,3 +2363,5 @@ Monex.cpuGauge = (function() {
         resize: resize
     };
 }());
+
+Monex.cpuGauge = Monex.capacityGauge;

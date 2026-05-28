@@ -33,6 +33,9 @@
                     <span class="activity-recent-config-unit">min</span>
                 </span>
             </div>
+            <button type="button" class="btn btn-default btn-sm" id="recording-settings-btn" title="Server-side recent query recording" data-toggle="modal" data-target="#recording-settings-modal">
+                <i class="fa fa-cog" aria-hidden="true"/> Server recording
+            </button>
         </div>
     </section>
     <section id="dashboard" class="content">
@@ -55,14 +58,14 @@
         </div>
 
         <div class="kpi-strip">
-            <div class="kpi-cell" data-bind="css: kpiCellClass('activeBrokers', activeBrokerCount($data.jmx), $data.jmx)">
-                <span class="kpi-label">Brokers</span>
-                <span class="kpi-value">
-                    <span data-bind="text: activeBrokerCount($data.jmx)">?</span>
-                    <span class="kpi-sub">/ <span data-bind="text: maxBrokerCount($data.jmx)">?</span></span>
+            <!-- ko if: databaseStatus($data.jmx) -->
+            <div class="kpi-cell kpi-status-cell">
+                <span class="kpi-label">Status</span>
+                <span class="kpi-value kpi-value-status">
+                    <span class="label database-status-label" data-bind="text: databaseStatus($data.jmx), css: databaseStatusClass($data.jmx)"/>
                 </span>
-                <span class="kpi-meta" data-bind="visible: brokerKpiSubline($data.jmx), text: brokerKpiSubline($data.jmx)"/>
             </div>
+            <!-- /ko -->
             <div class="kpi-cell" data-bind="css: kpiCellClass('runningQueries', runningQueryCount($data.jmx), $data.jmx)">
                 <span class="kpi-label">Queries</span>
                 <span class="kpi-value" data-bind="text: runningQueryCount($data.jmx)">?</span>
@@ -70,6 +73,13 @@
             <div class="kpi-cell" data-bind="css: kpiCellClass('waitingThreads', waitingThreadCount($data.jmx), $data.jmx)">
                 <span class="kpi-label">Waiting</span>
                 <span class="kpi-value" data-bind="text: waitingThreadCount($data.jmx)">?</span>
+            </div>
+            <div class="kpi-cell" data-bind="css: kpiCellClass('activeBrokers', activeBrokerCount($data.jmx), $data.jmx), attr: { title: 'Brokers in use / configured maximum' }">
+                <span class="kpi-label">Brokers</span>
+                <span class="kpi-value">
+                    <span data-bind="text: activeBrokerCount($data.jmx)">?</span>
+                    <span class="kpi-sub">/ <span data-bind="text: maxBrokerCount($data.jmx)">?</span></span>
+                </span>
             </div>
             <div class="kpi-cell kpi-neutral">
                 <span class="kpi-label">Uptime</span>
@@ -87,33 +97,18 @@
                 <span class="kpi-value"><span data-bind="text: diskKpiPercent($data.jmx)">0</span>%</span>
             </div>
             <!-- /ko -->
-            <!-- ko if: vectorEmbeddingsKpiVisible($data) -->
-            <div class="kpi-cell" data-bind="css: vectorEmbeddingsKpiClass(vector), attr: { title: (vectorEmbeddingsKpiTitle(vector) + (vector.knnBackend() ? (' · KNN: ' + vector.knnBackend()) : '')) }">
-                <span class="kpi-label">Models</span>
-                <span class="kpi-value">
-                    <span data-bind="text: vector.ready()">—</span>
-                    <span class="kpi-sub">/ <span data-bind="text: vector.total()">—</span></span>
-                </span>
-            </div>
-            <!-- /ko -->
-            <!-- ko if: vectorEntriesKpiVisible($data) -->
-            <div class="kpi-cell kpi-neutral" data-bind="attr: { title: (vectorStore &amp;&amp; vectorStore.storageBackend()) ? ('Storage backend: ' + vectorStore.storageBackend()) : '' }">
-                <span class="kpi-label">Vector entries</span>
-                <span class="kpi-value" data-bind="text: vectorEntriesKpiText(vectorStore)">—</span>
-            </div>
-            <!-- /ko -->
         </div>
 
-        <div class="row dashboard-main">
-            <section class="col-md-12 col-lg-7 dashboard-capacity">
-                <div class="box dashboard-panel">
+        <div class="row dashboard-host-row">
+            <div class="col-md-4">
+                <div class="box dashboard-panel host-resource-panel">
                     <div class="box-header">
-                        <h3 class="box-title">Java Memory</h3>
+                        <h3 class="box-title">JVM heap</h3>
                         <div class="box-tools pull-right">
                             <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"/></button>
                         </div>
                     </div>
-                    <div class="box-body no-padding">
+                    <div class="box-body no-padding host-resource-body">
                         <div class="gauge-block" data-bind="with: jmx.MemoryImpl.HeapMemoryUsage">
                             <div class="gauge-headline">
                                 <strong>
@@ -126,48 +121,104 @@
                                 <div class="progress-bar" data-bind="css: capacityBarClass(memoryUsedPercent($data)), style: { width: memoryUsedPercent($data) + '%' }"/>
                             </div>
                         </div>
-                        <div class="memory-sparkline-wrap">
+                        <div class="memory-sparkline-wrap host-sparkline-wrap">
                             <span class="memory-sparkline-caption">Last ~2 min</span>
                             <div class="chart memory-sparkline" id="memory-graph" data-scale="pressure" data-legend="false" data-labels="Used,Committed" data-properties="jmx.MemoryImpl.HeapMemoryUsage.used,jmx.MemoryImpl.HeapMemoryUsage.committed" data-max-y="jmx.MemoryImpl.HeapMemoryUsage.max" data-unit-y="mb"/>
                         </div>
-                        <div class="broker-pool-row">
-                            <div class="gauge-headline">
-                                <strong>Broker pool</strong>
-                                <span>
-                                    <span data-bind="text: activeBrokerCount($data.jmx)">0</span> /
-                                    <span data-bind="text: maxBrokerCount($data.jmx)">0</span> active
-                                </span>
-                            </div>
-                            <div class="progress xs">
-                                <div class="progress-bar" data-bind="css: capacityBarClass(brokerPoolPercent($data.jmx)), style: { width: brokerPoolPercent($data.jmx) + '%' }"/>
-                            </div>
-                        </div>
-                        <!-- ko if: diskMetricsAvailable($data.jmx) -->
-                        <p class="panel-subhead capacity-disk-subhead">Disk</p>
-                        <div class="broker-pool-row disk-capacity-row">
-                            <div class="gauge-headline">
-                                <strong>Data directory</strong>
-                                <span data-bind="text: diskDirectoryLabel($data.jmx, 'DataDirectory')">—</span>
-                            </div>
-                            <div class="progress xs">
-                                <div class="progress-bar" data-bind="css: capacityBarClass(dataDirectoryUsedPercent($data.jmx)), style: { width: dataDirectoryUsedPercent($data.jmx) + '%' }"/>
-                            </div>
-                        </div>
-                        <!-- ko if: journalDiskDistinct($data.jmx) -->
-                        <div class="broker-pool-row disk-capacity-row">
-                            <div class="gauge-headline">
-                                <strong>Journal directory</strong>
-                                <span data-bind="text: diskDirectoryLabel($data.jmx, 'JournalDirectory')">—</span>
-                            </div>
-                            <div class="progress xs">
-                                <div class="progress-bar" data-bind="css: capacityBarClass(journalDirectoryUsedPercent($data.jmx)), style: { width: journalDirectoryUsedPercent($data.jmx) + '%' }"/>
-                            </div>
-                        </div>
-                        <!-- /ko -->
-                        <!-- /ko -->
                     </div>
                     <div class="box-footer">
                         <button type="button" class="btn btn-primary btn-sm" id="gc-btn" data-bind="visible: parseInt($data?.jmx?.version?.() ?? 0) &gt; 0, click: gc">Garbage Collect</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="box dashboard-panel host-resource-panel">
+                    <div class="box-header">
+                        <h3 class="box-title">Disk</h3>
+                        <div class="box-tools pull-right">
+                            <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"/></button>
+                        </div>
+                    </div>
+                    <div class="box-body no-padding host-resource-body host-gauge-body">
+                        <!-- ko if: diskMetricsAvailable($data.jmx) -->
+                        <div class="host-gauge-row">
+                            <div class="host-gauge-cell disk-gauge-data">
+                                <div class="cpu-gauge-chart" id="disk-data-gauge" role="img" aria-label="Data directory disk usage"/>
+                                <span class="cpu-gauge-value" data-bind="text: diskDirectoryLabel($data.jmx, 'DataDirectory')">—</span>
+                                <span class="cpu-gauge-label">Data</span>
+                            </div>
+                            <!-- ko if: journalDiskDistinct($data.jmx) -->
+                            <div class="host-gauge-cell disk-gauge-journal">
+                                <div class="cpu-gauge-chart" id="disk-journal-gauge" role="img" aria-label="Journal directory disk usage"/>
+                                <span class="cpu-gauge-value" data-bind="text: diskDirectoryLabel($data.jmx, 'JournalDirectory')">—</span>
+                                <span class="cpu-gauge-label">Journal</span>
+                            </div>
+                            <!-- /ko -->
+                        </div>
+                        <!-- /ko -->
+                        <!-- ko ifnot: diskMetricsAvailable($data.jmx) -->
+                        <p class="host-resource-empty">Disk metrics not available in this JMX poll.</p>
+                        <!-- /ko -->
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="box dashboard-panel host-resource-panel" data-bind="visible: cpuMetricsAvailable($data.jmx)">
+                    <div class="box-header">
+                        <h3 class="box-title">CPU</h3>
+                        <div class="box-tools pull-right">
+                            <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"/></button>
+                        </div>
+                    </div>
+                    <div class="box-body no-padding host-resource-body host-gauge-body">
+                        <div class="host-gauge-row">
+                            <div class="host-gauge-cell cpu-gauge-process">
+                                <div class="cpu-gauge-chart" id="cpu-process-gauge" role="img" aria-label="Process CPU load"/>
+                                <span class="cpu-gauge-value" data-bind="text: formatCpuLoad(processCpuLoad($data.jmx))">0%</span>
+                                <span class="cpu-gauge-label">Process</span>
+                            </div>
+                            <div class="host-gauge-cell cpu-gauge-system">
+                                <div class="cpu-gauge-chart" id="cpu-system-gauge" role="img" aria-label="System CPU load"/>
+                                <span class="cpu-gauge-value" data-bind="text: formatCpuLoad(systemCpuLoad($data.jmx))">0%</span>
+                                <span class="cpu-gauge-label">System</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- ko ifnot: cpuMetricsAvailable($data.jmx) -->
+                <div class="box dashboard-panel host-resource-panel">
+                    <div class="box-header"><h3 class="box-title">CPU</h3></div>
+                    <div class="box-body host-resource-body">
+                        <p class="host-resource-empty">CPU metrics not available in this JMX poll.</p>
+                    </div>
+                </div>
+                <!-- /ko -->
+            </div>
+        </div>
+
+        <div class="row dashboard-main">
+            <section class="col-md-12 col-lg-6 dashboard-capacity">
+                <div class="box dashboard-panel dashboard-panel-slim">
+                    <div class="box-header">
+                        <h3 class="box-title">Broker pool</h3>
+                        <div class="box-tools pull-right">
+                            <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"/></button>
+                        </div>
+                    </div>
+                    <div class="box-body no-padding">
+                        <div class="gauge-block broker-pool-row">
+                            <div class="gauge-headline broker-pool-headline">
+                                <strong data-bind="text: brokerPoolLegendText($data.jmx), attr: { title: brokerPoolSummaryTitle() }">—</strong>
+                            </div>
+                            <div class="progress xs broker-pool-stacked">
+                                <div class="progress-bar progress-bar-info broker-segment-in-use" data-bind="style: { width: brokerInUsePercent($data.jmx) + '%' }, attr: { title: activeBrokerCount($data.jmx) + ' in use' }"/>
+                                <div class="progress-bar broker-segment-idle" data-bind="style: { width: brokerIdlePercent($data.jmx) + '%' }, attr: { title: (availableBrokerCount($data.jmx) || 0) + ' idle' }"/>
+                            </div>
+                            <div class="broker-pool-legend">
+                                <span class="broker-legend-item"><span class="broker-legend-swatch broker-legend-in-use"/> In use</span>
+                                <span class="broker-legend-item"><span class="broker-legend-swatch broker-legend-idle"/> Idle</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -252,80 +303,64 @@
                     </div>
                 </div>
 
-                <div class="box dashboard-panel" data-bind="with: vector">
+                <div class="box dashboard-panel" data-bind="visible: vectorPanelVisible($data)">
+                    <div data-bind="with: vector">
                     <div class="box-header" data-bind="attr: { title: available() &amp;&amp; knnBackend() ? ('KNN backend: ' + knnBackend()) : '' }">
                         <h3 class="box-title">Embeddings</h3>
                         <div class="box-tools pull-right">
                             <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"/></button>
                         </div>
                     </div>
-                    <div class="box-body embedding-status">
-                        <div class="embedding-status-line embedding-catalog-summary" data-bind="visible: available() &amp;&amp; total() &gt; 0 &amp;&amp; ready() &gt; 0">
-                            <span class="embedding-dot ready"/>
-                            <span data-bind="text: vectorCatalogPanelLine($data)"/>
+                    <div class="box-body embedding-panel-body">
+                        <div class="embedding-unavailable" data-bind="visible: available() === false &amp;&amp; (!$parent.vectorStore || !$parent.vectorStore.available())">
+                            <span class="label label-default">Unavailable</span>
+                            <span>Vector extension not loaded</span>
                         </div>
-                        <div class="embedding-status-line" data-bind="visible: $root.vectorStore &amp;&amp; $root.vectorStore.available(), attr: { title: ($root.vectorStore &amp;&amp; $root.vectorStore.storageBackend()) ? ('Storage backend: ' + $root.vectorStore.storageBackend()) : '' }">
-                            <span class="embedding-dot ready"/>
-                            <span>
-                                Vector store
-                                <span class="embedding-detail" data-bind="text: $root.vectorStoreSummaryText"/>
-                            </span>
-                        </div>
-                        <div class="embedding-status-line" data-bind="visible: available() === false &amp;&amp; (!$root.vectorStore || !$root.vectorStore.available())">
-                            <span class="embedding-dot unavailable"/>
-                            <span>Vector extension not available</span>
-                        </div>
-                        <div class="embedding-status-line" data-bind="visible: available() === false &amp;&amp; $root.vectorStore &amp;&amp; $root.vectorStore.available()">
-                            <span class="embedding-dot not-ready"/>
+                        <div class="embedding-unavailable" data-bind="visible: available() === false &amp;&amp; $parent.vectorStore &amp;&amp; $parent.vectorStore.available()">
+                            <span class="label label-warning">Partial</span>
                             <span>Embedding extension not loaded (vector store active)</span>
                         </div>
-                        <div class="embedding-status-line" data-bind="visible: available() &amp;&amp; total() === 0">
-                            <span class="embedding-dot not-ready"/>
+                        <div class="embedding-unavailable" data-bind="visible: available() &amp;&amp; total() === 0">
+                            <span class="label label-default">Empty</span>
                             <span>No embedding models configured</span>
                         </div>
-                        <div class="embedding-status-line" data-bind="visible: available() &amp;&amp; ready() === 0 &amp;&amp; total() &gt; 0">
-                            <span class="embedding-dot not-ready"/>
-                            <span>
-                                No model ready
-                                <span class="embedding-detail" data-bind="visible: total() &gt; 0">
-                                    (<span data-bind="text: vectorMissingCount($data)"/> in catalog, not installed)
-                                </span>
-                            </span>
-                        </div>
-                        <!-- ko foreach: readyVectorModels($data) -->
-                        <div class="embedding-status-line">
-                            <span class="embedding-dot ready"/>
-                            <span data-bind="text: vectorModelLabel($data)"/>
-                        </div>
-                        <!-- /ko -->
+<p class="embedding-catalog-line" data-bind="visible: available() &amp;&amp; total() &gt; 0">
+    Catalog: <strong data-bind="text: vectorCatalogCountText($data)">0</strong>
+    <br/>
+    Storage Backend: <strong data-bind="text: $parent.vectorStore.storageBackend">vector.dbx</strong>
+</p>
+                        <p class="embedding-no-ready" data-bind="visible: available() &amp;&amp; ready() === 0 &amp;&amp; total() &gt; 0">
+                            No model ready.
+                            <button type="button" class="btn btn-link btn-sm embedding-missing-toggle" data-bind="visible: vectorMissingCount($data) &gt; 0, click: function() { $parent.showMissingVectorModels(!$parent.showMissingVectorModels()); return true; }">
+                                <span data-bind="text: $parent.showMissingVectorModels() ? 'Hide' : 'Show'"/>
+                                <span data-bind="text: vectorMissingCount($data)"/> not installed
+                            </button>
+                        </p>
+                        <table class="table table-condensed embedding-models-table" data-bind="visible: catalogVectorModels($data).length &gt; 0">
+                            <thead>
+                                <tr>
+                                    <th>Model</th>
+                                    <th>Spec</th>
+                                    <th>Store</th>
+                                </tr>
+                            </thead>
+                            <tbody data-bind="foreach: visibleCatalogModels($parent, $data)">
+                                <tr>
+                                    <td class="embedding-model-name">
+                                        <span class="embedding-dot" data-bind="css: vectorModelStatusDotClass($data)"/>
+                                        <span data-bind="text: vectorModelName($data)"/>
+                                    </td>
+                                    <td data-bind="text: vectorModelSpec($data)"/>
+                                    <td class="embedding-store-cell" data-bind="text: vectorModelStoreSummary($parents[1]), attr: { title: vectorModelStoreTooltip($parents[1]) }"/>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                     </div>
                 </div>
             </section>
 
-            <section class="col-md-12 col-lg-5 workload-panel">
-                <div class="box dashboard-panel dashboard-panel-slim" data-bind="visible: cpuMetricsAvailable($data.jmx)">
-                    <div class="box-header with-border">
-                        <h3 class="box-title">CPU</h3>
-                        <div class="box-tools pull-right">
-                            <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"/></button>
-                        </div>
-                    </div>
-                    <div class="box-body no-padding">
-                        <div class="cpu-gauge-row">
-                            <div class="cpu-gauge-cell cpu-gauge-process">
-                                <div class="cpu-gauge-chart" id="cpu-process-gauge" role="img" aria-label="Process CPU load"/>
-                                <span class="cpu-gauge-value" data-bind="text: formatCpuLoad(processCpuLoad($data.jmx))">0%</span>
-                                <span class="cpu-gauge-label">Process</span>
-                            </div>
-                            <div class="cpu-gauge-cell cpu-gauge-system">
-                                <div class="cpu-gauge-chart" id="cpu-system-gauge" role="img" aria-label="System CPU load"/>
-                                <span class="cpu-gauge-value" data-bind="text: formatCpuLoad(systemCpuLoad($data.jmx))">0%</span>
-                                <span class="cpu-gauge-label">System</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
+            <section class="col-md-12 col-lg-6 workload-panel">
                 <div class="box dashboard-panel activity-panel">
                     <div class="box-header">
                         <i class="fa fa-tasks"/>
@@ -344,7 +379,7 @@
                                         <tr>
                                             <th>Id</th>
                                             <th>Elapsed</th>
-                                            <th>Source</th>
+                                            <th>Query source</th>
                                             <th>Status</th>
                                             <th>URI</th>
                                             <th class="activity-actions-col" aria-label="Actions"/>
@@ -438,6 +473,7 @@
                                 Active threads
                                 <span class="workload-count">(<span data-bind="text: $data?.jmx?.Database?.ActiveBrokersMap?.()?.length ?? 0">0</span>)</span>
                             </h4>
+                            <p class="activity-section-hint">Broker threads with stack traces. Running queries above may share these thread ids.</p>
                             <table class="table table-striped">
                                 <thead>
                                     <tr>
@@ -461,6 +497,10 @@
                         <div class="activity-section activity-section-recent">
                             <h4 class="activity-section-title">
                                 Recent queries
+                                <button type="button" class="btn btn-link btn-xs activity-recording-gear" id="recent-queries-settings-btn" title="Server recording settings" data-toggle="modal" data-target="#recording-settings-modal">
+                                    <i class="fa fa-cog" aria-hidden="true"/>
+                                    <span class="sr-only">Server recording settings</span>
+                                </button>
                                 <small data-bind="visible: $data.jmx.ProcessReport.MinTimeRecorded">(&gt; <span data-bind="text: jmx.ProcessReport.MinTimeRecorded"/> ms)</small>
                             </h4>
                             <div class="scrollable activity-table-scroll">
@@ -468,8 +508,8 @@
                                     <thead>
                                         <tr>
                                             <th>Time</th>
-                                            <th>Source</th>
                                             <th>Elapsed</th>
+                                            <th>Resource</th>
                                             <th>URI</th>
                                         </tr>
                                     </thead>
@@ -481,10 +521,10 @@
                                     <tbody id="jmx-recent-queries" data-bind="visible: ( $data?.jmx?.ProcessReport?.RecentQueryHistory?.()?.length ?? 0 ) &gt; 0, foreach: {data: recentQueriesForDisplay, afterRender: initActivityRow }">
                                         <tr data-bind="css: { 'activity-row-ended': activityEnded }, attr: { 'data-activity-row-key': activityRowFlyoutKey($data) }">
                                             <td class="activity-time-cell" data-bind="text: new Date(parseInt( $data?.mostRecentExecutionTime?.() ?? $data?.value?.mostRecentExecutionTime?.() ?? $data?.mostRecentExecutionTime ?? 0 )).toISOString()"/>
+                                            <td class="activity-elapsed-cell" data-bind="text: recentQueryElapsedText($data)"/>
                                             <td class="activity-source-cell">
                                                 <span class="source-key" data-bind="text: ( $data?.sourceKey?.() ?? $data?.value?.sourceKey?.() ?? $data?.sourceKey ?? '' )?.replace(/^.*\/([^\/]+)$/, '$1') ?? '???', attr: { title: ( $data?.sourceKey?.() ?? $data?.value?.sourceKey?.() ?? $data?.sourceKey ?? '' ) }" data-toggle="tooltip"/>
                                             </td>
-                                            <td class="activity-elapsed-cell" data-bind="text: ( $data?.mostRecentExecutionDuration?.() ?? $data?.value?.mostRecentExecutionDuration?.() ?? $data?.mostRecentExecutionDuration ?? '' )"/>
                                             <td class="activity-uri-cell">
                                                 <a class="activity-uri-link" href="#" role="button" aria-label="Show full request URI" data-bind="visible: activityUriLabel($data) !== '—', click: function(d, e) { return $root.activityFlyout.toggleUri(d, e, $root.url); }, text: activityUriLabel($data)"/>
                                                 <span class="text-muted" data-bind="visible: activityUriLabel($data) === '—'">—</span>
@@ -508,63 +548,69 @@
                             <a class="activity-uri-flyout-open" target="_blank" rel="noopener" data-bind="attr: { href: activityFlyout.openHref() }">Open in new tab ↗</a>
                             <!-- /ko -->
                         </div>
-
-                        <div class="activity-panel-settings activity-recording-panel" id="activity-panel-settings" data-bind="css: { 'activity-recording-panel--uri-off': showTrackUriHint }">
-                            <div class="activity-recording-panel-header" id="configure-history-wrap">
-                                <h4 class="activity-recording-panel-title">Recent query recording</h4>
-                                <span class="activity-recording-panel-context">Server · Recent queries table above</span>
-                            </div>
-                            <div class="activity-recording-callout" id="activity-uri-tracking-callout" data-bind="visible: showTrackUriHint" role="status">
-                                <i class="fa fa-info-circle" aria-hidden="true"/>
-                                <p>URI column shows <strong>—</strong> because request URI tracking is off. Enable <strong>Record request URI</strong> below, then click <strong>Set</strong>.</p>
-                            </div>
-                            <form id="configure-history" class="activity-recording-form">
-                                <fieldset class="activity-recording-fieldset">
-                                    <legend class="sr-only">Recent query recording</legend>
-                                    <div class="activity-recording-fields activity-recording-fields-split">
-                                        <div class="activity-recording-field">
-                                            <label for="threshold-preset" class="control-label">Slow query threshold</label>
-                                            <div class="activity-recording-controls">
-                                                <select class="form-control input-sm" id="threshold-preset" title="Only queries slower than this are recorded"/>
-                                                <span class="activity-recording-custom" id="threshold-custom-wrap" hidden="hidden">
-                                                    <input type="number" class="form-control input-sm" id="threshold-custom" min="1" step="1" title="Custom threshold in milliseconds"/>
-                                                    <span class="activity-recording-unit">ms</span>
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div class="activity-recording-field">
-                                            <label for="history-preset" class="control-label">Keep on server for</label>
-                                            <div class="activity-recording-controls">
-                                                <select class="form-control input-sm" id="history-preset" title="How long eXist retains entries in rolling history"/>
-                                                <span class="activity-recording-custom" id="history-custom-wrap" hidden="hidden">
-                                                    <input type="number" class="form-control input-sm" id="history-custom" min="1" step="1" title="Custom retention in minutes"/>
-                                                    <span class="activity-recording-unit">minutes</span>
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="activity-recording-toolbar">
-                                        <label class="activity-recording-uri-check" for="track-uri">
-                                            <input type="checkbox" id="track-uri" title="Fill the URI column (small overhead)"/> Record request URI
-                                        </label>
-                                        <div class="activity-recording-actions">
-                                            <button type="submit" class="btn btn-primary btn-sm" id="configure">Set</button>
-                                            <span class="activity-recording-status" id="configure-status" aria-live="polite"/>
-                                            <span class="activity-recording-dirty text-warning" id="configure-dirty" hidden="hidden">Unsaved changes</span>
-                                        </div>
-                                    </div>
-                                </fieldset>
-                            </form>
-                            <p class="activity-recording-footnote">Set updates eXist immediately. Reloading clears row buffers in this browser; display retention stays in the toolbar.</p>
-                        </div>
                     </div>
                 </div>
             </section>
         </div>
 
+        <div class="modal fade" id="recording-settings-modal" tabindex="-1" role="dialog" aria-labelledby="recording-settings-title">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                        <h4 class="modal-title" id="recording-settings-title">Server recording</h4>
+                        <p class="modal-subtitle">Affects the Recent queries table on the server</p>
+                    </div>
+                    <div class="modal-body activity-recording-panel-body" id="configure-history-wrap">
+                        <div class="activity-recording-callout" id="activity-uri-tracking-callout" data-bind="visible: showTrackUriHint" role="status">
+                            <i class="fa fa-info-circle" aria-hidden="true"/>
+                            <p>URI column shows <strong>—</strong> because request URI tracking is off. Enable <strong>Record request URI</strong> below, then click <strong>Set</strong>.</p>
+                        </div>
+                        <form id="configure-history" class="activity-recording-form">
+                            <fieldset class="activity-recording-fieldset">
+                                <legend class="sr-only">Recent query recording</legend>
+                                <div class="activity-recording-fields activity-recording-fields-split">
+                                    <div class="activity-recording-field">
+                                        <label for="threshold-preset" class="control-label">Slow query threshold</label>
+                                        <div class="activity-recording-controls">
+                                            <select class="form-control input-sm" id="threshold-preset" title="Only queries slower than this are recorded"/>
+                                            <span class="activity-recording-custom" id="threshold-custom-wrap" hidden="hidden">
+                                                <input type="number" class="form-control input-sm" id="threshold-custom" min="1" step="1" title="Custom threshold in milliseconds"/>
+                                                <span class="activity-recording-unit">ms</span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="activity-recording-field">
+                                        <label for="history-preset" class="control-label">Record on server for</label>
+                                        <div class="activity-recording-controls">
+                                            <select class="form-control input-sm" id="history-preset" title="How long eXist retains entries in rolling history"/>
+                                            <span class="activity-recording-custom" id="history-custom-wrap" hidden="hidden">
+                                                <input type="number" class="form-control input-sm" id="history-custom" min="1" step="1" title="Custom retention in minutes"/>
+                                                <span class="activity-recording-unit">minutes</span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="activity-recording-toolbar">
+                                    <label class="activity-recording-uri-check" for="track-uri">
+                                        <input type="checkbox" id="track-uri" title="Fill the URI column (small overhead)"/> Record request URI
+                                    </label>
+                                    <div class="activity-recording-actions">
+                                        <button type="submit" class="btn btn-primary btn-sm" id="configure">Set</button>
+                                        <span class="activity-recording-status" id="configure-status" aria-live="polite"/>
+                                        <span class="activity-recording-dirty text-warning" id="configure-dirty" hidden="hidden">Unsaved changes</span>
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </form>
+                        <p class="activity-recording-footnote">Set updates eXist immediately. Reloading clears row buffers in this browser; <strong>Keep visible</strong> in the toolbar controls display retention only.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="dashboard-system-footer">
             <span class="system-summary">
-                <span class="label database-status-label" data-bind="visible: databaseStatus($data.jmx), text: databaseStatus($data.jmx), css: databaseStatusClass($data.jmx)"/>
                 <span data-bind="text: jmx.SystemInfo.ProductName"/> <span data-bind="text: jmx.SystemInfo.ProductVersion"/>
                 · <span data-bind="text: jmx.SystemInfo.OperatingSystem"/>
                 · Java <span data-template="app:java-version-inline"/>

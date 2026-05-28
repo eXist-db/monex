@@ -39,11 +39,31 @@ function availableBrokerCount(jmx) {
 }
 
 function brokerKpiSubline(jmx) {
-    var available = availableBrokerCount(jmx);
-    if (available === null) {
+    return brokerPoolSubline(jmx);
+}
+
+function brokerPoolSubline(jmx) {
+    var idle = availableBrokerCount(jmx);
+    if (idle === null) {
         return "";
     }
-    return available + " free";
+    return idle + " idle";
+}
+
+function brokerPoolSummaryText(jmx) {
+    var active = activeBrokerCount(jmx);
+    var max = maxBrokerCount(jmx);
+    var idle = availableBrokerCount(jmx);
+    var parts = [active + " in use"];
+    if (idle !== null) {
+        parts.push(idle + " idle");
+    }
+    parts.push(max + " configured max");
+    return parts.join(" · ");
+}
+
+function brokerPoolSummaryTitle() {
+    return "ActiveBrokers in use · AvailableBrokers idle · MaxBrokers configured maximum";
 }
 
 function brokerPoolPercent(jmx) {
@@ -53,6 +73,27 @@ function brokerPoolPercent(jmx) {
         return 0;
     }
     return Math.round(active / (max / 100));
+}
+
+function brokerInUsePercent(jmx) {
+    var max = maxBrokerCount(jmx);
+    if (max <= 0) {
+        return 0;
+    }
+    return Math.round(activeBrokerCount(jmx) / max * 100);
+}
+
+function brokerIdlePercent(jmx) {
+    var max = maxBrokerCount(jmx);
+    var idle = availableBrokerCount(jmx);
+    if (max <= 0 || idle === null) {
+        return 0;
+    }
+    return Math.round(idle / max * 100);
+}
+
+function brokerPoolLegendText(jmx) {
+    return activeBrokerCount(jmx) + " / " + maxBrokerCount(jmx);
 }
 
 function runningQueryCount(jmx) {
@@ -336,6 +377,27 @@ function readyVectorModels(vector) {
     });
 }
 
+function catalogVectorModels(vector) {
+    if (!vector || !vector.models) {
+        return [];
+    }
+    return ko.isObservable(vector.models) ? vector.models() : vector.models;
+}
+
+function visibleCatalogModels(viewModel, vector) {
+    var models = catalogVectorModels(vector);
+    var showMissing = viewModel && viewModel.showMissingVectorModels &&
+        typeof viewModel.showMissingVectorModels === "function" &&
+        viewModel.showMissingVectorModels();
+    if (showMissing) {
+        return models;
+    }
+    return models.filter(function(model) {
+        var status = ko.isObservable(model.status) ? model.status() : model.status;
+        return status === "available";
+    });
+}
+
 function vectorMissingCount(vector) {
     if (!vector) {
         return 0;
@@ -349,10 +411,71 @@ function vectorModelLabel(model) {
     if (!model) {
         return "";
     }
-    var id = ko.isObservable(model.id) ? model.id() : model.id;
+    return vectorModelName(model) + " · " + vectorModelSpec(model);
+}
+
+function vectorModelName(model) {
+    if (!model) {
+        return "";
+    }
+    return ko.isObservable(model.id) ? model.id() : model.id;
+}
+
+function vectorModelSpec(model) {
+    if (!model) {
+        return "";
+    }
     var dimension = ko.isObservable(model.dimension) ? model.dimension() : model.dimension;
     var provider = ko.isObservable(model.provider) ? model.provider() : model.provider;
-    return id + " · " + dimension + "d · " + provider;
+    return dimension + "d · " + provider;
+}
+
+function vectorModelStatusDotClass(model) {
+    if (!model) {
+        return "not-ready";
+    }
+    var status = ko.isObservable(model.status) ? model.status() : model.status;
+    return status === "available" ? "ready" : "not-ready";
+}
+
+function vectorCatalogCountText(vector) {
+    if (!vector || !vector.available || !vector.available()) {
+        return "0";
+    }
+    return String(vector.total());
+}
+
+function vectorModelStoreSummary(viewModel) {
+    if (!viewModel || !viewModel.vectorStore || !viewModel.vectorStore.available ||
+        !viewModel.vectorStore.available()) {
+        return "—";
+    }
+    if (viewModel.vectorStoreSummaryText) {
+        return viewModel.vectorStoreSummaryText();
+    }
+    return Monex.vector.vectorStoreSummary(viewModel.vectorStore);
+}
+
+function vectorModelStoreTooltip(viewModel) {
+    if (!viewModel || !viewModel.vectorStore) {
+        return "";
+    }
+    return vectorStoreEntryTooltip(viewModel.vectorStore);
+}
+
+function vectorPanelVisible(viewModel) {
+    if (!viewModel) {
+        return false;
+    }
+    var vector = viewModel.vector;
+    var store = viewModel.vectorStore;
+    if (vector && typeof vector.available === "function" && vector.available()) {
+        return true;
+    }
+    if (store && typeof store.available === "function" && store.available()) {
+        return true;
+    }
+    return false;
 }
 
 function vectorStatusClass(status) {
@@ -388,6 +511,18 @@ function vectorEmbeddingsKpiTitle(vector) {
     return ready + " ready · " + total + " in catalog";
 }
 
+function vectorEmbeddingsKpiClass(vector) {
+    if (!vector || !vector.available || !vector.available()) {
+        return {};
+    }
+    var ready = vector.ready();
+    var total = vector.total();
+    if (total > 0 && ready === 0) {
+        return { "kpi-critical": true };
+    }
+    return {};
+}
+
 function vectorCatalogPanelLine(vector) {
     if (!vector || !vector.available || !vector.available()) {
         return "";
@@ -403,18 +538,6 @@ function vectorCatalogPanelLine(vector) {
     return ready + " ready · " + total + " in catalog";
 }
 
-function vectorEmbeddingsKpiClass(vector) {
-    if (!vector || !vector.available || !vector.available()) {
-        return {};
-    }
-    var ready = vector.ready();
-    var total = vector.total();
-    if (total > 0 && ready === 0) {
-        return { "kpi-critical": true };
-    }
-    return {};
-}
-
 function vectorEntriesKpiVisible(viewModel) {
     return !!(viewModel && viewModel.vectorStore &&
         viewModel.vectorStore.available && viewModel.vectorStore.available());
@@ -425,6 +548,21 @@ function vectorEntriesKpiText(vectorStore) {
         return "—";
     }
     return String(vectorStore.entryCount());
+}
+
+function vectorStoreEntryTooltip(store) {
+    var backend = "";
+    if (store && store.storageBackend) {
+        backend = typeof store.storageBackend === "function" ? store.storageBackend() : store.storageBackend;
+    }
+    var parts = [
+        "Entries stored in the vector database file (vector.dbx)",
+        "Not the same as Lucene vector-field index definitions in Browse Indexes"
+    ];
+    if (backend) {
+        parts.push("Storage backend: " + backend);
+    }
+    return parts.join(". ");
 }
 
 function createVectorViewModel(data) {
@@ -473,7 +611,13 @@ Monex.kpi = {
     maxBrokerCount: maxBrokerCount,
     availableBrokerCount: availableBrokerCount,
     brokerKpiSubline: brokerKpiSubline,
+    brokerPoolSubline: brokerPoolSubline,
+    brokerPoolSummaryText: brokerPoolSummaryText,
+    brokerPoolSummaryTitle: brokerPoolSummaryTitle,
     brokerPoolPercent: brokerPoolPercent,
+    brokerInUsePercent: brokerInUsePercent,
+    brokerIdlePercent: brokerIdlePercent,
+    brokerPoolLegendText: brokerPoolLegendText,
     runningQueryCount: runningQueryCount,
     bufferedRunningQueryCount: bufferedRunningQueryCount,
     bufferedRecentQueryCount: bufferedRecentQueryCount,
@@ -502,8 +646,17 @@ Monex.kpi = {
     databaseStatusClass: databaseStatusClass,
     databaseExistHome: databaseExistHome,
     readyVectorModels: readyVectorModels,
+    catalogVectorModels: catalogVectorModels,
+    visibleCatalogModels: visibleCatalogModels,
     vectorMissingCount: vectorMissingCount,
     vectorModelLabel: vectorModelLabel,
+    vectorModelName: vectorModelName,
+    vectorModelSpec: vectorModelSpec,
+    vectorModelStatusDotClass: vectorModelStatusDotClass,
+    vectorCatalogCountText: vectorCatalogCountText,
+    vectorModelStoreSummary: vectorModelStoreSummary,
+    vectorModelStoreTooltip: vectorModelStoreTooltip,
+    vectorPanelVisible: vectorPanelVisible,
     vectorStatusClass: vectorStatusClass,
     vectorEmbeddingsKpiVisible: vectorEmbeddingsKpiVisible,
     vectorEmbeddingsKpiText: vectorEmbeddingsKpiText,
@@ -512,6 +665,7 @@ Monex.kpi = {
     vectorEmbeddingsKpiClass: vectorEmbeddingsKpiClass,
     vectorEntriesKpiVisible: vectorEntriesKpiVisible,
     vectorEntriesKpiText: vectorEntriesKpiText,
+    vectorStoreEntryTooltip: vectorStoreEntryTooltip,
     createVectorViewModel: createVectorViewModel,
     updateVectorDiagnostics: updateVectorDiagnostics,
     uptime: uptime
