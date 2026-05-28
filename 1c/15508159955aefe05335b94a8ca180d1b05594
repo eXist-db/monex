@@ -1,0 +1,38 @@
+src/main/xar-resources/resources/scripts/util.js
+  s_96c32dd88574e5::t_972620aedcb1c1 443-450,454-458
+src/main/xar-resources/resources/css/style.css
+  s_96c32dd88574e5::t_a99046a6aef813 857-858
+  s_96c32dd88574e5::t_a53c2122af1eca 1348-1352
+  s_96c32dd88574e5::t_4c6ff6dd603f74 355
+  s_96c32dd88574e5::t_576dce8bc99efd 829-830
+  s_96c32dd88574e5::t_838a2d237aae77 317,319-326
+src/main/xar-resources/details.html
+  s_96c32dd88574e5::t_1d9b60430cb1d8 181
+  s_96c32dd88574e5::t_19e45f2b16e1aa 82
+src/main/xar-resources/modules/indexes.xqm
+  s_96c32dd88574e5::t_6e367d75459531 307
+  s_96c32dd88574e5::t_257a0b3f514dcb 936
+src/test/cypress/e2e/indexes_spec.cy.js
+  s_96c32dd88574e5::t_ad3cbf8a087d35 35
+  s_96c32dd88574e5::t_8ba9d33105c4f7 19
+src/main/xar-resources/index.html
+  s_96c32dd88574e5::t_26f54b875164c3 108
+  s_96c32dd88574e5::t_6d7d063a8e6b6c 91,93-96
+  s_96c32dd88574e5::t_b0b45a0c83766c 305
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "1c15508159955aefe05335b94a8ca180d1b05594",
+  "prompts": {},
+  "sessions": {
+    "s_96c32dd88574e5": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "97e3a87c-fb43-4e98-b07e-e4ff18eb545c",
+        "model": "composer-2.5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
