@@ -132,6 +132,26 @@
                                 <div class="progress-bar" data-bind="css: capacityBarClass(brokerPoolPercent($data.jmx)), style: { width: brokerPoolPercent($data.jmx) + '%' }"/>
                             </div>
                         </div>
+                        <!-- ko if: diskMetricsAvailable($data.jmx) -->
+                        <div class="broker-pool-row disk-capacity-row">
+                            <div class="gauge-headline">
+                                <strong>Data directory</strong>
+                                <span data-bind="text: diskDirectoryLabel($data.jmx, 'DataDirectory')">—</span>
+                            </div>
+                            <div class="progress xs">
+                                <div class="progress-bar" data-bind="css: capacityBarClass(dataDirectoryUsedPercent($data.jmx)), style: { width: dataDirectoryUsedPercent($data.jmx) + '%' }"/>
+                            </div>
+                        </div>
+                        <div class="broker-pool-row disk-capacity-row">
+                            <div class="gauge-headline">
+                                <strong>Journal directory</strong>
+                                <span data-bind="text: diskDirectoryLabel($data.jmx, 'JournalDirectory')">—</span>
+                            </div>
+                            <div class="progress xs">
+                                <div class="progress-bar" data-bind="css: capacityBarClass(journalDirectoryUsedPercent($data.jmx)), style: { width: journalDirectoryUsedPercent($data.jmx) + '%' }"/>
+                            </div>
+                        </div>
+                        <!-- /ko -->
                     </div>
                     <div class="box-footer">
                         <button type="button" class="btn btn-primary btn-sm" id="gc-btn" data-bind="visible: parseInt($data?.jmx?.version?.() ?? 0) &gt; 0, click: gc">Garbage Collect</button>
@@ -301,6 +321,7 @@
                                     <thead>
                                         <tr>
                                             <th>Id</th>
+                                            <th>Elapsed</th>
                                             <th>Source</th>
                                             <th>Status</th>
                                             <th>URI</th>
@@ -310,6 +331,7 @@
                                     <tbody data-bind="foreach: { data: runningQueriesForDisplay, afterRender: initActivityRow }">
                                         <tr data-bind="css: { 'activity-row-ended': activityEnded }, attr: { 'data-activity-row-key': activityRowFlyoutKey($data) }">
                                             <td class="activity-id-cell" data-bind="text: ( $data.thread ?? $data.value?.thread ?? $data.id ?? $data.value?.id )"/>
+                                            <td class="activity-elapsed-cell" data-bind="text: runningQueryElapsedText($data)"/>
                                             <td class="activity-source-cell">
                                                 <span class="source-key" data-bind="text: ( $data?.sourceKey?.() ?? $data?.value?.sourceKey?.() ?? $data?.sourceKey ?? $data?.value?.sourceKey ?? '' )?.replace(/^.*\/([^\/]+)$/, '$1') ?? '???', attr: { title: ( $data?.sourceKey?.() ?? $data?.value?.sourceKey?.() ?? $data?.sourceKey ?? $data?.value?.sourceKey ?? '' ) }" data-toggle="tooltip"/>
                                             </td>

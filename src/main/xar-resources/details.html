@@ -192,6 +192,7 @@
                                     <thead>
                                         <tr>
                                             <th>Id</th>
+                                            <th>Elapsed</th>
                                             <th>Source</th>
                                             <th>Status</th>
                                             <th>URI</th>
@@ -200,6 +201,7 @@
                                     <tbody data-bind="foreach: { data: runningQueriesForDisplay, afterRender: initActivityRow }">
                                         <tr data-bind="css: { 'activity-row-ended': activityEnded }, attr: { 'data-activity-row-key': activityRowFlyoutKey($data) }">
                                             <td class="activity-id-cell thread" data-bind="text: ( $data?.thread?.() ?? $data?.thread ?? $data?.id?.() ?? $data?.id ?? '' )"/>
+                                            <td class="activity-elapsed-cell" data-bind="text: runningQueryElapsedText($data)"/>
                                             <td class="activity-source-cell">
                                                 <span class="source-key" data-bind="text: ( $data?.sourceKey?.() ?? $data?.sourceKey ?? '' )?.replace(/^.*\/([^\/]+)$/, '$1') ?? '???', attr: { title: ( $data?.sourceKey?.() ?? $data?.sourceKey ?? '' ) }" data-toggle="tooltip"/>
                                             </td>

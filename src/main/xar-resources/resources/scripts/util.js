@@ -223,7 +223,8 @@ JMX.util = (function() {
             thread: thread !== undefined && thread !== null ? jmxFieldText(thread) : "",
             sourceKey: jmxFieldText(runningQueryField(row, "sourceKey")),
             requestURI: jmxFieldText(runningQueryField(row, "requestURI")),
-            terminating: jmxFieldText(runningQueryField(row, "terminating")) || "false"
+            terminating: jmxFieldText(runningQueryField(row, "terminating")) || "false",
+            elapsed: jmxFieldText(runningQueryField(row, "elapsed"))
         };
     }
 
@@ -271,7 +272,30 @@ JMX.util = (function() {
         if (!!a.activityEnded !== !!b.activityEnded) {
             return a.activityEnded ? 1 : -1;
         }
+        if (!a.activityEnded && !b.activityEnded) {
+            var elapsedA = parseInt(a.elapsed, 10) || 0;
+            var elapsedB = parseInt(b.elapsed, 10) || 0;
+            if (elapsedA !== elapsedB) {
+                return elapsedB - elapsedA;
+            }
+        }
         return String(a.id || a.thread || "").localeCompare(String(b.id || b.thread || ""));
+    }
+
+    function formatQueryElapsed(ms) {
+        var n = parseInt(ms, 10);
+        if (isNaN(n) || n < 0) {
+            return "";
+        }
+        if (n < 1000) {
+            return n + " ms";
+        }
+        if (n < 60000) {
+            return (n / 1000).toFixed(1) + " s";
+        }
+        var mins = Math.floor(n / 60000);
+        var secs = Math.floor((n % 60000) / 1000);
+        return mins + "m " + secs + "s";
     }
 
     function sortRecentQueriesNewestFirst(a, b) {
@@ -767,6 +791,7 @@ JMX.util = (function() {
         runningQueryField: runningQueryField,
         runningQueryKillId: runningQueryKillId,
         formatActivityUri: formatActivityUri,
+        formatQueryElapsed: formatQueryElapsed,
         activityUriTitle: activityUriTitle,
         activityRequestUri: activityRequestUri,
         jmxFieldText: jmxFieldText

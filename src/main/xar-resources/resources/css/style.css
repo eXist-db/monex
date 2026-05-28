@@ -474,7 +474,8 @@ body > .header .logo {
     width: 18%;
 }
 
-.activity-recent-table .activity-elapsed-cell {
+.activity-recent-table .activity-elapsed-cell,
+.activity-query-table .activity-elapsed-cell {
     width: 12%;
     white-space: nowrap;
 }

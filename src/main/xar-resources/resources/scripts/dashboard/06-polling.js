@@ -194,7 +194,7 @@ JMX.connection = (function() {
             var name = currentInstance.name();
             if (name == "localhost") {
                 url = location.pathname.replace(/^(.*?)\/(apps\/)?monex\/.*$/, "$1") +
-                    "/status?c=instances&c=processes&c=locking&c=memory&c=caches&c=system&c=operatingsystem&c=vector&token=" + currentInstance.token;
+                    "/status?c=instances&c=processes&c=locking&c=memory&c=caches&c=system&c=operatingsystem&c=disk&c=vector&token=" + currentInstance.token;
             } else {
                 url = "modules/remote.xql?name=" + name;
             }

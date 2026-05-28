@@ -374,6 +374,10 @@ function activityUriLabel(row) {
     return JMX.util.formatActivityUri(JMX.util.activityRequestUri(row));
 }
 
+function runningQueryElapsedText(row) {
+    return JMX.util.formatQueryElapsed(JMX.util.jmxFieldText(JMX.util.runningQueryField(row, "elapsed")));
+}
+
 function activityUriTitle(row) {
     return JMX.util.activityUriTitle(JMX.util.activityRequestUri(row));
 }
@@ -884,6 +888,63 @@ function formatCpuLoad(ratio) {
     return Math.round(pct) + "%";
 }
 
+function diskUsageNode(jmx) {
+    if (!jmx || !jmx.DiskUsage) {
+        return null;
+    }
+    return jmx.DiskUsage;
+}
+
+function diskMetricsAvailable(jmx) {
+    return !!diskUsageNode(jmx);
+}
+
+function diskDirectoryBytes(jmx, key) {
+    var node = diskUsageNode(jmx);
+    if (!node) {
+        return 0;
+    }
+    return parseInt(jmxValue(node[key]), 10) || 0;
+}
+
+function formatDiskBytes(bytes) {
+    var n = parseInt(bytes, 10) || 0;
+    if (n < 1024 * 1024) {
+        return Math.round(n / 1024) + " KB";
+    }
+    if (n < 1024 * 1024 * 1024) {
+        return (n / (1024 * 1024)).toFixed(1) + " MB";
+    }
+    return (n / (1024 * 1024 * 1024)).toFixed(1) + " GB";
+}
+
+function diskDirectoryUsedPercent(jmx, prefix) {
+    var used = diskDirectoryBytes(jmx, prefix + "UsedSpace");
+    var total = diskDirectoryBytes(jmx, prefix + "TotalSpace");
+    if (total <= 0) {
+        return 0;
+    }
+    return Math.min(100, Math.round(used / (total / 100)));
+}
+
+function dataDirectoryUsedPercent(jmx) {
+    return diskDirectoryUsedPercent(jmx, "DataDirectory");
+}
+
+function journalDirectoryUsedPercent(jmx) {
+    return diskDirectoryUsedPercent(jmx, "JournalDirectory");
+}
+
+function diskDirectoryLabel(jmx, prefix) {
+    var used = diskDirectoryBytes(jmx, prefix + "UsedSpace");
+    var total = diskDirectoryBytes(jmx, prefix + "TotalSpace");
+    if (total <= 0) {
+        return formatDiskBytes(used) + " used";
+    }
+    return formatDiskBytes(used) + " / " + formatDiskBytes(total) +
+        " (" + diskDirectoryUsedPercent(jmx, prefix) + "%)";
+}
+
 function readyVectorModels(vector) {
     if (!vector || !vector.models) {
         return [];
@@ -946,9 +1007,6 @@ function vectorEmbeddingsKpiClass(vector) {
     var total = vector.total();
     if (total > 0 && ready === 0) {
         return { "kpi-critical": true };
-    }
-    if (total > 0 && ready < total) {
-        return { "kpi-warn": true };
     }
     return {};
 }
@@ -1026,6 +1084,10 @@ Monex.kpi = {
     processCpuLoadPercent: processCpuLoadPercent,
     systemCpuLoadPercent: systemCpuLoadPercent,
     formatCpuLoad: formatCpuLoad,
+    diskMetricsAvailable: diskMetricsAvailable,
+    dataDirectoryUsedPercent: dataDirectoryUsedPercent,
+    journalDirectoryUsedPercent: journalDirectoryUsedPercent,
+    diskDirectoryLabel: diskDirectoryLabel,
     readyVectorModels: readyVectorModels,
     vectorMissingCount: vectorMissingCount,
     vectorModelLabel: vectorModelLabel,
@@ -1434,7 +1496,7 @@ JMX.connection = (function() {
             var name = currentInstance.name();
             if (name == "localhost") {
                 url = location.pathname.replace(/^(.*?)\/(apps\/)?monex\/.*$/, "$1") +
-                    "/status?c=instances&c=processes&c=locking&c=memory&c=caches&c=system&c=operatingsystem&c=vector&token=" + currentInstance.token;
+                    "/status?c=instances&c=processes&c=locking&c=memory&c=caches&c=system&c=operatingsystem&c=disk&c=vector&token=" + currentInstance.token;
             } else {
                 url = "modules/remote.xql?name=" + name;
             }

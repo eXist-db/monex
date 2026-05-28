@@ -79,6 +79,10 @@ function activityUriLabel(row) {
     return JMX.util.formatActivityUri(JMX.util.activityRequestUri(row));
 }
 
+function runningQueryElapsedText(row) {
+    return JMX.util.formatQueryElapsed(JMX.util.jmxFieldText(JMX.util.runningQueryField(row, "elapsed")));
+}
+
 function activityUriTitle(row) {
     return JMX.util.activityUriTitle(JMX.util.activityRequestUri(row));
 }
