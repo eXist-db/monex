@@ -88,9 +88,12 @@
             </div>
             <!-- /ko -->
             <!-- ko if: vectorEmbeddingsKpiVisible($data) -->
-            <div class="kpi-cell kpi-neutral" data-bind="css: vectorEmbeddingsKpiClass(vector), attr: { title: (vectorEmbeddingsKpiTitle(vector) + (vector.knnBackend() ? (' · KNN: ' + vector.knnBackend()) : '')) }">
+            <div class="kpi-cell" data-bind="css: vectorEmbeddingsKpiClass(vector), attr: { title: (vectorEmbeddingsKpiTitle(vector) + (vector.knnBackend() ? (' · KNN: ' + vector.knnBackend()) : '')) }">
                 <span class="kpi-label">Models</span>
-                <span class="kpi-value" data-bind="text: vectorEmbeddingsKpiText(vector)">—</span>
+                <span class="kpi-value">
+                    <span data-bind="text: vector.ready()">—</span>
+                    <span class="kpi-sub">/ <span data-bind="text: vector.total()">—</span></span>
+                </span>
             </div>
             <!-- /ko -->
             <!-- ko if: vectorEntriesKpiVisible($data) -->
@@ -102,7 +105,7 @@
         </div>
 
         <div class="row dashboard-main">
-            <section class="col-lg-7 dashboard-capacity">
+            <section class="col-md-12 col-lg-7 dashboard-capacity">
                 <div class="box dashboard-panel">
                     <div class="box-header">
                         <h3 class="box-title">Java Memory</h3>
@@ -299,7 +302,7 @@
                 </div>
             </section>
 
-            <section class="col-lg-5 workload-panel">
+            <section class="col-md-12 col-lg-5 workload-panel">
                 <div class="box dashboard-panel dashboard-panel-slim" data-bind="visible: cpuMetricsAvailable($data.jmx)">
                     <div class="box-header with-border">
                         <h3 class="box-title">CPU</h3>

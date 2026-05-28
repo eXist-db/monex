@@ -314,8 +314,16 @@ body > .header .logo {
 }
 
 .running-queries.activity-query-table {
-    table-layout: fixed;
+    table-layout: auto;
     width: 100%;
+    min-width: 640px;
+    margin-bottom: 0;
+}
+
+.activity-recent-table {
+    table-layout: auto;
+    width: 100%;
+    min-width: 560px;
     margin-bottom: 0;
 }
 
@@ -344,10 +352,8 @@ body > .header .logo {
 }
 
 .activity-query-table .activity-uri-cell {
-    overflow: hidden;
-    text-overflow: ellipsis;
+    min-width: 12em;
     white-space: nowrap;
-    max-width: 0;
 }
 
 .activity-query-table .activity-actions-col,
@@ -378,9 +384,6 @@ body > .header .logo {
 
 .activity-uri-link {
     display: inline-block;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
     vertical-align: bottom;
     cursor: pointer;
@@ -823,8 +826,8 @@ body > .header .logo {
 
 .memory-sparkline-wrap {
     overflow: hidden;
-    height: 120px;
-    min-height: 120px;
+    height: 240px;
+    min-height: 240px;
     margin: 0 12px 12px;
     position: relative;
 }
@@ -851,8 +854,8 @@ body > .header .logo {
 .memory-sparkline-wrap .memory-sparkline {
     display: block;
     width: 100% !important;
-    height: 120px !important;
-    min-height: 120px;
+    height: 240px !important;
+    min-height: 240px;
     margin: 0;
 }
 
@@ -1340,6 +1343,11 @@ body > .header .logo {
 
 .indexes-browse tr.indexes-vector-row {
     background-color: #f4fbff;
+}
+
+.indexes-browse .indexes-item-indexed-sub {
+    padding-left: 1.25em;
+    color: #555;
 }
 
 .indexes-browse .indexes-vector-store-subhead {

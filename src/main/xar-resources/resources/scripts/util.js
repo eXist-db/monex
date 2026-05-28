@@ -440,15 +440,22 @@ JMX.util = (function() {
         savedServerHistoryTimespanMs = historyMs;
         savedTrackUri = trackUri;
 
-        $("#threshold-preset").val(presetValueForMs(thresholdMs, THRESHOLD_PRESETS));
-        if ($("#threshold-preset").val() === "custom") {
-            $("#threshold-custom").val(thresholdMs);
+        var thresholdIsCustom = $("#threshold-preset").val() === "custom";
+        var historyIsCustom = $("#history-preset").val() === "custom";
+
+        if (!thresholdIsCustom) {
+            $("#threshold-preset").val(presetValueForMs(thresholdMs, THRESHOLD_PRESETS));
+            if ($("#threshold-preset").val() === "custom") {
+                $("#threshold-custom").val(thresholdMs);
+            }
         }
         toggleCustomWrap($("#threshold-preset"), $("#threshold-custom-wrap"));
 
-        $("#history-preset").val(presetValueForMs(historyMs, HISTORY_PRESETS));
-        if ($("#history-preset").val() === "custom") {
-            $("#history-custom").val(Math.max(1, Math.round(historyMs / 60000)));
+        if (!historyIsCustom) {
+            $("#history-preset").val(presetValueForMs(historyMs, HISTORY_PRESETS));
+            if ($("#history-preset").val() === "custom") {
+                $("#history-custom").val(Math.max(1, Math.round(historyMs / 60000)));
+            }
         }
         toggleCustomWrap($("#history-preset"), $("#history-custom-wrap"));
 

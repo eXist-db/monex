@@ -304,7 +304,7 @@ function indexes:summary($node as node(), $model as map(*)) {
             <div class="box-body no-padding">
                 <div class="kpi-strip indexes-kpi">
                     {indexes:kpi-cell("Collections", string($total-collections))}
-                    {indexes:kpi-cell("With vector", string($vector-collections))}
+                    {indexes:kpi-cell("With vector stores", string($vector-collections))}
                 </div>
                 <h4 class="indexes-section-title">Configured collections</h4>
                 <div class="indexes-table-wrap">
@@ -388,12 +388,6 @@ declare function indexes:xconf-to-table($node as node(), $model as map(*)) as it
                     <a href="{$link}" target="eXide" class="eXide-open" data-exide-open="{$resource}">Open .xconf in eXide</a>
                     {if (not($has-data)) then <span class="indexes-no-data">Data collection missing</span> else ()}
                 </div>
-                {if (string($stats?vector-store) ne "") then
-                    <p class="panel-subhead indexes-vector-store-subhead">
-                        Vector store: <strong>{string($stats?vector-store)}</strong>
-                        {' '}{indexes:vector-badge()}
-                    </p>
-                else ()}
                 <h4 class="indexes-section-title">Index definitions</h4>
                 <div class="indexes-table-wrap">
                     <table class="table table-striped indexes-definitions">
@@ -923,7 +917,6 @@ declare function indexes:analyze-lucene-indexes($xconf) {
             (
                 <tr>
                     <td>
-                        {if (exists($facets-fields)) then attribute rowspan { count($facets-fields) + 1 } else () }
                         {if ($qname) then $qname else $match}
                         {if ($no-index) then " (not indexed)" else ()}
                         {if ($text/@boost) then concat(' (boost: ', $text/@boost/string(), ')') else ()}
@@ -940,7 +933,7 @@ declare function indexes:analyze-lucene-indexes($xconf) {
                 for $f in $facets-fields
                 return
                     <tr class="{if ($f instance of element(cc:vector-field)) then 'indexes-vector-row' else ()}">
-                        <td>{if ($f instance of element(cc:vector-field)) then
+                        <td class="indexes-item-indexed-sub">{if ($f instance of element(cc:vector-field)) then
                             $f/@name/string()
                         else
                             string(($f/(@dimension | @name)/string(), $f/name())[1])
