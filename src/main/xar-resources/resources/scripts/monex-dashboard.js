@@ -1655,10 +1655,16 @@ JMX.connection = (function() {
     var onUpdateCb;
     var poll = true;
     var pollPeriod = 1000;
+    var pollInFlight = false;
+    var pollTimer = null;
     var lastLiveRunningQueryCount = 0;
     var visibilityListenerAttached = false;
+    var wsReconnectDelay = 1000;
 
-    $(window).on("beforeunload", function() { poll = false; });
+    $(window).on("beforeunload", function() {
+        poll = false;
+        if (pollTimer) { clearTimeout(pollTimer); pollTimer = null; }
+    });
 
     function Instance(config, schedulerActive) {
         this.name = ko.observable(config.name);
@@ -1773,9 +1779,16 @@ JMX.connection = (function() {
 
         connection.onclose = function() {
             $("#status").text("Disconnected.");
+            if (poll) {
+                setTimeout(function() {
+                    wsReconnectDelay = Math.min(wsReconnectDelay * 2, 30000);
+                    connect(channel, callback);
+                }, wsReconnectDelay);
+            }
         };
 
         connection.onopen = function() {
+            wsReconnectDelay = 1000;
             $("#status").text("Connected.");
             connection.send('{ "channel": "' + channel + '" }');
         };
@@ -1831,9 +1844,10 @@ JMX.connection = (function() {
 
         poll: function(onUpdate) {
             onUpdateCb = onUpdate;
-            if (!poll) {
+            if (!poll || pollInFlight) {
                 return;
             }
+            pollInFlight = true;
             ensureVisibilityListener();
 
             var url;
@@ -1852,6 +1866,7 @@ JMX.connection = (function() {
                 type: "GET",
                 timeout: 10000,
                 success: function(xml) {
+                    pollInFlight = false;
                     var pollFinished = performance.now();
                     $("#connection-alert").hide(400);
                     var data = JMX.util.fixjs(JMX.util.jmx2js(xml));
@@ -1899,16 +1914,17 @@ JMX.connection = (function() {
                         if (onUpdate) {
                             onUpdate(data);
                         }
-                        setTimeout(function() { JMX.connection.poll(onUpdate); }, effectivePollDelay());
+                        pollTimer = setTimeout(function() { JMX.connection.poll(onUpdate); }, effectivePollDelay());
                     } else {
                         $("#connection-alert").show(400).find(".message").text("No response from server. Retrying ...");
-                        setTimeout(function() { JMX.connection.poll(onUpdate); }, 5000);
+                        pollTimer = setTimeout(function() { JMX.connection.poll(onUpdate); }, 5000);
                     }
                 },
                 error: function() {
+                    pollInFlight = false;
                     $("#connection-alert").show(400).find(".message")
                         .text("Connection to server failed. Retrying ...");
-                    setTimeout(JMX.connection.poll, 5000);
+                    pollTimer = setTimeout(function() { JMX.connection.poll(onUpdate); }, 5000);
                 }
             });
         },
