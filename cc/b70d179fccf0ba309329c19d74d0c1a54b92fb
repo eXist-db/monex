@@ -1,0 +1,23 @@
+src/main/xar-resources/resources/scripts/dashboard/06-polling.js
+  s_6469df7e2af2a1::t_c65f851608f64f 225
+  s_6469df7e2af2a1::t_0c9b47cfe4fbf9 203,206
+  s_6469df7e2af2a1::t_4c70f5f14ab2ab 138-143,147
+  s_6469df7e2af2a1::t_4d6f440551392b 14-15,18,20-23
+  s_6469df7e2af2a1::t_9ee3d2485c50ba 273,276,280,283
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "ccb70d179fccf0ba309329c19d74d0c1a54b92fb",
+  "prompts": {},
+  "sessions": {
+    "s_6469df7e2af2a1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c572c6a8-db0e-4ddf-9312-0cfd6f41856e",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
