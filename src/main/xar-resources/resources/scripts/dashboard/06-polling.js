@@ -14,6 +14,8 @@ JMX.connection = (function() {
     var lastLiveRunningQueryCount = 0;
     var visibilityListenerAttached = false;
 
+    $(window).on("beforeunload", function() { poll = false; });
+
     function Instance(config, schedulerActive) {
         this.name = ko.observable(config.name);
         this.url = ko.observable(config.url);

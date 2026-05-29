@@ -168,7 +168,7 @@ function app:instances-data($node as node(), $model as map(*), $instance as xs:s
 };
 
 declare function app:btn-profiling($node as node(), $model as map(*)) {
-    if (system:tracing-enabled()) then
+    if (session:get-attribute("tracing-enabled")) then
         <a href="?action=disable" class="btn btn-default">
             <span class="glyphicon glyphicon-pause"/> Disable Tracing
         </a>
@@ -224,9 +224,15 @@ function app:profile($node as node(), $model as map(*), $action as xs:string?) {
         case "clear" return
             system:clear-trace()
         case "enable" return
-            system:enable-tracing(true())
+            (
+                system:enable-tracing(true()),
+                session:set-attribute("tracing-enabled", true())
+            )
         case "disable" return
-            system:enable-tracing(false())
+            (
+                system:enable-tracing(false()),
+                session:remove-attribute("tracing-enabled")
+            )
         case "tare" return
             (
                 session:set-attribute("tare", system:trace()),
