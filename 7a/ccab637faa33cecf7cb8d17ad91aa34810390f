@@ -1,0 +1,19 @@
+gulpfile.js
+  s_04a3ea5d0750d6::t_0feef1ab96fcb1 51
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "7accab637faa33cecf7cb8d17ad91aa34810390f",
+  "prompts": {},
+  "sessions": {
+    "s_04a3ea5d0750d6": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_18bda18ffffelb2MZc6ZbGMs83",
+        "model": "big-pickle"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
