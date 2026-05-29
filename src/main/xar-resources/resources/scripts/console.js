@@ -31,6 +31,7 @@ var RemoteConsole = (function() {
             };
 
             // Log messages from the server
+            // TODO(DP): Dead Code once v7 uses native pings https://github.com/eXist-db/exist/pull/6410
             connection.onmessage = function (e) {
                 if (e.data == "ping") {
                     return;

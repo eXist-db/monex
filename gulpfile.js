@@ -48,7 +48,7 @@ const paths = {
       "node_modules/knockout/build/output/knockout-latest.js",
       "node_modules/bootstrap-daterangepicker/daterangepicker.js",
       "node_modules/bootstrap-daterangepicker/moment.min.js",
-      "node_modules/chart.js/dist/chart.umd.min.js",
+      "node_modules/chart.js/dist/chart.umd.min.*",
       "node_modules/chartjs-adapter-moment/dist/chartjs-adapter-moment.min.js",
       "node_modules/hammerjs/hammer.min.js",
       "node_modules/chartjs-plugin-zoom/dist/chartjs-plugin-zoom.min.js",
