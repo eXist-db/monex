@@ -1,0 +1,22 @@
+src/main/xar-resources/modules/app.xql
+  s_04a3ea5d0750d6::t_a6edbc37fea533 227-230,232-235
+  s_04a3ea5d0750d6::t_dc194750e7a3fb 171
+src/main/xar-resources/resources/scripts/dashboard/06-polling.js
+  s_04a3ea5d0750d6::t_231ce467df9f6b 17-18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "6f3faae9264eb875594197a22dfdd09a91a171bc",
+  "prompts": {},
+  "sessions": {
+    "s_04a3ea5d0750d6": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_18bda18ffffelb2MZc6ZbGMs83",
+        "model": "big-pickle"
+      },
+      "human_author": null
+    }
+  }
+}
