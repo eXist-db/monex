@@ -1,0 +1,28 @@
+src/main/xar-resources/resources/scripts/dashboard/09-cpu-gauge.js
+  s_424c75c0dd0c76::t_8727fef4facdfd 74
+.github/dependabot.yml
+  s_424c75c0dd0c76::t_afe73459f6cc7a 7-10,18-28
+src/main/xar-resources/resources/scripts/dashboard/04-kpi.js
+  s_424c75c0dd0c76::t_68d7630fcaa754 456-458
+  s_424c75c0dd0c76::t_f262888ea7109c 562-563
+  s_424c75c0dd0c76::t_d0b841c2ddc157 572
+  s_424c75c0dd0c76::t_7f79f070a24ea8 569-570
+src/main/xar-resources/resources/css/style.css
+  s_424c75c0dd0c76::t_704def840fbcde 366-384
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "fc5dbe8c880053ebe16e3b1621fa8c4053c4bda3",
+  "prompts": {},
+  "sessions": {
+    "s_424c75c0dd0c76": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_18655f18effeDMVvxx7Nwc2zKk",
+        "model": "big-pickle"
+      },
+      "human_author": null
+    }
+  }
+}
