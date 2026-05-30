@@ -739,6 +739,24 @@ body > .header .logo {
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
     max-width: min(480px, 90vw);
     box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+.activity-flyout-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.activity-flyout-toolbar {
+    flex: 0 0 auto;
+    margin-right: 28px;
+}
+
+.activity-flyout-copy {
+    margin-top: 6px;
 }
 
 .poll-status-bar {
@@ -771,8 +789,6 @@ body > .header .logo {
     white-space: pre-wrap;
     word-break: break-all;
     font-size: 12px;
-    max-height: 200px;
-    overflow-y: auto;
 }
 
 .activity-uri-flyout-open {
@@ -798,8 +814,6 @@ body > .header .logo {
     word-break: break-word;
     font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
     font-size: 11px;
-    max-height: 420px;
-    overflow-y: auto;
 }
 
 .activity-query-table .kill-query {

@@ -543,7 +543,14 @@
                             <!-- ko if: activityFlyout.isStack -->
                             <div class="activity-stack-flyout-title" data-bind="text: activityFlyout.title"/>
                             <!-- /ko -->
-                            <pre data-bind="text: activityFlyout.body, css: { 'activity-uri-flyout-text': activityFlyout.isUri, 'activity-stack-flyout-text': activityFlyout.isStack }"/>
+                            <div class="activity-flyout-body">
+                                <pre data-bind="text: activityFlyout.body, css: { 'activity-uri-flyout-text': activityFlyout.isUri, 'activity-stack-flyout-text': activityFlyout.isStack }"/>
+                            </div>
+                            <!-- ko if: activityFlyout.isStack -->
+                            <div class="activity-flyout-toolbar">
+                                <button type="button" class="btn btn-xs btn-default activity-flyout-copy" data-bind="click: activityFlyout.copyToClipboard">Copy</button>
+                            </div>
+                            <!-- /ko -->
                             <!-- ko if: activityFlyout.showOpenLink -->
                             <a class="activity-uri-flyout-open" target="_blank" rel="noopener" data-bind="attr: { href: activityFlyout.openHref() }">Open in new tab ↗</a>
                             <!-- /ko -->

@@ -552,6 +552,9 @@ Monex.activity.createFlyoutModel = function(options) {
             model.open(false);
             model.rowKey("");
         },
+        copyToClipboard: function() {
+            navigator.clipboard.writeText(model.body()).catch(function() {});
+        },
         toggleUri: function(row, ev, baseUrl) {
             var key = activityRowFlyoutKey(row);
             if (model.open() && model.type() === "uri" && model.rowKey() === key) {
