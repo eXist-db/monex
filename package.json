@@ -53,8 +53,8 @@
     "prismjs": "^1.30.0"
   },
   "devDependencies": {
-    "@commitlint/cli": "^21.0.1",
-    "@commitlint/config-conventional": "^21.0.1",
+    "@commitlint/cli": "^21.0.2",
+    "@commitlint/config-conventional": "^21.0.2",
     "@existdb/gulp-exist": "^6.0.0",
     "@existdb/gulp-replace-tmpl": "^1.0.4",
     "@semantic-release/exec": "^7.1.0",
