@@ -1,0 +1,24 @@
+src/main/xar-resources/index.html
+  s_1b64240070147f::t_54368ae427493d 108,139,170,205,229,311,369
+src/main/xar-resources/resources/css/style.css
+  s_1b64240070147f::t_5cf450cbcbacde 1029
+  s_1b64240070147f::t_a68f7606f1349c 123
+  s_1b64240070147f::t_fc92cc74a17ce6 1486-1488
+  s_1b64240070147f::t_888dc5064ca573 124-128
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "521b55ab63978cfab30506b38c84ce1b5ce94257",
+  "prompts": {},
+  "sessions": {
+    "s_1b64240070147f": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_18704a435ffeWEH5zYW0MlLhNs",
+        "model": "big-pickle"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
