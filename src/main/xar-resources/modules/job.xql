@@ -173,7 +173,7 @@ declare function job:ping($instance as element(instance)) as xs:boolean {
             $instance/@url || "/status?operation=" || $local:operation || "&amp;token=" || $instance/@token
         else
             $instance/@url ||
-            "/status?c=instances&amp;c=processes&amp;c=locking&amp;c=memory&amp;c=caches&amp;c=system&amp;c=operatingsystem&amp;token=" ||
+            "/status?c=instances&amp;c=processes&amp;c=locking&amp;c=memory&amp;c=caches&amp;c=system&amp;c=operatingsystem&amp;c=disk&amp;c=vector&amp;token=" ||
             $instance/@token
     let $request :=
         <http:request method="GET" href="{$url}" timeout="30"/>
@@ -204,10 +204,7 @@ declare function job:alerts($instance as element(instance), $jmx as element(jmx:
         else
             ()
     for $alert in $instance/poll/alert
-    let $alertTriggered := util:eval(
-        "declare default element namespace 'http://exist-db.org/jmx';" ||
-        $alert/@condition
-    )
+    let $alertTriggered := app:evaluate-alert-condition($jmx, $alert/@condition/string())
     return
         if ($alertTriggered) then
             let $status :=

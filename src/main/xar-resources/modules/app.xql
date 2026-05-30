@@ -32,18 +32,54 @@ declare variable $app:default-timeline-xpaths := map {
     "brokers-graph": ("$jmx//jmx:ActiveBrokers", "count($jmx//jmx:RunningQueries/jmx:row)"),
     "threads-graph": ("count($jmx//jmx:WaitingThreads/jmx:row)"),
     "cpu-graph": ("$jmx//jmx:ProcessCpuLoad", "$jmx//jmx:SystemCpuLoad"), 
-    "memory-graph": ("$jmx//jmx:HeapMemoryUsage/jmx:used", "$jmx//jmx:HeapMemoryUsage/jmx:committed"), 
+    "memory-graph": (
+        "($jmx//jmx:HeapMemoryUsage/jmx:used)[1] div (1024 * 1024)",
+        "($jmx//jmx:HeapMemoryUsage/jmx:committed)[1] div (1024 * 1024)"
+    ), 
+    "vector-cache-graph": (
+        "($jmx//jmx:Cache[contains(@name, 'name=vector.dbx,cache-type=BTREE')]/jmx:Used)[1]",
+        "($jmx//jmx:Cache[contains(@name, 'name=vector.dbx,cache-type=DATA')]/jmx:Used)[1]"
+    ),
+    "cache-pool-graph": (
+        "($jmx//jmx:CacheManager/jmx:CurrentSize)[1] div (1024 * 1024)",
+        "($jmx//jmx:Database/jmx:CacheMem)[1] div (1024 * 1024)"
+    ),
+    "cache-hitrate-graph": (
+        "let $c := ($jmx//jmx:Cache[contains(@name, 'name=dom.dbx,cache-type=DATA')])[1] return if ((number($c/jmx:Hits) + number($c/jmx:Fails)) gt 0) then (number($c/jmx:Hits) div (number($c/jmx:Hits) + number($c/jmx:Fails))) * 100 else ()",
+        "let $c := ($jmx//jmx:Cache[contains(@name, 'name=vector.dbx,cache-type=DATA')])[1] return if ((number($c/jmx:Hits) + number($c/jmx:Fails)) gt 0) then (number($c/jmx:Hits) div (number($c/jmx:Hits) + number($c/jmx:Fails))) * 100 else ()"
+    ),
     "slow-queries-graph": ("max($jmx//jmx:mostRecentExecutionDuration)",
             "avg($jmx//jmx:mostRecentExecutionDuration)")
     (: full path is $jmx/jmx:ProcessReport/jmx:RecentQueryHistory/jmx:row/jmx:mostRecentExecutionDuration :)
+    ,
+    "vector-entries-graph": (
+        "if (string(($jmx//jmx:VectorStore/jmx:EntryCountKnown)[1]) = 'true') then ($jmx//jmx:VectorStore/jmx:EntryCount)[1] else ()"
+    ),
+    "vector-embed-rate-graph": (
+        "($jmx//jmx:VectorEmbedding/jmx:EmbedCallCount)[1]"
+    ),
+    "vector-knn-rate-graph": (
+        "($jmx//jmx:VectorEmbedding/jmx:KnnQueryCount)[1]"
+    )
 };
 
 declare variable $app:default-timeline-labels := map {
     "brokers-graph": ("Active brokers", "Running queries"),
     "threads-graph": ("Waiting Threads"),
     "cpu-graph": ("Process CPU Load", "System CPU Load"), 
-    "memory-graph": ("Used Memory", "Committed Memory"), 
-    "slow-queries-graph": ("Slowest Query", "Average Query")
+    "memory-graph": ("Used Memory (MB)", "Committed Memory (MB)"), 
+    "vector-cache-graph": ("vector.dbx BTREE Used (pages)", "vector.dbx DATA Used (pages)"),
+    "cache-pool-graph": ("Shared pool used (MB)", "Configured pool (MB)"),
+    "cache-hitrate-graph": ("dom.dbx DATA hit rate (%)", "vector.dbx DATA hit rate (%)"),
+    "slow-queries-graph": ("Slowest Query", "Average Query"),
+    "vector-entries-graph": ("Vector store entries"),
+    "vector-embed-rate-graph": ("Embed calls per interval"),
+    "vector-knn-rate-graph": ("KNN queries per interval")
+};
+
+declare variable $app:default-timeline-series-types := map {
+    "vector-embed-rate-graph": ("counter-delta"),
+    "vector-knn-rate-graph": ("counter-delta")
 };
 
 declare variable $app:default-timeline-type := "lines";
@@ -60,6 +96,12 @@ declare function app:java-version ($node as node(), $model as map(*)) as node()?
 let $version := util:system-property("java.version")
 return
   <td>{$version}</td>  
+};
+
+declare
+    %templates:wrap
+function app:java-version-inline($node as node(), $model as map(*)) as xs:string {
+    util:system-property("java.version")
 };
 
 declare
@@ -126,7 +168,7 @@ function app:instances-data($node as node(), $model as map(*), $instance as xs:s
 };
 
 declare function app:btn-profiling($node as node(), $model as map(*)) {
-    if (system:tracing-enabled()) then
+    if (session:get-attribute("tracing-enabled")) then
         <a href="?action=disable" class="btn btn-default">
             <span class="glyphicon glyphicon-pause"/> Disable Tracing
         </a>
@@ -182,9 +224,15 @@ function app:profile($node as node(), $model as map(*), $action as xs:string?) {
         case "clear" return
             system:clear-trace()
         case "enable" return
-            system:enable-tracing(true())
+            (
+                system:enable-tracing(true()),
+                session:set-attribute("tracing-enabled", true())
+            )
         case "disable" return
-            system:enable-tracing(false())
+            (
+                system:enable-tracing(false()),
+                session:remove-attribute("tracing-enabled")
+            )
         case "tare" return
             (
                 session:set-attribute("tare", system:trace()),
@@ -279,7 +327,7 @@ declare function app:adjust-trace($trace, $tare) {
                 let $adjusted-elapsed := $index/@elapsed - $match/@elapsed
                 return
                     if ($adjusted-calls gt 0) then 
-                        <prof:index source="{$index/@source}" type="{$index/@type}" calls="{$adjusted-calls}" elapsed="{$adjusted-elapsed}" optimization="{$index/@optimization}"/>
+                        <prof:index source="{$index/@source}" type="{$index/@type}" calls="{$adjusted-calls}" elapsed="{$adjusted-elapsed}" optimization-level="{$index/@optimization-level}"/>
                     else
                         ()
             else
@@ -287,6 +335,44 @@ declare function app:adjust-trace($trace, $tare) {
     return
         <prof:calls>{$adjusted-queries, $adjusted-functions, $adjusted-indexes}</prof:calls>
         
+};
+
+declare function app:index-type-label($type as xs:string) as xs:string {
+    switch ($type)
+        case "lucene" return "Lucene FT"
+        case "lucene-vector" return "Lucene vector KNN"
+        case "range" return "Range"
+        case "new-range" return "Range (new)"
+        default return
+            if (contains($type, "vector")) then
+                concat("Vector (", $type, ")")
+            else
+                $type
+};
+
+declare function app:is-vector-function-name($name as xs:string?) as xs:boolean {
+    some $token in ("query-vector", "vector:embed", "vector:embed-batch", "vector:similarity", "vector:models", "vector:diagnostics")
+    satisfies contains($name, $token)
+};
+
+declare function app:is-vector-index-stat($index as element(prof:index)) as xs:boolean {
+    contains(string($index/@type), "vector") or
+    contains(string($index/@source), "query-vector")
+};
+
+declare function app:optimization-label($level as xs:string?) as element(span) {
+    switch ($level)
+        case "NONE" return
+            <span class="label label-danger">None</span>
+        case "BASIC" return
+            <span class="label label-warning">Basic</span>
+        case "OPTIMIZED" return
+            <span class="label label-success">Optimized</span>
+        default return
+            if ($level) then
+                <span class="label label-info">{$level}</span>
+            else
+                <span class="label label-default">—</span>
 };
 
 declare
@@ -327,9 +413,13 @@ function app:function-stats($node as node(), $model as map(*), $sort as xs:strin
             return
                 $func
         for $func in subsequence($funcs, 1, 20)
+        let $vector := app:is-vector-function-name($func/@name/string())
         return
-            <tr>
-                <td>{$func/@name/string()}</td>
+            <tr class="{if ($vector) then 'vector-stat-row' else ''}">
+                <td>
+                    {$func/@name/string()}
+                    {if ($vector) then <span class="label label-info vector-stat-badge">vector</span> else ()}
+                </td>
                 <td>{app:truncate-source($func/@source)}</td>
                 <td class="trace-calls">{$func/@calls/string()}</td>
                 <td class="trace-elapsed">{$func/@elapsed/string()}</td>
@@ -342,7 +432,7 @@ declare
 function app:index-stats($node as node(), $model as map(*), $sort as xs:string) {
     if (empty($model("trace")/prof:index)) then
         <tr>
-            <td colspan="4">No statistics available or tracing not enabled.</td>
+            <td colspan="5">No statistics available or tracing not enabled.</td>
         </tr>
     else
         let $indexes :=
@@ -351,26 +441,60 @@ function app:index-stats($node as node(), $model as map(*), $sort as xs:string) 
             return
                 $index
         for $index in subsequence($indexes, 1, 20)
+        let $vector := app:is-vector-index-stat($index)
         return
-            <tr>
+            <tr class="{if ($vector) then 'vector-stat-row' else ''}">
                 <td>{app:truncate-source($index/@source)}</td>
-                <td class="trace-calls">{$index/@type/string()}</td>
-                <td class="trace-calls">
-                {
-                    switch ($index/@optimization-level)
-                        case "NONE" return
-                            <span class="label label-danger">None</span>
-                        case "BASIC" return
-                            <span class="label label-warning">Basic</span>
-                        case "OPTIMIZED" return
-                            <span class="label label-success">Optimized</span>
-                        default return
-                            <span class="label label-info">{$index/@optimization-level}</span>
-                }
+                <td class="trace-index-type">
+                    {app:index-type-label($index/@type/string())}
+                    {if ($vector) then <span class="label label-info vector-stat-badge">KNN</span> else ()}
                 </td>
+                <td class="trace-calls">{app:optimization-label($index/@optimization-level/string())}</td>
                 <td class="trace-calls">{$index/@calls/string()}</td>
                 <td class="trace-elapsed">{$index/@elapsed/string()}</td>
             </tr>
+};
+
+declare
+    %templates:wrap
+    %templates:default("sort", "time")
+function app:vector-stats($node as node(), $model as map(*), $sort as xs:string) {
+    let $trace := $model("trace")
+    let $vector-functions :=
+        for $func in $trace/prof:function[app:is-vector-function-name(@name/string())]
+        order by app:sort($func, $sort) descending
+        return
+            <tr class="vector-stat-row">
+                <td><span class="label label-primary">Function</span></td>
+                <td>{$func/@name/string()}</td>
+                <td>{app:truncate-source($func/@source)}</td>
+                <td class="trace-calls">{$func/@calls/string()}</td>
+                <td class="trace-elapsed">{$func/@elapsed/string()}</td>
+            </tr>
+    let $vector-indexes :=
+        for $index in $trace/prof:index[app:is-vector-index-stat(.)]
+        order by app:sort($index, $sort) descending
+        return
+            <tr class="vector-stat-row">
+                <td><span class="label label-success">Index</span></td>
+                <td>{app:index-type-label($index/@type/string())}</td>
+                <td>{app:truncate-source($index/@source)}</td>
+                <td class="trace-calls">{$index/@calls/string()}</td>
+                <td class="trace-elapsed">{$index/@elapsed/string()}</td>
+            </tr>
+    let $rows := ($vector-functions, $vector-indexes)
+    return
+        if (empty($rows)) then
+            <tr>
+                <td colspan="5">
+                    No vector or KNN activity recorded yet. Run queries that use
+                    <code>ft:query-vector</code> or <code>vector:embed*</code>, then Refresh.
+                    Index Usage may not list KNN until eXist traces <code>ft:query-vector</code>;
+                    function timings appear here when those calls execute.
+                </td>
+            </tr>
+        else
+            $rows
 };
 
 declare
@@ -456,6 +580,34 @@ declare function app:jmxs-for-time-interval($instance as xs:string, $start as xs
     ))
 };
 
+declare function app:evaluate-alert-condition($jmx as element(jmx:jmx), $condition as xs:string) as xs:boolean {
+    let $jmxs := $jmx
+    return boolean((
+        util:eval(
+            "declare default element namespace 'http://exist-db.org/jmx';" ||
+            "for $jmx in $jmxs return (" || $condition || ")",
+            true()
+        )
+    )[1])
+};
+
+(: Evaluates a timeline xpath across each JMX snapshot in order. :)
+declare function app:timeline-eval($jmxs as node()+, $xpath as xs:string) as xs:double* {
+    let $expression := "for $jmx in $jmxs return number((("|| $xpath ||"),0)[1])"
+    return util:eval($expression, true())
+};
+
+(: Per-interval increase for monotonic JMX counters (negative deltas treated as 0). :)
+declare function app:counter-deltas($values as xs:double*) as xs:double* {
+    if (count($values) lt 2) then
+        ()
+    else
+        for $i in 2 to count($values)
+        let $prev := $values[$i - 1]
+        let $curr := $values[$i]
+        return max((0, $curr - $prev))
+};
+
 (: Executes the given timeline queries and returns unprocessed results.
  : Sequences of equal length and corresponding order should be passed as xpaths, labels, and types arguments. :)
 declare function app:make-timeline($instance as xs:string, $xpaths as xs:string+, $labels as xs:string+, $types as xs:string+, $start as xs:dateTime, $end as xs:dateTime) as item()* {
@@ -466,15 +618,17 @@ declare function app:make-timeline($instance as xs:string, $xpaths as xs:string+
             {
                 let $timestamps := (for $jmx in $jmxs return app:time-to-milliseconds(xs:dateTime($jmx/jmx:timestamp)))
                 for $xpath at $n in $xpaths
-                let $expression := "for $jmx in $jmxs return number((("|| $xpath ||"),0)[1])"
-                let $values := util:eval($expression, true())
+                let $raw-values := app:timeline-eval($jmxs, $xpath)
+                let $is-delta := $types[$n] = "counter-delta"
+                let $values := if ($is-delta) then app:counter-deltas($raw-values) else $raw-values
+                let $time-offset := if ($is-delta) then 1 else 0
                 return
                     <json:value json:array="true">
                         <label>{$labels[$n]}</label>
                         <data> 
                         {
                             for $val at $pos in $values
-                            let $time := $timestamps[$pos]
+                            let $time := $timestamps[$pos + $time-offset]
                             order by $time ascending
                             return
                                 <json:value json:array="true">
@@ -484,7 +638,7 @@ declare function app:make-timeline($instance as xs:string, $xpaths as xs:string+
                         }
                         </data>
                         {
-                        element { $types[$n] } {
+                        element { if ($is-delta) then "lines" else $types[$n] } {
                             <show>true</show>
                         }   }
                     </json:value>
@@ -504,7 +658,11 @@ function app:default-timeline($node as node(), $model as map(*), $instance as xs
     let $timespec := app:process-time-interval-params($start, $end)
     let $xpaths := $app:default-timeline-xpaths($gid)
     let $labels := $app:default-timeline-labels($gid)
-    let $types := for $i in (1 to count($xpaths)) return $app:default-timeline-type
+    let $types :=
+        if (map:contains($app:default-timeline-series-types, $gid)) then
+            $app:default-timeline-series-types($gid)
+        else
+            for $i in (1 to count($xpaths)) return $app:default-timeline-type
     return
         app:make-timeline($instance, $xpaths, $labels, $types, $timespec[1], $timespec[2])
 };
@@ -546,58 +704,119 @@ function app:timeline($node as node(), $model as map(*), $instance as xs:string,
             attribute data-data { "[]" }
 };
 
+declare function app:details-timestamp-ms($timestamp as xs:string) as xs:long? {
+    if ($timestamp != "") then xs:long($timestamp) else ()
+};
+
 declare
     %templates:wrap
     %templates:default("instance", "localhost")
-function app:load-record($node as node(), $model as map(*), $instance as xs:string, $timestamp as xs:long) {
-    let $date := app:milliseconds-to-time($timestamp)
-    let $jmx := collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:timestamp = $date]
+    %templates:default("timestamp", "")
+function app:load-record($node as node(), $model as map(*), $instance as xs:string, $timestamp as xs:string) {
+    let $ms := app:details-timestamp-ms($timestamp)
     return
-        serialize($jmx)
+        if (empty($ms)) then
+            ""
+        else
+            let $date := app:milliseconds-to-time($ms)
+            let $jmx := collection($config:data-root || "/" || $instance)/jmx:jmx[xs:dateTime(jmx:timestamp) = xs:dateTime($date)]
+            return
+                if (empty($jmx)) then
+                    ""
+                else
+                    serialize($jmx)
 };
 
 declare
     %templates:wrap
-function app:timestamp($node as node(), $model as map(*), $timestamp as xs:long) {
-    app:milliseconds-to-time($timestamp)
-};
-
-declare function app:time-navigation-back($node as node(), $model as map(*), $instance as xs:string, $timestamp as xs:long) {
-    let $date := app:milliseconds-to-time($timestamp)
-    let $jmx := 
-        (
-            for $rec in collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:timestamp < xs:dateTime($date)]
-            order by xs:dateTime($rec/jmx:timestamp)
-            return
-                $rec
-        )
-        [last()]
-    return
+    %templates:default("timestamp", "")
+function app:timestamp($node as node(), $model as map(*), $timestamp as xs:string) {
+    if ($timestamp = "") then
         element { node-name($node) } {
             $node/@*,
-            attribute href { "?timestamp=" || app:time-to-milliseconds(xs:dateTime($jmx/jmx:timestamp)) || 
-                "&amp;instance=" || $instance },
-            templates:process($node/*, $model)
+            attribute class { "details-timestamp-empty" },
+            "Select a snapshot"
         }
+    else
+        app:milliseconds-to-time(xs:long($timestamp))
 };
 
-declare function app:time-navigation-forward($node as node(), $model as map(*), $instance as xs:string, $timestamp as xs:long) {
-    let $date := app:milliseconds-to-time($timestamp)
-    let $jmx :=
-        (
-            for $rec in collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:timestamp > xs:dateTime($date)]
-            order by xs:dateTime($rec/jmx:timestamp)
-            return
-                $rec
-        )
-        [1]
+declare
+    %templates:wrap
+    %templates:default("instance", "localhost")
+    %templates:default("timestamp", "")
+function app:time-navigation-back($node as node(), $model as map(*), $instance as xs:string, $timestamp as xs:string) {
+    let $ms := app:details-timestamp-ms($timestamp)
     return
-        element { node-name($node) } {
-            $node/@*,
-            attribute href { "?timestamp=" || app:time-to-milliseconds(xs:dateTime($jmx/jmx:timestamp)) || 
-                "&amp;instance=" || $instance },
-            templates:process($node/*, $model)
-        }
+        if (empty($ms)) then
+            element { node-name($node) } {
+                $node/@*,
+                attribute disabled { "disabled" },
+                templates:process($node/*, $model)
+            }
+        else
+            let $date := app:milliseconds-to-time($ms)
+            let $jmx := 
+                (
+                    for $rec in collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:timestamp < xs:dateTime($date)]
+                    order by xs:dateTime($rec/jmx:timestamp)
+                    return
+                        $rec
+                )
+                [last()]
+            return
+                if (empty($jmx)) then
+                    element { node-name($node) } {
+                        $node/@*,
+                        attribute disabled { "disabled" },
+                        templates:process($node/*, $model)
+                    }
+                else
+                    element { node-name($node) } {
+                        $node/@*,
+                        attribute href { "?timestamp=" || app:time-to-milliseconds(xs:dateTime($jmx/jmx:timestamp)) || 
+                            "&amp;instance=" || $instance },
+                        templates:process($node/*, $model)
+                    }
+};
+
+declare
+    %templates:wrap
+    %templates:default("instance", "localhost")
+    %templates:default("timestamp", "")
+function app:time-navigation-forward($node as node(), $model as map(*), $instance as xs:string, $timestamp as xs:string) {
+    let $ms := app:details-timestamp-ms($timestamp)
+    return
+        if (empty($ms)) then
+            element { node-name($node) } {
+                $node/@*,
+                attribute disabled { "disabled" },
+                templates:process($node/*, $model)
+            }
+        else
+            let $date := app:milliseconds-to-time($ms)
+            let $jmx :=
+                (
+                    for $rec in collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:timestamp > xs:dateTime($date)]
+                    order by xs:dateTime($rec/jmx:timestamp)
+                    return
+                        $rec
+                )
+                [1]
+            return
+                if (empty($jmx)) then
+                    element { node-name($node) } {
+                        $node/@*,
+                        attribute disabled { "disabled" },
+                        templates:process($node/*, $model)
+                    }
+                else
+                    element { node-name($node) } {
+                        $node/@*,
+                        attribute href { "?timestamp=" || app:time-to-milliseconds(xs:dateTime($jmx/jmx:timestamp)) || 
+                            "&amp;instance=" || $instance },
+                        templates:process($node/*, $model)
+                    }
 };
 
 declare function app:time-to-milliseconds($dateTime as xs:dateTime) as xs:integer {
@@ -624,16 +843,37 @@ declare function app:milliseconds-to-time($timestamp as xs:integer) as xs:dateTi
         xs:dayTimeDuration("P" || $days || "DT" || $hours || "H" || $minutes || "M" || $seconds || "." || $millis || "S")
 };
 
-declare function app:edit-source($node as node(), $model as map(*), $instance as xs:string, $timestamp as xs:long) as node()* {
-    let $date := app:milliseconds-to-time($timestamp)
-    let $doc := collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:timestamp = xs:dateTime($date)]
-    let $link := $model?eXide || "/index.html?open=" || document-uri(root($doc))
+declare
+    %templates:wrap
+    %templates:default("instance", "localhost")
+    %templates:default("timestamp", "")
+function app:edit-source($node as node(), $model as map(*), $instance as xs:string, $timestamp as xs:string) as node()* {
+    let $ms := app:details-timestamp-ms($timestamp)
     return
-        element { node-name($node) } {
-            attribute href { $link },
-            attribute target { "eXide" },
-            attribute class { $node/@class || " eXide-open" },
-            attribute data-exide-open { document-uri(root($doc)) },
-            $node/node()
-        }
+        if (empty($ms)) then
+            element { node-name($node) } {
+                $node/@*,
+                attribute disabled { "disabled" },
+                attribute title { "Select a snapshot from Timelines" },
+                $node/node()
+            }
+        else
+            let $date := app:milliseconds-to-time($ms)
+            let $doc := collection($config:data-root || "/" || $instance)/jmx:jmx[xs:dateTime(jmx:timestamp) = xs:dateTime($date)]
+            return
+                if (empty($doc)) then
+                    element { node-name($node) } {
+                        $node/@*,
+                        attribute disabled { "disabled" },
+                        attribute title { "Snapshot source not found" },
+                        $node/node()
+                    }
+                else
+                    element { node-name($node) } {
+                        attribute href { ($model?eXide, "/index.html?open=" || document-uri(root($doc)))[1] },
+                        attribute target { "eXide" },
+                        attribute class { $node/@class || " eXide-open" },
+                        attribute data-exide-open { document-uri(root($doc)) },
+                        $node/node()
+                    }
 };

@@ -4,10 +4,6 @@
  */
 /// <reference types='cypress' />
 
-// Derive the eXist server URL from the Cypress baseUrl so the tests run
-// against whatever port the spec is configured for. cy.request needs
-// auth for /exist/rest/db calls (eXist 7.0+ rejects guest access to the
-// console module via REST), so we send Basic admin: credentials inline.
 const baseUrl = new URL(Cypress.config('baseUrl'))
 const existRoot = `${baseUrl.protocol}//${baseUrl.host}/exist`
 const wsRoot = `${baseUrl.protocol === 'https:' ? 'wss' : 'ws'}://${baseUrl.host}/exist`
@@ -29,7 +25,8 @@ describe('remote console', () => {
       .contains('Connected')
   })
 
-  it('should show log message', () => {
+  it('should show log message', function () {
+    cy.skipUnlessConsoleModule()
     cy.get('#status')
       .should('be.visible')
       .contains('Connected')
@@ -48,12 +45,11 @@ describe('remote console', () => {
 })
 
 describe('remote console channels', () => {
-  it('should deliver the correct messages to each WebSocket channel', () => {
-    // Open two WebSocket connections (channels c1 and c2)
+  it('should deliver the correct messages to each WebSocket channel', function () {
+    cy.skipUnlessConsoleModule()
     const ws1 = new WebSocket(`${wsRoot}/ws`)
     const ws2 = new WebSocket(`${wsRoot}/ws`)
 
-    // Wait for both sockets to connect
     cy.wrap(
       Promise.all([
         new Cypress.Promise((resolve) => { ws1.onopen = () => { ws1.send(JSON.stringify({ channel: 'c1' })); resolve() } }),
@@ -61,7 +57,6 @@ describe('remote console channels', () => {
       ])
     )
 
-    // Create promises for receiving messages
     const messageFromC1 = new Cypress.Promise((resolve) => {
       ws1.onmessage = (event) => {
         try {
@@ -84,7 +79,6 @@ describe('remote console channels', () => {
       }
     })
 
-    // Trigger the server to send messages
     cy.request({
       method: 'GET',
       url: `${existRoot}/rest/db`,
@@ -102,7 +96,6 @@ describe('remote console channels', () => {
       }
     })
 
-    // Validate messages
     cy.wrap(Promise.all([messageFromC1, messageFromC2])).then(([msg1, msg2]) => {
       expect(msg1).to.equal('111')
       expect(msg2).to.equal('222')

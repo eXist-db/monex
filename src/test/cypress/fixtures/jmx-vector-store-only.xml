@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmx:jmx xmlns:jmx="http://exist-db.org/jmx" version="1">
+    <jmx:VectorStore name="org.exist.management.exist:type=VectorStore">
+        <jmx:FileName>vector.dbx</jmx:FileName>
+        <jmx:Available>true</jmx:Available>
+        <jmx:FileSize>8192</jmx:FileSize>
+        <jmx:EntryCount>0</jmx:EntryCount>
+        <jmx:StorageBackend>vector.dbx</jmx:StorageBackend>
+        <jmx:EntryCountKnown>true</jmx:EntryCountKnown>
+        <jmx:FormatVersion>1</jmx:FormatVersion>
+        <jmx:InstanceId>exist</jmx:InstanceId>
+        <jmx:Name>org.exist.management.exist:type=VectorStore</jmx:Name>
+    </jmx:VectorStore>
+</jmx:jmx>

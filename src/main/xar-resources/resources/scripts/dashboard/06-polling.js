@@ -2,166 +2,25 @@
  * SPDX LGPL-2.1-or-later
  * Copyright (C) 2014 The eXist-db Authors
  */
-// util.js must be loaded first, otherwise JMX is undefined
-function findByName(nodes, name) {
-    if (nodes instanceof Array) {
-        for (var i = 0; i < nodes.length; i++) {
-            if (nodes[i].name() == name) {
-                return nodes[i];
-            }
-        }
-    }
-    return null;
-}
-
-function addKillBtn(node, data) {
-    $(node).find(".kill-query").on("click", function(ev) {
-        ev.preventDefault();
-        if (JMX_INSTANCE.version === 0) {
-            $.ajax({
-                url: "modules/admin.xql",
-                data: { action: "kill", id: data.id() },
-                type: "POST"
-            });
-        } else {
-            JMX.connection.invoke("killQuery", "org.exist.management.exist:type=ProcessReport", [data.id()]);
-        }
-    });
-}
-
-function uptime(data) {
-    var uptime = parseInt(data);
-    var cd = 24 * 60 * 60 * 1000,
-        ch = 60 * 60 * 1000,
-        d = Math.floor(uptime / cd),
-        h = '0' + Math.floor( (uptime - d * cd) / ch),
-        m = '0' + Math.round( (uptime - d * cd - h * ch) / 60000);
-    if (d > 0) {
-        status = d + "d " + h.substr(-2) + "h";
-    } else {
-        status = h.substr(-2) + "h " + m.substr(-2) + "m";
-    }
-    return status;
-}
-
-JMX.TimeSeries = (function() {
-    var options = {
-        series: {
-            lines: {
-                show: true,
-                lineWidth: 1.2,
-                fill: true
-            }
-        },
-        xaxis: {
-            mode: "time",
-            show: true,
-            tickSize: [2, "second"],
-            tickFormatter: function (v, axis) {
-                var date = new Date(v);
-
-                if (date.getSeconds() % 20 == 0) {
-                    var hours = date.getHours() < 10 ? "0" + date.getHours() : date.getHours();
-                    var minutes = date.getMinutes() < 10 ? "0" + date.getMinutes() : date.getMinutes();
-                    var seconds = date.getSeconds() < 10 ? "0" + date.getSeconds() : date.getSeconds();
-
-                    return hours + ":" + minutes + ":" + seconds;
-                } else {
-                    return "";
-                }
-            },
-            axisLabel: "Time",
-            axisLabelUseCanvas: false,
-            axisLabelFontSizePixels: 12,
-            axisLabelFontFamily: 'Verdana, Arial',
-            axisLabelPadding: 10
-        },
-        yaxis: {
-            min: 0,
-            max: 100,
-            axisLabelUseCanvas: true,
-            axisLabelFontSizePixels: 12,
-            axisLabelFontFamily: 'Verdana, Arial',
-            axisLabelPadding: 6
-        },
-        legend: {
-            show: true,
-            labelBoxBorderColor: "#fff"
-        }
-    };
-
-    function getProperty(data, property) {
-        if (!data) {
-            return 0;
-        }
-        var components = property.split(".");
-        var prop = data;
-        for (var i = 0; i < components.length; i++) {
-            if (prop.hasOwnProperty(components[i])) {
-                prop = prop[components[i]];
-            } else {
-                break;
-            }
-        }
-        return prop || 0;
-    };
-
-    Constr = function(container, labels, properties, propertyMaxY, unitY) {
-        this.container = $(container);
-        this.properties = properties;
-        this.propertyMaxY = propertyMaxY;
-        this.unitY = unitY;
-        this.dataset = [];
-        for (var i = 0; i < labels.length; i++) {
-            this.dataset.push({
-                label: labels[i],
-                data: []
-            });
-        }
-    };
-
-    Constr.prototype.update = function(data) {
-        var max = parseInt(getProperty(data, this.propertyMaxY));
-        if (this.unitY == "mb") {
-            max = max / 1024 / 1024;
-        }
-        options.yaxis.max = max;
-        if (this.dataset[0].data.length > 100) {
-            for (var i = 0; i < this.dataset.length; i++) {
-                this.dataset[i].data.shift();
-            }
-        }
-        var now = new Date().getTime();
-        for (var i = 0; i < this.properties.length; i++) {
-            var val = getProperty(data, this.properties[i]);
-            if (this.unitY == "mb") {
-                val = parseInt(val) / 1024 / 1024;
-            }
-            this.dataset[i].data.push([now, parseInt(val)]);
-        }
-
-        $.plot(this.container, this.dataset, options);
-    };
-
-    return Constr;
-}());
-
 JMX.connection = (function() {
     "use strict";
 
-    var JMX_NS = "http://exist-db.org/jmx";
-
-    var version = 0;
-
     var viewModel = null;
-
     var instanceMap = {};
-
     var currentInstance;
-
     var onUpdateCb;
     var poll = true;
     var pollPeriod = 1000;
+    var pollInFlight = false;
+    var pollTimer = null;
+    var lastLiveRunningQueryCount = 0;
+    var visibilityListenerAttached = false;
+    var wsReconnectDelay = 1000;
+
+    $(window).on("beforeunload", function() {
+        poll = false;
+        if (pollTimer) { clearTimeout(pollTimer); pollTimer = null; }
+    });
 
     function Instance(config, schedulerActive) {
         this.name = ko.observable(config.name);
@@ -223,6 +82,40 @@ JMX.connection = (function() {
         };
     }
 
+    function effectivePollDelay() {
+        if (typeof document !== "undefined" && document.hidden) {
+            return Math.max(pollPeriod, Monex.activity.HIDDEN_POLL_BACKOFF_MS);
+        }
+        return pollPeriod;
+    }
+
+    function updatePollStatus(viewModelRef, startedAt, finishedAt) {
+        if (!viewModelRef || !viewModelRef.pollLastLabel) {
+            return;
+        }
+        var latency = Math.max(0, Math.round(finishedAt - startedAt));
+        var stamp = new Date(finishedAt).toLocaleTimeString();
+        viewModelRef.pollLastLabel(stamp + " · " + latency + "ms");
+        if (viewModelRef.pollTabIdle) {
+            viewModelRef.pollTabIdle(document.hidden);
+        }
+    }
+
+    function ensureVisibilityListener() {
+        if (visibilityListenerAttached || typeof document === "undefined") {
+            return;
+        }
+        visibilityListenerAttached = true;
+        document.addEventListener("visibilitychange", function() {
+            if (viewModel && viewModel.pollTabIdle) {
+                viewModel.pollTabIdle(document.hidden);
+            }
+            if (!document.hidden && poll && onUpdateCb) {
+                JMX.connection.poll(onUpdateCb);
+            }
+        });
+    }
+
     function connect(channel, callback) {
         if (!Modernizr.websockets) {
             $("#browser-alert").show(400);
@@ -235,36 +128,44 @@ JMX.connection = (function() {
         var url = proto + "://" + location.host + rootcontext + "/ws";
         var connection = new WebSocket(url);
 
-        // Log errors
-        connection.onerror = function (error) {
+        connection.onerror = function(error) {
             $("#status").text("Connection error ...");
-            console.log('WebSocket Error: %o', error);
+            console.log("WebSocket Error: %o", error);
         };
 
         connection.onclose = function() {
             $("#status").text("Disconnected.");
+            if (poll) {
+                setTimeout(function() {
+                    wsReconnectDelay = Math.min(wsReconnectDelay * 2, 30000);
+                    connect(channel, callback);
+                }, wsReconnectDelay);
+            }
         };
 
         connection.onopen = function() {
+            wsReconnectDelay = 1000;
             $("#status").text("Connected.");
             connection.send('{ "channel": "' + channel + '" }');
         };
 
-        // Log messages from the server
-        connection.onmessage = function (e) {
+        connection.onmessage = function(e) {
             if (e.data == "ping") {
                 return;
             }
 
             var data = JSON.parse(e.data);
             console.log("ping received for %s: %s", data.instance, data.status);
-
             callback(data);
         };
     }
 
     return {
-        invoke: function(operation, mbean, args) {
+        getViewModel: function() {
+            return viewModel;
+        },
+
+        invoke: function(operation, mbean, args, callbacks) {
             var url;
             if (currentInstance.name() == "localhost") {
                 url = location.pathname.replace(/^(.*?)\/(apps\/)?monex\/.*$/, "$1") +
@@ -281,33 +182,48 @@ JMX.connection = (function() {
                 url: url,
                 type: "GET",
                 timeout: 10000,
+                success: function() {
+                    if (callbacks && callbacks.success) {
+                        callbacks.success();
+                    }
+                },
                 error: function(xhr, status, error) {
                     $("#connection-alert").show(400).find(".message")
                         .text("Operation '" + operation + "' failed or is not supported on this server instance.");
                     setTimeout(function() { $("#connection-alert").hide(200); }, 3000);
+                    if (callbacks && callbacks.error) {
+                        callbacks.error(xhr, status, error);
+                    }
                 }
             });
         },
 
         poll: function(onUpdate) {
             onUpdateCb = onUpdate;
-            if (!poll) {
+            if (!poll || pollInFlight) {
                 return;
             }
+            pollInFlight = true;
+            ensureVisibilityListener();
+
             var url;
             var name = currentInstance.name();
             if (name == "localhost") {
                 url = location.pathname.replace(/^(.*?)\/(apps\/)?monex\/.*$/, "$1") +
-                    "/status?c=instances&c=processes&c=locking&c=memory&c=caches&c=system&c=operatingsystem&token=" + currentInstance.token;
+                    "/status?c=instances&c=processes&c=locking&c=memory&c=caches&c=system&c=operatingsystem&c=disk&c=vector&token=" + currentInstance.token;
             } else {
                 url = "modules/remote.xql?name=" + name;
             }
+
+            var pollStarted = performance.now();
 
             $.ajax({
                 url: url,
                 type: "GET",
                 timeout: 10000,
                 success: function(xml) {
+                    pollInFlight = false;
+                    var pollFinished = performance.now();
                     $("#connection-alert").hide(400);
                     var data = JMX.util.fixjs(JMX.util.jmx2js(xml));
                     if (data) {
@@ -315,21 +231,21 @@ JMX.connection = (function() {
                             data.jmx.version = 0;
                         }
                         currentInstance.version = data.jmx.version;
-                        // console.dir(data);
                         var rootDom = document.getElementById("dashboard");
                         if (rootDom) {
                             if (!viewModel) {
                                 viewModel = ko.mapping.fromJS(data);
+                                Monex.activity.attachDashboardViewModel(viewModel, { livePoll: true });
+                                viewModel.vector = createVectorViewModel(null);
+                                viewModel.vectorStore = Monex.vector.createVectorStoreViewModel(null);
                                 viewModel.gc = function() {
                                     JMX.connection.invoke("gc", "java.lang:type=Memory");
                                 };
-                                if (data.jmx.ProcessReport.TrackRequestURI) {
-                                    $("#threshold").val(data.jmx.ProcessReport.MinTime);
-                                    $("#track-uri").prop("checked", data.jmx.ProcessReport.TrackRequestURI == "true");
-                                    $("#history-timespan").val(data.jmx.ProcessReport.HistoryTimespan);
-                                } else {
-                                    $("#configure-history").hide();
-                                }
+                                viewModel.showAllCaches = ko.observable(false);
+                                viewModel.toggleAllCaches = function() {
+                                    viewModel.showAllCaches(!viewModel.showAllCaches());
+                                };
+                                JMX.util.initActivityPanelSettings(data.jmx.ProcessReport);
                                 if (name == "localhost") {
                                     viewModel.url = "";
                                 } else {
@@ -337,22 +253,34 @@ JMX.connection = (function() {
                                 }
                                 ko.applyBindings(viewModel, rootDom);
                             } else {
+                                Monex.activity.cleanupActivityTooltips();
                                 ko.mapping.fromJS(data, viewModel);
+                                if (viewModel.activityFlyout) {
+                                    viewModel.activityFlyout.afterPoll();
+                                }
                             }
+                            Monex.vector.syncVectorFromJmx(viewModel, data.jmx);
+                            updatePollStatus(viewModel, pollStarted, pollFinished);
+                            var liveRunning = runningQueryCount(data.jmx);
+                            if (liveRunning > lastLiveRunningQueryCount) {
+                                Monex.activity.revealRunningQueries(liveRunning);
+                            }
+                            lastLiveRunningQueryCount = liveRunning;
                         }
                         if (onUpdate) {
                             onUpdate(data);
                         }
-                        setTimeout(function() { JMX.connection.poll(onUpdate); }, pollPeriod);
+                        pollTimer = setTimeout(function() { JMX.connection.poll(onUpdate); }, effectivePollDelay());
                     } else {
                         $("#connection-alert").show(400).find(".message").text("No response from server. Retrying ...");
-                        setTimeout(function() { JMX.connection.poll(onUpdate); }, 5000);
+                        pollTimer = setTimeout(function() { JMX.connection.poll(onUpdate); }, 5000);
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function() {
+                    pollInFlight = false;
                     $("#connection-alert").show(400).find(".message")
                         .text("Connection to server failed. Retrying ...");
-                    setTimeout(JMX.connection.poll, 5000);
+                    pollTimer = setTimeout(function() { JMX.connection.poll(onUpdate); }, 5000);
                 }
             });
         },
@@ -370,12 +298,12 @@ JMX.connection = (function() {
                     instances.push(instance);
                 }
             }
-            var viewModel = new Instances(instances, schedulerActive);
+            var remotesModel = new Instances(instances, schedulerActive);
             var domRoot = document.getElementById("remotes");
             if (domRoot) {
-                ko.applyBindings(viewModel, domRoot);
+                ko.applyBindings(remotesModel, domRoot);
             }
-            ko.applyBindings(viewModel, $("#notifications")[0]);
+            ko.applyBindings(remotesModel, $("#notifications")[0]);
 
             connect("jmx.ping", JMX.connection.ping);
         },
@@ -419,59 +347,3 @@ JMX.connection = (function() {
         }
     };
 }());
-
-$(function() {
-    JMX.connection.init(JMX_INSTANCES, JMX_ACTIVE);
-
-    $("#configure").on("click", function(ev) {
-        ev.preventDefault();
-        var threshold = $("#threshold").val();
-        var historyTimespan = $("#history-timespan").val();
-        var trackURI = $("#track-uri").is(":checked");
-        JMX.connection.invoke("configure", "org.exist.management.exist:type=ProcessReport", [threshold, historyTimespan, trackURI]);
-    });
-    // the following block should only be run on the main dashboard page
-    $("#dashboard").each(function() {
-        var charts = [];
-        $(".chart").each(function() {
-            var node = $(this);
-            var labels = node.attr("data-labels");
-            var properties = node.attr("data-properties");
-            var unitY = node.attr("data-unit-y") || "";
-            var max = node.attr("data-max-y");
-
-            charts.push(new JMX.TimeSeries(node, labels.split(","), properties.split(","), max, unitY));
-        });
-        $("#poll-period").ionRangeSlider({
-            min: 0.5,
-            max: 60.0,
-            from: 1.0,
-            type: "single",
-            step: 0.1,
-            postfix: " sec",
-            hasGrid: true,
-            onChange: function(data) {
-                JMX.connection.setPollPeriod(data.from);
-            }
-        });
-        $("#pause-btn").on("click", function(ev) {
-            JMX.connection.togglePolling();
-        });
-        JMX.connection.poll(function(data) {
-            for (var i = 0; i < charts.length; i++) {
-                charts[i].update(data);
-            }
-            $(".stack").popover({
-                placement: "auto right",
-                html: true,
-                container: "#dashboard",
-                trigger: "focus",
-                template: '<div class="popover stacktrace" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><pre class="popover-content"></pre></div>'
-            });
-        });
-    });
-
-    // for (var server in JMX_INSTANCES) {
-    //     JMX.connection.ping(JMX_INSTANCES[server]);
-    // }
-});

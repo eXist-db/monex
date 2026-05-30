@@ -25,13 +25,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # Only test against `latest` (eXist 7.0+ develop). monex now requires
-        # the WebSocket module from eXist-db/exist#6145, which isn't in any
-        # 6.x release.
-        exist-version: [latest]
+        # Test against `latest` and `experimental` for exist v7 with and without full vector support
+        exist-version: [latest, experimental]
     services:
       exist:
-        image: existdb/existdb:${{ matrix.exist-version }}
+        image: duncdrum/existdb:${{ matrix.exist-version }}
         ports:
           - 8080:8080
           - 8443:8443
@@ -44,7 +42,8 @@ jobs:
       # npm ci --ignore-scripts skips Cypress's postinstall binary fetch,
       # so download it explicitly. The binary is cached at ~/.cache/Cypress.
       - name: Install Cypress binary
-        run: npx cypress install
+        run: |
+          npx cypress install
       - run: npm run build
       - name: Install XAR
         run: npx --yes @existdb/xst package install dist/monex-*.xar
@@ -52,7 +51,7 @@ jobs:
           EXISTDB_USER: admin
           EXISTDB_PASS:
       - name: Run Cypress tests
-        run: npx cypress run
+        run: npx cypress run --browser firefox
 
   release:
     name: Release

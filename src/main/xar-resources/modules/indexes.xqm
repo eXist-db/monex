@@ -88,6 +88,184 @@ declare variable $indexes:range-lookup :=
         function-lookup(xs:QName("range:index-keys-for-field"), 3)
     )[1];
 
+declare function indexes:xconf-stats($xconf as element(cc:collection)) as map(*) {
+    let $fulltext := $xconf/cc:index/cc:fulltext
+    let $legacy-ft :=
+        count($fulltext/cc:create)
+        + (
+            if ($fulltext/@default != "none" and $fulltext/@attributes != "false") then 1
+            else if ($fulltext/@default != "none" or $fulltext/@attributes = "true") then 1
+            else 0
+        )
+    return
+        map {
+            "lucene": count($xconf//cc:lucene/cc:text),
+            "vector-field": count($xconf//cc:vector-field),
+            "vector-store": ($xconf//cc:lucene/@vector-store/string())[1],
+            "ngram": count($xconf//cc:ngram),
+            "range": count($xconf/cc:index/cc:create[not(ancestor::cc:range)]),
+            "new-range": count($xconf//cc:range/cc:create) + count($xconf//cc:range//cc:field),
+            "legacy-ft": $legacy-ft
+        }
+};
+
+declare function indexes:stats-total($stats as map(*)) as xs:integer {
+    sum((
+        ($stats?lucene, 0)[1],
+        ($stats?ngram, 0)[1],
+        ($stats?range, 0)[1],
+        ($stats?new-range, 0)[1],
+        ($stats?legacy-ft, 0)[1]
+    ))
+};
+
+declare function indexes:vector-collection-badge($stats as map(*)) as element(span)? {
+    let $fields := ($stats?vector-field, 0)[1]
+    let $store := string($stats?vector-store)
+    return
+        if ($fields gt 0 or $store ne "") then
+            <span class="label label-info indexes-type-badge indexes-vector-summary-badge"
+                  title="{string-join(
+                      (
+                          if ($fields gt 0) then
+                              concat($fields, ' vector-field', if ($fields gt 1) then 's' else '')
+                          else (),
+                          if ($store ne "") then concat('vector store: ', $store) else ()
+                      ),
+                      ' · '
+                  )}">
+                Vector
+            </span>
+        else ()
+};
+
+declare function indexes:collection-type-badges($stats as map(*)) as element(span)* {
+    (
+        if (($stats?lucene, 0)[1] gt 0) then indexes:index-badge("lucene-index") else (),
+        if (($stats?ngram, 0)[1] gt 0) then indexes:index-badge("ngram-index") else (),
+        if (($stats?range, 0)[1] gt 0) then indexes:index-badge("range-index") else (),
+        if (($stats?new-range, 0)[1] gt 0) then indexes:index-badge("new-range-index") else (),
+        if (($stats?legacy-ft, 0)[1] gt 0) then indexes:index-badge("legacy-fulltext-index") else (),
+        indexes:vector-collection-badge($stats)
+    )
+};
+
+declare function indexes:index-label($index-name as xs:string) as xs:string {
+    ($indexes:index-names//item[value eq $index-name]/label/text(), $index-name)[1]
+};
+
+declare function indexes:index-badge($index-name as xs:string) as element(span) {
+    let $class :=
+        switch ($index-name)
+            case "lucene-index" return "label-primary"
+            case "ngram-index" return "label-default"
+            case "range-index" return "label-success"
+            case "new-range-index" return "label-success"
+            case "legacy-fulltext-index" return "label-warning"
+            default return "label-default"
+    return
+        <span class="label {$class} indexes-type-badge">{indexes:index-label($index-name)}</span>
+};
+
+declare function indexes:vector-badge() as element(span) {
+    <span class="label label-info vector-stat-badge">KNN</span>
+};
+
+declare function indexes:kpi-cell($label as xs:string, $value as xs:string) as element(div) {
+    <div class="kpi-cell kpi-neutral">
+        <span class="kpi-label">{$label}</span>
+        <span class="kpi-value">{$value}</span>
+    </div>
+};
+
+declare function indexes:collection-kpi($stats as map(*)) as element(div) {
+    <div class="kpi-strip indexes-kpi">{
+        indexes:kpi-cell("Lucene", string(($stats?lucene, 0)[1])),
+        indexes:kpi-cell("Legacy range", string(($stats?range, 0)[1])),
+        indexes:kpi-cell("New range", string(($stats?new-range, 0)[1])),
+        indexes:kpi-cell("NGram", string(($stats?ngram, 0)[1])),
+        indexes:kpi-cell("Vector fields", string(($stats?vector-field, 0)[1])),
+        if (string($stats?vector-store) ne "") then
+            indexes:kpi-cell("Vector store", string($stats?vector-store))
+        else ()
+    }</div>
+};
+
+declare function indexes:vector-field-label($field as element(cc:vector-field)) as xs:string {
+    concat(
+        $field/@name/string(),
+        " · ",
+        $field/@dimension/string(),
+        "d · ",
+        $field/@similarity/string()
+        ,
+        if ($field/@embedding) then concat(" · ", $field/@embedding/string()) else ()
+        ,
+        if ($field/@model) then concat(" · ", $field/@model/string()) else ()
+    )
+};
+
+declare function indexes:type-detail-cell($text as xs:string) as element(td) {
+    <td class="indexes-type-detail">{if (normalize-space($text) ne "") then $text else <span class="indexes-item-muted">—</span>}</td>
+};
+
+declare function indexes:browse-link($href as xs:string, $label as xs:string) as element(a) {
+    <a href="{$href}">{$label}</a>
+};
+
+declare function indexes:lucene-index-keys-links(
+    $collection as xs:string,
+    $qname as xs:string?,
+    $match as xs:string?
+) as item()* {
+    let $target :=
+        if ($qname) then concat('node-name=', $qname) else concat('match=', $match)
+    return (
+        indexes:browse-link(
+            concat('index-keys.html', indexes:replace-parameters((
+                $target,
+                concat('collection=', $collection),
+                'index=lucene-index',
+                'show-keys-by=qname'
+            ))),
+            'Browse qname'
+        ),
+        ', ',
+        indexes:browse-link(
+            concat('index-keys.html', indexes:replace-parameters((
+                $target,
+                concat('collection=', $collection),
+                'index=lucene-index',
+                'show-keys-by=node'
+            ))),
+            'Browse node'
+        )
+    )
+};
+
+declare function indexes:index-keys-link(
+    $collection as xs:string,
+    $index as xs:string,
+    $show-keys-by as xs:string,
+    $params as xs:string*
+) as element(a) {
+    let $label :=
+        switch ($show-keys-by)
+            case 'qname' return 'Browse qname'
+            case 'field' return 'Browse field'
+            default return 'Browse node'
+    return
+        indexes:browse-link(
+            concat('index-keys.html', indexes:replace-parameters((
+                $params,
+                concat('collection=', $collection),
+                concat('index=', $index),
+                concat('show-keys-by=', $show-keys-by)
+            ))),
+            $label
+        )
+};
+
 (:
     Main function: outputs the page.
 :)
@@ -95,26 +273,66 @@ declare
     %templates:wrap
 function indexes:summary($node as node(), $model as map(*)) {
     let $xconfs := collection('/db/system/config/')/cc:collection[cc:index][ends-with(util:document-name(.), '.xconf')]
+    let $total-collections := count($xconfs)
+    let $vector-collections :=
+        count(
+            for $xconf in $xconfs
+            where exists($xconf//cc:vector-field) or string($xconf//cc:lucene/@vector-store) ne ""
+            return $xconf
+        )
     return
         if (empty($xconfs)) then
+            (
             <div class="box-header with-border">
-                <h3 class="box-title">
-                No Index Configurations were found in the /db/system/config collection.
-                </h3>
-            </div>
-        else (
-            <div class="box-header with-border">
-                <h3 class="box-title">Found index configurations for {count($xconfs)} collections:</h3>
+                <h3 class="box-title">Index configurations</h3>
             </div>,
             <div class="box-body">
-                <ol>{
-                    for $xconf in $xconfs
-                    let $xconf-collection-name := util:collection-name($xconf)
-                    let $data-collection-name := substring-after(util:collection-name($xconf), '/db/system/config')
-                    order by $xconf-collection-name
-                    return
-                        <li><a href="collection.html?collection={$data-collection-name}">{$data-collection-name}</a></li>
-                }</ol>
+                <div class="indexes-empty-state">
+                    <p class="indexes-empty-title">No index configurations found</p>
+                    <p class="indexes-empty-hint">
+                        Add <code>collection.xconf</code> files under
+                        <code>/db/system/config</code> (mirroring your data collection paths) to
+                        define Lucene, range, ngram, and vector indexes.
+                    </p>
+                </div>
+            </div>
+            )
+        else (
+            <div class="box-header with-border">
+                <h3 class="box-title">Index configurations</h3>
+            </div>,
+            <div class="box-body no-padding">
+                <div class="kpi-strip indexes-kpi">
+                    {indexes:kpi-cell("Collections", string($total-collections))}
+                    {indexes:kpi-cell("With vector stores", string($vector-collections))}
+                </div>
+                <h4 class="indexes-section-title">Configured collections</h4>
+                <div class="indexes-table-wrap">
+                    <table class="table table-striped indexes-collection-list">
+                        <thead>
+                            <tr>
+                                <th>Collection</th>
+                                <th>Index types</th>
+                                <th class="text-right">Definitions</th>
+                            </tr>
+                        </thead>
+                        <tbody>{
+                            for $xconf in $xconfs
+                            let $data-collection-name := substring-after(util:collection-name($xconf), '/db/system/config')
+                            let $stats := indexes:xconf-stats($xconf)
+                            let $badges := indexes:collection-type-badges($stats)
+                            order by $data-collection-name
+                            return
+                                <tr>
+                                    <td>
+                                        <a href="collection.html?collection={$data-collection-name}">{$data-collection-name}</a>
+                                    </td>
+                                    <td>{ $badges, if (empty($badges)) then <span class="indexes-item-muted">—</span> else () }</td>
+                                    <td class="text-right">{indexes:stats-total($stats)}</td>
+                                </tr>
+                        }</tbody>
+                    </table>
+                </div>
             </div>
         )
 };
@@ -152,37 +370,51 @@ declare function indexes:xconf-to-table($node as node(), $model as map(*)) as it
     let $xconf := collection('/db/system/config')/cc:collection[util:collection-name(.) = $xconf-collection-name]
     let $resource := $xconf-collection-name || '/' || xmldb:get-child-resources($xconf-collection-name)[ends-with(., '.xconf')]
     let $link := $model?eXide || "/index.html?open=" || $resource
+    let $stats := if ($xconf) then indexes:xconf-stats($xconf) else map {}
+    let $has-data := xmldb:collection-available($data-collection-name)
     return
-        <div>
-            <p>
-                <a href="{$link}" target="eXide" class="eXide-open" data-exide-open="{$resource}">Open .xconf file in eXide</a>
-            </p>
-            {if (xmldb:collection-available($data-collection-name)) then () else <p>(no data)</p>}
-            <table class="table table-bordered browse" cellpadding="2">
-                <tr>
-                    <th>Item Indexed</th>
-                    <th>Index</th>
-                    <!--th>Instances</th-->
-                    <th>Show Index Keys By</th>
-                </tr>
-                {
-                for $entry in ( indexes:analyze-legacy-fulltext-indexes($xconf),
-                    indexes:analyze-lucene-indexes($xconf),
-                    indexes:analyze-range-indexes($xconf),
-                    indexes:analyze-ngram-indexes($xconf),
-                    if (exists($indexes:range-lookup)) then (
-                        indexes:analyze-new-range-indexes($xconf),
-                        indexes:analyze-new-range-index-fields($xconf)
-                    ) else
-                        ()
-                )
-                let $item := $entry/td[1]
-                let $index := $entry/td[2]
-                (: order by $index, $item :)
-                return $entry
-                }
-            </table>
-        </div>
+        if (not($xconf)) then
+            <div class="indexes-empty-state">
+                <p class="indexes-empty-title">No configuration for this collection</p>
+                <p class="indexes-empty-hint">
+                    Expected <code>{ $xconf-collection-name }</code> with a
+                    <code>collection.xconf</code> file.
+                </p>
+            </div>
+        else
+            <div>
+                {indexes:collection-kpi($stats)}
+                <div class="indexes-exide-link">
+                    <a href="{$link}" target="eXide" class="eXide-open" data-exide-open="{$resource}">Open .xconf in eXide</a>
+                    {if (not($has-data)) then <span class="indexes-no-data">Data collection missing</span> else ()}
+                </div>
+                <h4 class="indexes-section-title">Index definitions</h4>
+                <div class="indexes-table-wrap">
+                    <table class="table table-striped indexes-definitions">
+                        <thead>
+                            <tr>
+                                <th>Item indexed</th>
+                                <th>Type</th>
+                                <th>Detail</th>
+                                <th>Browse keys</th>
+                            </tr>
+                        </thead>
+                        <tbody>{
+                            for $entry in (
+                                indexes:analyze-legacy-fulltext-indexes($xconf),
+                                indexes:analyze-lucene-indexes($xconf),
+                                indexes:analyze-range-indexes($xconf),
+                                indexes:analyze-ngram-indexes($xconf),
+                                if (exists($indexes:range-lookup)) then (
+                                    indexes:analyze-new-range-indexes($xconf),
+                                    indexes:analyze-new-range-index-fields($xconf)
+                                ) else ()
+                            )
+                            return $entry
+                        }</tbody>
+                    </table>
+                </div>
+            </div>
 };
 
 (:
@@ -334,8 +566,18 @@ function indexes:show-index-keys($node as node(), $model as map(*)) {
     return
     
         <div>
-            <p>{count($keys)} keys returned in {$query-duration}s</p>
-            <p>Keys for the {indexes:index-name-to-label($indexes:index)} index defined on "{string-join(($indexes:field, $indexes:node-name, $indexes:match), '')}" in the <a href="{concat('collection.html?collection=', $indexes:collection)}">{$indexes:collection}</a> collection, by {$indexes:show-keys-by}.</p>
+            <div class="indexes-meta-block">
+                <p class="indexes-meta-primary">{count($keys)} keys in {format-number($query-duration, '0.000')}s</p>
+                <p class="indexes-meta-context">
+                    {indexes:index-badge($indexes:index)}
+                    {' '}
+                    on "{string-join(($indexes:field, $indexes:node-name, $indexes:match)[normalize-space(.) ne ''], ', ')}"
+                    in
+                    <a href="{concat('collection.html?collection=', $indexes:collection)}">{$indexes:collection}</a>
+                    · browse by {$indexes:show-keys-by}
+                </p>
+            </div>
+            <div class="indexes-toolbar">
             <form method="get" class="form-horizontal" action="{indexes:remove-parameter-names('start-value')}" role="form">
                 <div class="form-group">
                     <label for="max" class="col-sm-2 control-label">Max number returned:</label>
@@ -375,7 +617,9 @@ function indexes:show-index-keys($node as node(), $model as map(*)) {
                     </div>
                 </div>
             </form>
-            <table class="table table-bordered table-striped dataTable">
+            </div>
+            <div class="indexes-table-wrap">
+            <table class="table table-bordered table-striped dataTable indexes-definitions">
                 <tr>{
                     for $column in ('term', 'frequency', 'documents', 'position')
                     return
@@ -383,6 +627,7 @@ function indexes:show-index-keys($node as node(), $model as map(*)) {
                 }</tr>
                 { $sorted-keys }
             </table>
+            </div>
         </div>
 };
 
@@ -472,8 +717,19 @@ function indexes:show-facet($node as node(), $model as map(*)) {
     return
     
         <div>
-            <p>1-{min((count($sorted-rows), $indexes:max-number-returned))} of {count($sorted-rows)} labels returned in {$query-duration}s</p>
-            <p>Facet "{$indexes:facet}" {if ($indexes:hierarchical eq "yes") then "(hierarchical)" else ()} defined on "{($indexes:node-name, $indexes:match)[. ne ""][1]}" in the <a href="{concat('collection.html?collection=', $indexes:collection)}">{$indexes:collection}</a> collection.</p>
+            <div class="indexes-meta-block">
+                <p class="indexes-meta-primary">1–{min((count($sorted-rows), $indexes:max-number-returned))} of {count($sorted-rows)} labels in {format-number($query-duration, '0.000')}s</p>
+                <p class="indexes-meta-context">
+                    {indexes:index-badge('lucene-index')}
+                    {' '}
+                    Facet "{$indexes:facet}"
+                    {if ($indexes:hierarchical eq "yes") then ' (hierarchical)' else ()}
+                    on "{($indexes:node-name, $indexes:match)[. ne ''][1]}"
+                    in
+                    <a href="{concat('collection.html?collection=', $indexes:collection)}">{$indexes:collection}</a>
+                </p>
+            </div>
+            <div class="indexes-toolbar">
             <form method="get" class="form-horizontal" action="{indexes:remove-parameter-names('start-value')}" role="form">
                 <div class="form-group">
                     <label for="max" class="col-sm-2 control-label">Max number returned:</label>
@@ -495,7 +751,9 @@ function indexes:show-facet($node as node(), $model as map(*)) {
                     }
                 </div>
             </form>
-            <table class="table table-bordered table-striped dataTable">
+            </div>
+            <div class="indexes-table-wrap">
+            <table class="table table-bordered table-striped dataTable indexes-definitions">
                 <tr>{
                     for $column in ('label', 'count')
                     return
@@ -503,6 +761,7 @@ function indexes:show-facet($node as node(), $model as map(*)) {
                 }</tr>
                 { $sorted-rows }
             </table>
+            </div>
         </div>
 };
 
@@ -578,8 +837,18 @@ function indexes:show-field($node as node(), $model as map(*)) {
     return
     
         <div>
-            <p>1-{min((count($sorted-rows), $indexes:max-number-returned))} of {count($sorted-rows)} labels returned in {$query-duration}s</p>
-            <p>Facet "{$indexes:field}" defined on "{($indexes:node-name, $indexes:match)[. ne ""][1]}" in the <a href="{concat('collection.html?collection=', $indexes:collection)}">{$indexes:collection}</a> collection.</p>
+            <div class="indexes-meta-block">
+                <p class="indexes-meta-primary">1–{min((count($sorted-rows), $indexes:max-number-returned))} of {count($sorted-rows)} values in {format-number($query-duration, '0.000')}s</p>
+                <p class="indexes-meta-context">
+                    {indexes:index-badge('lucene-index')}
+                    {' '}
+                    Field "{$indexes:field}"
+                    on "{($indexes:node-name, $indexes:match)[. ne ''][1]}"
+                    in
+                    <a href="{concat('collection.html?collection=', $indexes:collection)}">{$indexes:collection}</a>
+                </p>
+            </div>
+            <div class="indexes-toolbar">
             <form method="get" class="form-horizontal" action="{indexes:remove-parameter-names('start-value')}" role="form">
                 <div class="form-group">
                     <label for="max" class="col-sm-2 control-label">Max number returned:</label>
@@ -601,7 +870,9 @@ function indexes:show-field($node as node(), $model as map(*)) {
                     }
                 </div>
             </form>
-            <table class="table table-bordered table-striped dataTable">
+            </div>
+            <div class="indexes-table-wrap">
+            <table class="table table-bordered table-striped dataTable indexes-definitions">
                 <tr>{
                     for $column in ('value', 'frequency')
                     return
@@ -609,6 +880,7 @@ function indexes:show-field($node as node(), $model as map(*)) {
                 }</tr>
                 { $sorted-rows => subsequence(1, $indexes:max-number-returned) }
             </table>
+            </div>
         </div>
 };
 
@@ -628,26 +900,9 @@ declare function indexes:term-callback($term as xs:anyAtomicType, $data as xs:un
     Analyzes the Lucene indexes in an index definition
 :)
 declare function indexes:analyze-lucene-indexes($xconf) {
-    let $index-label := indexes:index-name-to-label('lucene-index')
     let $lucene := $xconf/cc:index/cc:lucene 
     return if (not($lucene) or not($lucene/cc:text)) then () else 
         (
-        (: TODO: complete report of default/other Lucene analyzers :)
-        (:let $analyzers := $lucene/cc:analyzer
-        return 
-            if ($analyzers) then 
-                (
-                <tr colspan="2"><td>Lucene Analyzers</td></tr>
-                ,
-                for $node in $analyzers
-                return
-                    if (not($node/@id)) then
-                        <tr colspan="2"><td><em>default:</em> {concat(' ', $node/@class/string())}</td></tr>
-                    else
-                        <tr colspan="2"><td><strong>{$node/@id/string()}:</strong> {concat(' ', $node/@class/string())}</td></tr>
-                )
-            else ()
-        ,:)
         let $texts := $lucene//cc:text
         return
             (
@@ -657,79 +912,85 @@ declare function indexes:analyze-lucene-indexes($xconf) {
             let $analyzer := if ($text/@analyzer) then $text/@analyzer/string() else ()
             let $collection := substring-after(util:collection-name($text), '/db/system/config')
             let $no-index := $text/@index eq "no"
-            let $facets-fields := $text/(cc:facet | cc:field)
-(:            let $nodeset := if ($qname) then indexes:get-nodeset-from-qname($collection, $qname) else indexes:get-nodeset-from-match($collection, $match):)
+            let $facets-fields := $text/(cc:facet | cc:field | cc:vector-field)
             return
             (
                 <tr>
                     <td>
-                        {if (exists($facets-fields)) then attribute rowspan { count($facets-fields) + 1 } else () }
                         {if ($qname) then $qname else $match}
                         {if ($no-index) then " (not indexed)" else ()}
                         {if ($text/@boost) then concat(' (boost: ', $text/@boost/string(), ')') else ()}
                         {if ($text/cc:ignore) then (<br/>, concat('(ignore: ', string-join(for $ignore in $text/cc:ignore return $ignore/@qname/string(), ', '), ')')) else ()}</td>
-                    <td>
-                        {$index-label} {if ($qname) then ' QName' else ' Match'} {if ($analyzer) then concat(' (', $analyzer, ')') else ' (default analyzer)' (: TODO: complete report of default/other Lucene analyzers :)}
-                    </td>
-                    <!--td>{count($nodeset)}</td-->
-                    <td>{
-(:                        if (empty($nodeset)) then ():)
-(:                        else:)
-                            (
-                            <a href="index-keys.html{indexes:replace-parameters((
-                                if ($qname) then concat('node-name=', $qname) else concat('match=', $match)
-                                , 
-                                concat('collection=', $collection)
-                                ,
-                                'index=lucene-index'
-                                ,
-                                'show-keys-by=qname'
-                            ))}">QName</a>
-                            , 
-                            ', '
-                            ,
-                            <a href="index-keys.html{indexes:replace-parameters((
-                                if ($qname) then concat('node-name=', $qname) else concat('match=', $match)
-                                , 
-                                concat('collection=', $collection)
-                                ,
-                                'index=lucene-index'
-                                ,
-                                'show-keys-by=node'
-                            ))}">Node</a>
-                            )
-                    }</td>
+                    <td>{indexes:index-badge('lucene-index')}</td>
+                    {indexes:type-detail-cell(
+                        concat(
+                            if ($qname) then 'QName' else 'Match',
+                            if ($analyzer) then concat(' · ', $analyzer, ' analyzer') else ' · default analyzer'
+                        )
+                    )}
+                    <td class="indexes-drill-links">{indexes:lucene-index-keys-links($collection, $qname, $match)}</td>
                 </tr>,
                 for $f in $facets-fields
                 return
-                    <tr>
-                        <td>{$f/name()}: "{$f/(@dimension | @name)/string()}"{
-                            if ($f/@hierarchical eq "yes") then " (hierarchical)" else (),
-                            if ($f/@store eq "no") then " (not stored)" else (),
-                            if ($f/@analyzer) then concat(' (', $f/@analyzer, ' analyzer)') else ()
+                    <tr class="{if ($f instance of element(cc:vector-field)) then 'indexes-vector-row' else ()}">
+                        <td class="indexes-item-indexed-sub">{if ($f instance of element(cc:vector-field)) then
+                            $f/@name/string()
+                        else
+                            string(($f/(@dimension | @name)/string(), $f/name())[1])
                         }</td>
                         <td>{
                             if ($f instance of element(cc:facet)) then
-                                <a href="facet.html{indexes:replace-parameters((
-                                    if ($qname) then concat('node-name=', $qname) else concat('match=', $match)
-                                    , 
-                                    concat('collection=', $collection)
-                                    ,
-                                    concat('facet=', $f/@dimension)
-                                    ,
-                                    if ($f/@hierarchical) then concat('hierarchical=', $f/@hierarchical) else ()
-                                ))}">facet</a>
-                            else (: if ($f instance of element(cc:field)) then :)
-                                if ($f/@store eq "no") then 
-                                    "(not stored)"
-                                else
-                                    <a href="field.html{indexes:replace-parameters((
+                                indexes:index-badge('lucene-index')
+                            else if ($f instance of element(cc:vector-field)) then
+                                indexes:vector-badge()
+                            else if ($f/@store eq "no") then
+                                <span class="indexes-item-muted">not stored</span>
+                            else
+                                indexes:index-badge('lucene-index')
+                        }</td>
+                        {indexes:type-detail-cell(
+                            if ($f instance of element(cc:vector-field)) then
+                                indexes:vector-field-label($f)
+                            else
+                                string-join(
+                                    (
+                                        string($f/name()),
+                                        if ($f/@hierarchical eq "yes") then 'hierarchical' else (),
+                                        if ($f/@store eq "no") then 'not stored' else (),
+                                        if ($f/@analyzer) then concat($f/@analyzer/string(), ' analyzer') else ()
+                                    )[normalize-space(.) ne ''],
+                                    ' · '
+                                )
+                        )}
+                        <td class="indexes-drill-links">{
+                            if ($f instance of element(cc:facet)) then
+                                indexes:browse-link(
+                                    concat('facet.html', indexes:replace-parameters((
+                                        if ($qname) then concat('node-name=', $qname) else concat('match=', $match)
+                                        , 
+                                        concat('collection=', $collection)
+                                        ,
+                                        concat('facet=', $f/@dimension)
+                                        ,
+                                        if ($f/@hierarchical) then concat('hierarchical=', $f/@hierarchical) else ()
+                                    ))),
+                                    'Browse facet'
+                                )
+                            else if ($f instance of element(cc:vector-field)) then
+                                <span class="indexes-item-muted">Key browse not available for vector fields</span>
+                            else if ($f/@store eq "no") then
+                                <span class="indexes-item-muted">—</span>
+                            else
+                                indexes:browse-link(
+                                    concat('field.html', indexes:replace-parameters((
                                         if ($qname) then concat('node-name=', $qname) else concat('match=', $match)
                                         , 
                                         concat('collection=', $collection)
                                         ,
                                         concat('field=', $f/@name)
-                                    ))}">field</a>
+                                    ))),
+                                    'Browse field'
+                                )
                         }</td>
                     </tr>
                 )
@@ -756,11 +1017,11 @@ declare function indexes:analyze-legacy-fulltext-indexes($xconf) {
         else if (not($default-none) and not($attributes-none)) then
             <tr>
                 <td>All Elements and Attributes!</td>
-                <td>{$index-label}</td>
-                <!--td>{count(collection($collection)//*)} elements and {count(collection($collection)//@*)} attributes</td-->
-                <td>(Too many to display)</td>
-            </tr>(: is it feasible to display all qnames/nodes here? :)
-        else (: if ($creates) then :)
+                <td>{indexes:index-badge($index)}</td>
+                {indexes:type-detail-cell('')}
+                <td><span class="indexes-item-muted">Too many to display</span></td>
+            </tr>
+        else
             (
             for $create in $creates
             let $qname := $create/@qname/string()
@@ -768,17 +1029,16 @@ declare function indexes:analyze-legacy-fulltext-indexes($xconf) {
             return
                 <tr>
                     <td>{$qname}</td>
-                    <td>{$index-label} {if ($mixed) then '(mixed)' else ()}</td>
-                    <!--td>{count(util:eval(concat('collection(', $collection, ')//', $qname)))}</td-->
-                    <td><a href="index-keys.html{indexes:replace-parameters((
-                            (:if ($qname) then:) concat('node-name=', $qname) (:else concat('match=', $match):)
-                            , 
-                            concat('collection=', $collection)
-                            ,
-                            'index=legacy-fulltext-index'
-                            ,
-                            'show-keys-by=node'
-                        ))}">Node</a></td>
+                    <td>{indexes:index-badge($index)}</td>
+                    {indexes:type-detail-cell(if ($mixed) then 'mixed content' else '')}
+                    <td class="indexes-drill-links">{
+                        indexes:index-keys-link(
+                            $collection,
+                            $index,
+                            'node',
+                            concat('node-name=', $qname)
+                        )
+                    }</td>
                 </tr>
             ,
             let $only-elements-disabled := if ($fulltext/@default eq 'none' and $fulltext/@attributes ne 'no') then '(elements disabled)' else ()
@@ -787,17 +1047,17 @@ declare function indexes:analyze-legacy-fulltext-indexes($xconf) {
             if ($only-elements-disabled) then
                 <tr>
                     <td>All Attributes! {$only-elements-disabled}</td>
-                    <td>{$index-label}</td>
-                    <!--td>{count(collection($collection)//@*)} attributes</td-->
-                    <td>(Too many to display)</td>
-                </tr>(: is it feasible to display all qnames/nodes here? :)
+                    <td>{indexes:index-badge($index)}</td>
+                    {indexes:type-detail-cell('attributes only')}
+                    <td><span class="indexes-item-muted">Too many to display</span></td>
+                </tr>
             else if ($only-attribs-disabled) then 
                 <tr>
                     <td>All Elements! {$only-attribs-disabled}</td>
-                    <td>{$index-label}</td>
-                    <!--td>{count(collection($collection)//*)} elements</td-->
-                    <td>(Too many to display)</td>
-                </tr>(: is it feasible to display all qnames/nodes here? :)
+                    <td>{indexes:index-badge($index)}</td>
+                    {indexes:type-detail-cell('elements only')}
+                    <td><span class="indexes-item-muted">Too many to display</span></td>
+                </tr>
             else ()
             )
 };
@@ -821,20 +1081,21 @@ declare function indexes:analyze-range-indexes($xconf) {
             return
                 <tr>
                     <td>{if ($qname) then $qname else $match}</td>
-                    <td>{$index-label} {if ($qname) then ' QName' else ' Path'} ({$type})</td>
-                    <!--td>{count($nodeset)}</td-->
-                    <td>{
-(:                        if (empty($nodeset)) then ():)
-(:                        else:)
-                            <a href="index-keys.html{indexes:replace-parameters((
-                                if ($qname) then concat('node-name=', $qname) else concat('match=', $match)
-                                , 
-                                concat('collection=', $collection)
-                                ,
-                                'index=range-index'
-                                ,
-                                'show-keys-by=node'
-                            ))}">Node</a>
+                    <td>{indexes:index-badge('range-index')}</td>
+                    {indexes:type-detail-cell(
+                        concat(
+                            if ($qname) then 'QName' else 'Path',
+                            ' · ',
+                            $type
+                        )
+                    )}
+                    <td class="indexes-drill-links">{
+                        indexes:index-keys-link(
+                            $collection,
+                            'range-index',
+                            'node',
+                            if ($qname) then concat('node-name=', $qname) else concat('match=', $match)
+                        )
                     }</td>
                 </tr>
 };
@@ -854,20 +1115,15 @@ declare function indexes:analyze-new-range-indexes($xconf) {
         return
             <tr>
                 <td>{$qname}</td>
-                <td>{$index-label} QName ({$type})</td>
-                <!--td>{count($nodeset)}</td-->
-                <td>{
-(:                    if (empty($nodeset)) then ():)
-(:                    else:)
-                        <a href="index-keys.html{indexes:replace-parameters((
-                            concat('node-name=', $qname)
-                            , 
-                            concat('collection=', $collection)
-                            ,
-                            'index=new-range-index'
-                            ,
-                            'show-keys-by=node'
-                        ))}">Node</a>
+                <td>{indexes:index-badge('new-range-index')}</td>
+                {indexes:type-detail-cell(concat('QName · ', $type))}
+                <td class="indexes-drill-links">{
+                    indexes:index-keys-link(
+                        $collection,
+                        'new-range-index',
+                        'node',
+                        concat('node-name=', $qname)
+                    )
                 }</td>
             </tr>
 };
@@ -888,20 +1144,15 @@ declare function indexes:analyze-new-range-index-fields($xconf) {
         return
             <tr>
                 <td>{$name}</td>
-                <td>{$index-label} QName ({$type})</td>
-                <!--td>{count($nodeset)}</td-->
-                <td>{
-(:                    if (empty($nodeset)) then ():)
-(:                    else:)
-                        <a href="index-keys.html{indexes:replace-parameters((
-                            concat('field=', $name)
-                            , 
-                            concat('collection=', $collection)
-                            ,
-                            'index=new-range-index'
-                            ,
-                            'show-keys-by=field'
-                        ))}">Node</a>
+                <td>{indexes:index-badge('new-range-index')}</td>
+                {indexes:type-detail-cell(concat('field · ', $type))}
+                <td class="indexes-drill-links">{
+                    indexes:index-keys-link(
+                        $collection,
+                        'new-range-index',
+                        'field',
+                        concat('field=', $name)
+                    )
                 }</td>
             </tr>
 };
@@ -920,34 +1171,23 @@ declare function indexes:analyze-ngram-indexes($xconf) {
         return
             <tr>
                 <td>{$qname}</td>
-                <td>{$index-label} QName</td>
-                <!--td>{count($nodeset)}</td-->
-                <td>{
-(:                    if (not(empty($nodeset))) then :)
-                        (
-                        <a href="index-keys.html{indexes:replace-parameters((
-                            concat('node-name=', $qname)
-                            , 
-                            concat('collection=', $collection)
-                            ,
-                            'index=ngram-index'
-                            ,
-                            'show-keys-by=qname'
-                        ))}">QName</a>, 
-                        ', '
-                        ,
-                        <a href="index-keys.html{indexes:replace-parameters((
-                            concat('node-name=', $qname)
-                            , 
-                            concat('collection=', $collection)
-                            ,
-                            'index=ngram-index'
-                            ,
-                            'show-keys-by=node'
-                        ))}">Node</a>
-                        )
-(:                     else ():)
-                 }</td>
+                <td>{indexes:index-badge('ngram-index')}</td>
+                {indexes:type-detail-cell('QName')}
+                <td class="indexes-drill-links">{
+                    indexes:index-keys-link(
+                        $collection,
+                        'ngram-index',
+                        'qname',
+                        concat('node-name=', $qname)
+                    ),
+                    ', ',
+                    indexes:index-keys-link(
+                        $collection,
+                        'ngram-index',
+                        'node',
+                        concat('node-name=', $qname)
+                    )
+                }</td>
             </tr>    
 };
 

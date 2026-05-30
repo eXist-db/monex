@@ -10,13 +10,14 @@ An application for monitoring, profiling and inspecting a running eXist-db insta
 
 The app includes:
 
-- **Monitoring dashboard**: shows memory usage, running queries, locked threads, cache usage and more
+- **Monitoring dashboard**: live KPI strip, capacity vs workload panels — memory, page caches, embeddings status, running/waiting/recent queries
 - **Query profiling** page: essential for tuning queries and indexes
-- **Index browser**: inspect existing indexes
+- **Index browser**: inspect Lucene, range, and ngram indexes (including `vector-field` and `vector-store` when configured)
 - **Remote console**: send log messages from any query in eXist to the remote console.
 Uses web sockets for real-time updates.
-- **Data visualizer**: get a quick overview of the frequency of elements in a collection.
 - **Remote Monitoring**: monitor multiple remote eXistdb instances. Provides timelines for long term monitoring.
+
+Vector and embedding panels on Monitoring require eXist-db 7.x with the vector extension; they hide gracefully when unavailable.
 
 ## Configure Monex
 

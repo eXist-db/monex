@@ -3,6 +3,7 @@
  * Copyright (C) 2014 The eXist-db Authors
  */
 import { src, dest, series, parallel, watch as gulpWatch } from "gulp";
+import concat from "gulp-concat";
 import { createClient, readOptionsFromEnv } from "@existdb/gulp-exist";
 import replace from "@existdb/gulp-replace-tmpl";
 import rename from "gulp-rename";
@@ -17,7 +18,10 @@ const { version, license, app } = packageJson;
 const replacements = [app, { version, license }];
 
 const defaultOptions = { basic_auth: { user: "admin", pass: "" } };
-const connectionOptions = Object.assign(defaultOptions, readOptionsFromEnv());
+const envOptions = readOptionsFromEnv();
+const connectionOptions = Object.assign(defaultOptions, envOptions, {
+  secure: (envOptions.protocol || "https:") === "https:",
+});
 
 let existClient;
 try {
@@ -44,6 +48,10 @@ const paths = {
       "node_modules/knockout/build/output/knockout-latest.js",
       "node_modules/bootstrap-daterangepicker/daterangepicker.js",
       "node_modules/bootstrap-daterangepicker/moment.min.js",
+      "node_modules/chart.js/dist/chart.umd.min.*",
+      "node_modules/chartjs-adapter-moment/dist/chartjs-adapter-moment.min.js",
+      "node_modules/hammerjs/hammer.min.js",
+      "node_modules/chartjs-plugin-zoom/dist/chartjs-plugin-zoom.min.js",
       "node_modules/datatables.net/js/jquery.dataTables.min.js",
       "node_modules/datatables.net-bs/js/dataTables.bootstrap.min.js",
       "node_modules/datatables.net-responsive/js/dataTables.responsive.min.js",
@@ -117,8 +125,19 @@ function styles() {
     .pipe(dest(`${paths.staging}/resources/css`));
 }
 
+function dashboardBundle() {
+  return src("src/main/xar-resources/resources/scripts/dashboard/*.js")
+    .pipe(concat("monex-dashboard.js"))
+    .pipe(dest(`${paths.staging}/resources/scripts`))
+    .pipe(dest("src/main/xar-resources/resources/scripts"));
+}
+
 function scripts() {
-  return src("src/main/xar-resources/resources/scripts/*")
+  return src([
+    "src/main/xar-resources/resources/scripts/*",
+    "!src/main/xar-resources/resources/scripts/dashboard/**",
+    "!src/main/xar-resources/resources/scripts/monex-dashboard.js",
+  ])
     .pipe(dest(`${paths.staging}/resources/scripts`));
 }
 
@@ -169,7 +188,7 @@ function deployXar() {
 const build = series(
   clean,
   parallel(copyXarResources, copyProjectFiles),
-  parallel(styles, scripts, copyStatic),
+  parallel(styles, scripts, dashboardBundle, copyStatic),
   templates,
   createXar
 );
@@ -181,4 +200,5 @@ export { build, install };
 // default: build + deploy + watch
 export default series(build, deployXar, function watchTask() {
   gulpWatch(`${paths.input}/**/*`, build);
+  gulpWatch("src/main/xar-resources/resources/scripts/dashboard/*.js", dashboardBundle);
 });
