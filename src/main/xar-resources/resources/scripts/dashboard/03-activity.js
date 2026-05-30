@@ -122,10 +122,6 @@ function recentQueryElapsedText(row) {
     return formatted || "—";
 }
 
-function workloadHot(jmx) {
-    return runningQueryCount(jmx) > 0 || waitingThreadCount(jmx) > 0;
-}
-
 function activityUriTitle(row) {
     return JMX.util.activityUriTitle(JMX.util.activityRequestUri(row));
 }

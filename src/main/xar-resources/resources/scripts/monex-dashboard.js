@@ -449,10 +449,6 @@ function recentQueryElapsedText(row) {
     return formatted || "—";
 }
 
-function workloadHot(jmx) {
-    return runningQueryCount(jmx) > 0 || waitingThreadCount(jmx) > 0;
-}
-
 function activityUriTitle(row) {
     return JMX.util.activityUriTitle(JMX.util.activityRequestUri(row));
 }
@@ -819,28 +815,12 @@ function availableBrokerCount(jmx) {
     return isNaN(parsed) ? null : parsed;
 }
 
-function brokerKpiSubline(jmx) {
-    return brokerPoolSubline(jmx);
-}
-
 function brokerPoolSubline(jmx) {
     var idle = availableBrokerCount(jmx);
     if (idle === null) {
         return "";
     }
     return idle + " idle";
-}
-
-function brokerPoolSummaryText(jmx) {
-    var active = activeBrokerCount(jmx);
-    var max = maxBrokerCount(jmx);
-    var idle = availableBrokerCount(jmx);
-    var parts = [active + " in use"];
-    if (idle !== null) {
-        parts.push(idle + " idle");
-    }
-    parts.push(max + " configured max");
-    return parts.join(" · ");
 }
 
 function brokerPoolSummaryTitle() {
@@ -918,31 +898,6 @@ function kpiLevel(metric, value, jmx) {
         return "warn";
     }
     return "ok";
-}
-
-function kpiIconClass(metric, value, jmx) {
-    var level = kpiLevel(metric, value, jmx);
-    var classes = {
-        "kpi-ok": level === "ok",
-        "kpi-warn": level === "warn",
-        "kpi-critical": level === "critical"
-    };
-    if (metric === "activeBrokers") {
-        classes["bg-aqua"] = true;
-    } else if (metric === "runningQueries") {
-        classes["bg-yellow"] = true;
-    } else if (metric === "waitingThreads") {
-        classes["bg-red"] = true;
-    }
-    return classes;
-}
-
-function kpiBoxClass(metric, value, jmx) {
-    var level = kpiLevel(metric, value, jmx);
-    return {
-        "kpi-box-warn": level === "warn",
-        "kpi-box-critical": level === "critical"
-    };
 }
 
 function kpiCellClass(metric, value, jmx) {
@@ -1275,19 +1230,9 @@ function vectorPanelVisible(viewModel) {
     return false;
 }
 
-function vectorStatusClass(status) {
-    switch (status) {
-        case "available":
-            return "label-success";
-        case "http":
-            return "label-info";
-        default:
-            return "label-danger";
-    }
-}
-
-function vectorEmbeddingsKpiVisible(viewModel) {
-    return !!(viewModel && viewModel.vector && viewModel.vector.available && viewModel.vector.available());
+function vectorEntriesKpiVisible(viewModel) {
+    return !!(viewModel && viewModel.vectorStore &&
+        viewModel.vectorStore.available && viewModel.vectorStore.available());
 }
 
 function vectorEmbeddingsKpiText(vector) {
@@ -1297,54 +1242,6 @@ function vectorEmbeddingsKpiText(vector) {
     var ready = vector.ready();
     var total = vector.total();
     return ready + " / " + total;
-}
-
-function vectorEmbeddingsKpiTitle(vector) {
-    if (!vector || !vector.available || !vector.available()) {
-        return "";
-    }
-    var ready = vector.ready();
-    var total = vector.total();
-    return ready + " ready · " + total + " in catalog";
-}
-
-function vectorEmbeddingsKpiClass(vector) {
-    if (!vector || !vector.available || !vector.available()) {
-        return {};
-    }
-    var ready = vector.ready();
-    var total = vector.total();
-    if (total > 0 && ready === 0) {
-        return { "kpi-critical": true };
-    }
-    return {};
-}
-
-function vectorCatalogPanelLine(vector) {
-    if (!vector || !vector.available || !vector.available()) {
-        return "";
-    }
-    var ready = vector.ready();
-    var total = vector.total();
-    if (total === 0) {
-        return "";
-    }
-    if (ready >= total) {
-        return ready + " model" + (ready === 1 ? "" : "s") + " ready";
-    }
-    return ready + " ready · " + total + " in catalog";
-}
-
-function vectorEntriesKpiVisible(viewModel) {
-    return !!(viewModel && viewModel.vectorStore &&
-        viewModel.vectorStore.available && viewModel.vectorStore.available());
-}
-
-function vectorEntriesKpiText(vectorStore) {
-    if (!vectorStore || !vectorStore.entryCountKnown || !vectorStore.entryCountKnown()) {
-        return "—";
-    }
-    return String(vectorStore.entryCount());
 }
 
 function vectorStoreEntryTooltip(store) {
@@ -1407,9 +1304,7 @@ Monex.kpi = {
     activeBrokerCount: activeBrokerCount,
     maxBrokerCount: maxBrokerCount,
     availableBrokerCount: availableBrokerCount,
-    brokerKpiSubline: brokerKpiSubline,
     brokerPoolSubline: brokerPoolSubline,
-    brokerPoolSummaryText: brokerPoolSummaryText,
     brokerPoolSummaryTitle: brokerPoolSummaryTitle,
     brokerPoolPercent: brokerPoolPercent,
     brokerInUsePercent: brokerInUsePercent,
@@ -1419,8 +1314,6 @@ Monex.kpi = {
     bufferedRunningQueryCount: bufferedRunningQueryCount,
     bufferedRecentQueryCount: bufferedRecentQueryCount,
     kpiLevel: kpiLevel,
-    kpiIconClass: kpiIconClass,
-    kpiBoxClass: kpiBoxClass,
     kpiCellClass: kpiCellClass,
     memoryUsedMb: memoryUsedMb,
     memoryMaxMb: memoryMaxMb,
@@ -1442,26 +1335,21 @@ Monex.kpi = {
     databaseStatus: databaseStatus,
     databaseStatusClass: databaseStatusClass,
     databaseExistHome: databaseExistHome,
-    readyVectorModels: readyVectorModels,
     catalogVectorModels: catalogVectorModels,
+    readyVectorModels: readyVectorModels,
+    vectorModelLabel: vectorModelLabel,
     visibleCatalogModels: visibleCatalogModels,
     vectorMissingCount: vectorMissingCount,
-    vectorModelLabel: vectorModelLabel,
     vectorModelName: vectorModelName,
     vectorModelSpec: vectorModelSpec,
     vectorModelStatusDotClass: vectorModelStatusDotClass,
+    vectorEntriesKpiVisible: vectorEntriesKpiVisible,
+    vectorEmbeddingsKpiText: vectorEmbeddingsKpiText,
     vectorCatalogCountText: vectorCatalogCountText,
+    vectorEntriesKpiVisible: vectorEntriesKpiVisible,
     vectorModelStoreSummary: vectorModelStoreSummary,
     vectorModelStoreTooltip: vectorModelStoreTooltip,
     vectorPanelVisible: vectorPanelVisible,
-    vectorStatusClass: vectorStatusClass,
-    vectorEmbeddingsKpiVisible: vectorEmbeddingsKpiVisible,
-    vectorEmbeddingsKpiText: vectorEmbeddingsKpiText,
-    vectorEmbeddingsKpiTitle: vectorEmbeddingsKpiTitle,
-    vectorCatalogPanelLine: vectorCatalogPanelLine,
-    vectorEmbeddingsKpiClass: vectorEmbeddingsKpiClass,
-    vectorEntriesKpiVisible: vectorEntriesKpiVisible,
-    vectorEntriesKpiText: vectorEntriesKpiText,
     vectorStoreEntryTooltip: vectorStoreEntryTooltip,
     createVectorViewModel: createVectorViewModel,
     updateVectorDiagnostics: updateVectorDiagnostics,
@@ -2322,7 +2210,6 @@ var PROCESS_COLOR = "rgb(60, 141, 188)";
 var SYSTEM_COLOR = "rgb(243, 156, 18)";
 var DATA_DISK_COLOR = "rgb(0, 166, 90)";
 var JOURNAL_DISK_COLOR = "rgb(0, 192, 239)";
-var MEMORY_COLOR = "rgb(221, 75, 57)";
 var TRACK_COLOR = "#eceff3";
     var gauges = [];
 
@@ -2385,12 +2272,7 @@ var TRACK_COLOR = "#eceff3";
         registerGauge("disk-journal-gauge", JOURNAL_DISK_COLOR, function(jmx) {
             return Monex.kpi.journalDirectoryUsedPercent(jmx);
         });
-        registerGauge("memory-usage-gauge", MEMORY_COLOR, function(jmx) {
-            if (!jmx || !jmx.MemoryImpl || !jmx.MemoryImpl.HeapMemoryUsage) {
-                return 0;
-            }
-            return Monex.kpi.memoryUsedPercent(jmx.MemoryImpl.HeapMemoryUsage());
-        });
+
     }
 
     function update(jmx) {

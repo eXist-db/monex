@@ -312,14 +312,6 @@ body > .header .logo {
     text-decoration: none;
 }
 
-.cpu-bar-row {
-    padding: 14px 16px;
-}
-
-.cpu-bar-row + .cpu-bar-row {
-    border-top: 1px solid #f0f0f0;
-}
-
 .dashboard-toolbar #recording-settings-btn {
     margin-left: 8px;
 }
@@ -369,6 +361,25 @@ body > .header .logo {
     gap: 8px;
     margin-bottom: 8px;
     font-size: 13px;
+}
+
+.embedding-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.embedding-dot.ready {
+    background: #00a65a;
+}
+
+.embedding-dot.not-ready {
+    background: #f39c12;
+}
+
+.embedding-dot.unavailable {
+    background: #bbb;
 }
 
 .embedding-no-ready {
@@ -1097,18 +1108,6 @@ body > .header .logo {
     font-weight: normal;
 }
 
-.kpi-strip .kpi-meta {
-    display: block;
-    font-size: 11px;
-    line-height: 1.2;
-    color: #888;
-    margin-top: 2px;
-}
-
-.capacity-disk-subhead {
-    margin-top: 8px;
-}
-
 .cache-collection-subhead {
     margin-bottom: 0;
 }
@@ -1230,20 +1229,6 @@ body > .header .logo {
 
 .dashboard-panel-slim .box-header {
     padding: 8px 12px;
-}
-
-.cpu-gauge-row {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    gap: 32px;
-    padding: 4px 16px 12px;
-}
-
-.cpu-gauge-cell {
-    position: relative;
-    width: 128px;
-    text-align: center;
 }
 
 .cpu-gauge-chart {
@@ -1437,51 +1422,6 @@ body > .header .logo {
     color: #777;
 }
 
-.cache-managers {
-    border-top: 1px solid #eee;
-    padding-top: 4px;
-}
-
-.cache-managers .gauge-block {
-    padding-top: 8px;
-    padding-bottom: 8px;
-}
-
-.embedding-status {
-    padding: 14px 16px;
-    font-size: 14px;
-}
-
-.embedding-status-line {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.embedding-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    flex-shrink: 0;
-}
-
-.embedding-dot.ready {
-    background: #00a65a;
-}
-
-.embedding-dot.not-ready {
-    background: #f39c12;
-}
-
-.embedding-dot.unavailable {
-    background: #bbb;
-}
-
-.embedding-status .embedding-detail {
-    color: #666;
-    font-size: 12px;
-}
-
 .workload-panel .box {
     box-shadow: none;
     border: 1px solid #e8e8e8;
@@ -1550,22 +1490,6 @@ body > .header .logo {
 .dashboard-system-footer .system-details dd {
     margin: 0;
     color: #444;
-}
-
-.info-box-icon.kpi-warn {
-    background-color: #f39c12 !important;
-}
-
-.info-box-icon.kpi-critical {
-    background-color: #c23321 !important;
-}
-
-.info-box.kpi-box-warn {
-    box-shadow: inset 0 0 0 2px #f39c12;
-}
-
-.info-box.kpi-box-critical {
-    box-shadow: inset 0 0 0 2px #c23321;
 }
 
 /* Browse Indexes — configuration inventory (aligned with Monitoring information design) */

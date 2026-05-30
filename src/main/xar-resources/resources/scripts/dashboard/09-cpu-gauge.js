@@ -9,7 +9,6 @@ var PROCESS_COLOR = "rgb(60, 141, 188)";
 var SYSTEM_COLOR = "rgb(243, 156, 18)";
 var DATA_DISK_COLOR = "rgb(0, 166, 90)";
 var JOURNAL_DISK_COLOR = "rgb(0, 192, 239)";
-var MEMORY_COLOR = "rgb(221, 75, 57)";
 var TRACK_COLOR = "#eceff3";
     var gauges = [];
 
@@ -72,12 +71,7 @@ var TRACK_COLOR = "#eceff3";
         registerGauge("disk-journal-gauge", JOURNAL_DISK_COLOR, function(jmx) {
             return Monex.kpi.journalDirectoryUsedPercent(jmx);
         });
-        registerGauge("memory-usage-gauge", MEMORY_COLOR, function(jmx) {
-            if (!jmx || !jmx.MemoryImpl || !jmx.MemoryImpl.HeapMemoryUsage) {
-                return 0;
-            }
-            return Monex.kpi.memoryUsedPercent(jmx.MemoryImpl.HeapMemoryUsage());
-        });
+
     }
 
     function update(jmx) {
