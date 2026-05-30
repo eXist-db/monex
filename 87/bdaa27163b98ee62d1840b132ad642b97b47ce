@@ -1,0 +1,31 @@
+src/main/xar-resources/resources/scripts/dashboard/09-cpu-gauge.js
+  s_424c75c0dd0c76::t_2276ca453da1a8 38-47,55
+  s_424c75c0dd0c76::t_41d522d4b339e2 87,89
+src/main/xar-resources/resources/scripts/util.js
+  s_424c75c0dd0c76::t_ec54dcacb768e9 685-686
+src/main/xar-resources/index.html
+  s_424c75c0dd0c76::t_dce7a1df0dafc8 168
+src/main/xar-resources/resources/scripts/dashboard/04-kpi.js
+  s_424c75c0dd0c76::t_f00c389baa3460 255-267
+  s_424c75c0dd0c76::t_b3827500722254 321,323,325
+  s_424c75c0dd0c76::t_0e571e4ba50a16 298-301,304,308
+src/main/xar-resources/resources/scripts/monex-dashboard.js
+  s_424c75c0dd0c76::t_c5b0f1e1b19481 2351-2360,2368
+  s_424c75c0dd0c76::t_2aceec540bef9b 2400,2402
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "87bdaa27163b98ee62d1840b132ad642b97b47ce",
+  "prompts": {},
+  "sessions": {
+    "s_424c75c0dd0c76": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_18655f18effeDMVvxx7Nwc2zKk",
+        "model": "big-pickle"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
