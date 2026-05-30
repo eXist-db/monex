@@ -1,0 +1,19 @@
+.github/dependabot.yml
+  s_424c75c0dd0c76::t_afe73459f6cc7a 7-10,18-28
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "f37c1e0b73cf4258bc299a0c81054e7bcef7435a",
+  "prompts": {},
+  "sessions": {
+    "s_424c75c0dd0c76": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_18655f18effeDMVvxx7Nwc2zKk",
+        "model": "big-pickle"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
