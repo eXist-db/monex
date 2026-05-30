@@ -120,6 +120,14 @@ body > .header .logo {
     flex-direction: column;
 }
 
+.dashboard-host-row > [class*="col-"]:has(.box.collapsed-box) {
+    align-self: flex-start;
+}
+
+.dashboard-host-row .host-resource-panel.collapsed-box {
+    flex: 0 0 auto;
+}
+
 .dashboard-host-row .host-resource-panel {
     flex: 1;
     display: flex;
@@ -1018,7 +1026,7 @@ body > .header .logo {
     display: flex;
     flex-wrap: wrap;
     gap: 0;
-    margin-bottom: 0;
+    margin-bottom: 12px;
     border: 1px solid #ddd;
     border-radius: 3px;
     overflow: hidden;
@@ -1475,7 +1483,9 @@ body > .header .logo {
 }
 
 .workload-panel .box.collapsed-box .box-body,
-.workload-panel .box.collapsed-box .box-footer {
+.workload-panel .box.collapsed-box .box-footer,
+.dashboard-panel.box.collapsed-box .box-body,
+.dashboard-panel.box.collapsed-box .box-footer {
     display: none;
 }
 
