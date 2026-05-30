@@ -297,6 +297,24 @@ Cypress.Commands.add('killRunningQueryViaJmx', (queryId) => {
   })
 })
 
+Cypress.Commands.add('ensureUriTrackingEnabled', () => {
+  const baseUrl = new URL(Cypress.config('baseUrl'))
+  const existRoot = `${baseUrl.protocol}//${baseUrl.host}/exist`
+
+  cy.window().its('JMX_INSTANCES.0.token').then((token) => {
+    cy.request({
+      url: `${existRoot}/status`,
+      qs: {
+        operation: 'configure',
+        mbean: 'org.exist.management.exist:type=ProcessReport',
+        token,
+        args: ['100', '120000', 'true']
+      },
+      failOnStatusCode: false
+    })
+  })
+})
+
 Cypress.Commands.add('skipUnlessConsoleModule', () => {
   const baseUrl = new URL(Cypress.config('baseUrl'))
   const existRoot = `${baseUrl.protocol}//${baseUrl.host}/exist`

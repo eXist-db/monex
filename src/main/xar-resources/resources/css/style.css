@@ -738,6 +738,7 @@ body > .header .logo {
     border-radius: 4px;
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
     max-width: min(480px, 90vw);
+    box-sizing: border-box;
 }
 
 .poll-status-bar {

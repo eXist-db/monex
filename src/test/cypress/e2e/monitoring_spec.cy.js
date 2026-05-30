@@ -209,6 +209,7 @@ describe('Monex index page', () => {
       const slowQuery = 'import module namespace util = "http://exist-db.org/xquery/util"; util:wait(120000)'
 
       cy.wait(1500)
+      cy.ensureUriTrackingEnabled()
       cy.startBackgroundRestQuery(slowQuery)
       cy.waitForJmxRunningQuery({ timeout: 45000 }).as('runningQueryId')
       cy.waitForDashboardActiveThreadStack({ timeout: 45000 })
@@ -218,9 +219,9 @@ describe('Monex index page', () => {
         .find('.stack:visible')
         .first()
         .click()
-      cy.get('#activity-uri-flyout').should('be.visible')
+      cy.get('#activity-uri-flyout').scrollIntoView().should('be.visible')
       cy.wait(2200)
-      cy.get('#activity-uri-flyout').should('be.visible')
+      cy.get('#activity-uri-flyout').scrollIntoView().should('be.visible')
       cy.get('#activity-uri-flyout .activity-uri-flyout-close').click()
       cy.get('#activity-uri-flyout').should('not.be.visible')
 
@@ -343,6 +344,7 @@ describe('Monex index page', () => {
       const slowQuery = 'import module namespace util = "http://exist-db.org/xquery/util"; util:wait(120000)'
 
       cy.wait(1500)
+      cy.ensureUriTrackingEnabled()
 
       cy.window().then((win) => {
         cy.stub(win.JMX.connection, 'invoke').as('killInvoke')
@@ -356,6 +358,7 @@ describe('Monex index page', () => {
 
       cy.get('.running-queries tbody tr:not(.activity-row-ended) .kill-query', { timeout: 15000 })
         .first()
+        .scrollIntoView()
         .should('be.visible')
         .click()
 

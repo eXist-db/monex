@@ -185,7 +185,8 @@ function positionFlyoutFromElement(model, el) {
     var rect = el.getBoundingClientRect();
     var flyoutWidth = Math.min(maxWidth, window.innerWidth - 24);
     var left = Math.max(12, Math.min(rect.left, window.innerWidth - flyoutWidth - 12));
-    var top = rect.bottom + 6;
+    var top = Math.min(rect.bottom + 6, window.innerHeight - 60);
+    top = Math.max(50, top);
     model.left(left);
     model.top(top);
     model.width(flyoutWidth);
@@ -280,11 +281,15 @@ Monex.activity.createFlyoutModel = function(options) {
     };
 
     model.panelStyle = ko.computed(function() {
+        var top = model.top();
+        var maxHeight = Math.min(Math.max(60, window.innerHeight - top - 12), 480);
         return {
             position: "fixed",
-            top: model.top() + "px",
+            top: top + "px",
             left: model.left() + "px",
             width: model.width() + "px",
+            maxHeight: maxHeight + "px",
+            overflow: "hidden",
             zIndex: 1050
         };
     });
