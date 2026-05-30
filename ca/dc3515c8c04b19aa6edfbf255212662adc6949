@@ -1,0 +1,31 @@
+src/test/cypress/support/commands.js
+  s_1b64240070147f::t_af52d0e3404926 300-317
+src/main/xar-resources/resources/css/style.css
+  s_1b64240070147f::t_69261afd147487 741
+src/main/xar-resources/resources/scripts/dashboard/03-activity.js
+  s_1b64240070147f::t_fc6dade0c6c7d7 188-189
+  s_1b64240070147f::t_1be9a1298f67b0 285
+  s_1b64240070147f::t_14fb0e8cfb119a 284,288,291
+  s_1b64240070147f::t_c22bfbeec6bc8f 292
+src/test/cypress/e2e/monitoring_spec.cy.js
+  s_1b64240070147f::t_6de794475b07d9 222,224
+  s_1b64240070147f::t_ca97f565c3fc4d 361
+  s_1b64240070147f::t_7e67ca4eb6fd26 347
+  s_1b64240070147f::t_cad20b650e2032 212
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "cadc3515c8c04b19aa6edfbf255212662adc6949",
+  "prompts": {},
+  "sessions": {
+    "s_1b64240070147f": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_18704a435ffeWEH5zYW0MlLhNs",
+        "model": "big-pickle"
+      },
+      "human_author": null
+    }
+  }
+}
