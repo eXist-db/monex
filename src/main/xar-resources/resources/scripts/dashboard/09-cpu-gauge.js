@@ -35,6 +35,16 @@ var TRACK_COLOR = "#eceff3";
         };
     }
 
+    function gaugeColor(pct, defaultColor) {
+        if (pct >= JMX_CAPACITY_THRESHOLDS.critical) {
+            return "#c23321";
+        }
+        if (pct >= JMX_CAPACITY_THRESHOLDS.warn) {
+            return "#f39c12";
+        }
+        return defaultColor;
+    }
+
     function registerGauge(id, color, percentFn) {
         var node = document.getElementById(id);
         if (!node) {
@@ -42,6 +52,7 @@ var TRACK_COLOR = "#eceff3";
         }
         var gauge = createGauge(node, color);
         gauge.percent = percentFn;
+        gauge.defaultColor = color;
         gauges.push(gauge);
     }
 
@@ -73,7 +84,9 @@ var TRACK_COLOR = "#eceff3";
         init();
         for (var i = 0; i < gauges.length; i++) {
             var pct = Math.min(100, Math.max(0, gauges[i].percent(jmx) || 0));
+            var color = gaugeColor(pct, gauges[i].defaultColor);
             gauges[i].chart.data.datasets[0].data = [pct, 100 - pct];
+            gauges[i].chart.data.datasets[0].backgroundColor = [color, TRACK_COLOR];
             gauges[i].chart.update("none");
         }
     }

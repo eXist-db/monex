@@ -1033,6 +1033,19 @@ function formatCpuLoad(ratio) {
     return Math.round(pct) + "%";
 }
 
+function cpuAvailableProcessors(jmx) {
+    var node = cpuOsNode(jmx);
+    if (!node) {
+        return 0;
+    }
+    return parseInt(jmxValue(node.AvailableProcessors), 10) || 0;
+}
+
+function cpuProcessorsLabel(jmx) {
+    var count = cpuAvailableProcessors(jmx);
+    return count > 0 ? count + " cores" : "";
+}
+
 function diskUsageNode(jmx) {
     if (!jmx || !jmx.DiskUsage) {
         return null;
@@ -1063,13 +1076,17 @@ function formatDiskBytes(bytes) {
     return (n / (1024 * 1024 * 1024)).toFixed(1) + " GB";
 }
 
+function diskDirectoryFreeBytes(jmx, prefix) {
+    return diskDirectoryBytes(jmx, prefix + "UsableSpace");
+}
+
 function diskDirectoryUsedPercent(jmx, prefix) {
-    var used = diskDirectoryBytes(jmx, prefix + "UsedSpace");
     var total = diskDirectoryBytes(jmx, prefix + "TotalSpace");
+    var free = diskDirectoryFreeBytes(jmx, prefix);
     if (total <= 0) {
         return 0;
     }
-    return Math.min(100, Math.round(used / (total / 100)));
+    return Math.min(100, Math.round((total - free) / (total / 100)));
 }
 
 function dataDirectoryUsedPercent(jmx) {
@@ -1081,13 +1098,12 @@ function journalDirectoryUsedPercent(jmx) {
 }
 
 function diskDirectoryLabel(jmx, prefix) {
-    var used = diskDirectoryBytes(jmx, prefix + "UsedSpace");
     var total = diskDirectoryBytes(jmx, prefix + "TotalSpace");
+    var free = diskDirectoryFreeBytes(jmx, prefix);
     if (total <= 0) {
-        return formatDiskBytes(used) + " used";
+        return "?";
     }
-    return formatDiskBytes(used) + " / " + formatDiskBytes(total) +
-        " (" + diskDirectoryUsedPercent(jmx, prefix) + "%)";
+    return formatDiskBytes(free) + " free";
 }
 
 function journalDiskDistinct(jmx) {
@@ -2332,6 +2348,16 @@ var TRACK_COLOR = "#eceff3";
         };
     }
 
+    function gaugeColor(pct, defaultColor) {
+        if (pct >= JMX_CAPACITY_THRESHOLDS.critical) {
+            return "#c23321";
+        }
+        if (pct >= JMX_CAPACITY_THRESHOLDS.warn) {
+            return "#f39c12";
+        }
+        return defaultColor;
+    }
+
     function registerGauge(id, color, percentFn) {
         var node = document.getElementById(id);
         if (!node) {
@@ -2339,6 +2365,7 @@ var TRACK_COLOR = "#eceff3";
         }
         var gauge = createGauge(node, color);
         gauge.percent = percentFn;
+        gauge.defaultColor = color;
         gauges.push(gauge);
     }
 
@@ -2370,7 +2397,9 @@ var TRACK_COLOR = "#eceff3";
         init();
         for (var i = 0; i < gauges.length; i++) {
             var pct = Math.min(100, Math.max(0, gauges[i].percent(jmx) || 0));
+            var color = gaugeColor(pct, gauges[i].defaultColor);
             gauges[i].chart.data.datasets[0].data = [pct, 100 - pct];
+            gauges[i].chart.data.datasets[0].backgroundColor = [color, TRACK_COLOR];
             gauges[i].chart.update("none");
         }
     }

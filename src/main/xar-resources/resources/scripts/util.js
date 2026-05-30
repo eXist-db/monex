@@ -682,7 +682,8 @@ JMX.util = (function() {
         var os = jmx.OperatingSystemImpl || jmx.UnixOperatingSystem;
         jmx.CpuLoad = {
             ProcessCpuLoad: cpuLoadRatio(os, "ProcessCpuLoad"),
-            SystemCpuLoad: cpuLoadRatio(os, "SystemCpuLoad")
+            SystemCpuLoad: cpuLoadRatio(os, "SystemCpuLoad"),
+            AvailableProcessors: parseInt(os && os.AvailableProcessors, 10) || 0
         };
     }
 

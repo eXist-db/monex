@@ -165,7 +165,7 @@
             <div class="col-md-4">
                 <div class="box dashboard-panel host-resource-panel" data-bind="visible: cpuMetricsAvailable($data.jmx)">
                     <div class="box-header">
-                        <h3 class="box-title">CPU</h3>
+                        <h3 class="box-title">CPU <span data-bind="text: cpuProcessorsLabel($data.jmx)">—</span></h3>
                         <div class="box-tools pull-right">
                             <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"/></button>
                         </div>

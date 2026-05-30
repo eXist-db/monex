@@ -252,6 +252,19 @@ function formatCpuLoad(ratio) {
     return Math.round(pct) + "%";
 }
 
+function cpuAvailableProcessors(jmx) {
+    var node = cpuOsNode(jmx);
+    if (!node) {
+        return 0;
+    }
+    return parseInt(jmxValue(node.AvailableProcessors), 10) || 0;
+}
+
+function cpuProcessorsLabel(jmx) {
+    var count = cpuAvailableProcessors(jmx);
+    return count > 0 ? count + " cores" : "";
+}
+
 function diskUsageNode(jmx) {
     if (!jmx || !jmx.DiskUsage) {
         return null;
@@ -282,13 +295,17 @@ function formatDiskBytes(bytes) {
     return (n / (1024 * 1024 * 1024)).toFixed(1) + " GB";
 }
 
+function diskDirectoryFreeBytes(jmx, prefix) {
+    return diskDirectoryBytes(jmx, prefix + "UsableSpace");
+}
+
 function diskDirectoryUsedPercent(jmx, prefix) {
-    var used = diskDirectoryBytes(jmx, prefix + "UsedSpace");
     var total = diskDirectoryBytes(jmx, prefix + "TotalSpace");
+    var free = diskDirectoryFreeBytes(jmx, prefix);
     if (total <= 0) {
         return 0;
     }
-    return Math.min(100, Math.round(used / (total / 100)));
+    return Math.min(100, Math.round((total - free) / (total / 100)));
 }
 
 function dataDirectoryUsedPercent(jmx) {
@@ -300,13 +317,12 @@ function journalDirectoryUsedPercent(jmx) {
 }
 
 function diskDirectoryLabel(jmx, prefix) {
-    var used = diskDirectoryBytes(jmx, prefix + "UsedSpace");
     var total = diskDirectoryBytes(jmx, prefix + "TotalSpace");
+    var free = diskDirectoryFreeBytes(jmx, prefix);
     if (total <= 0) {
-        return formatDiskBytes(used) + " used";
+        return "?";
     }
-    return formatDiskBytes(used) + " / " + formatDiskBytes(total) +
-        " (" + diskDirectoryUsedPercent(jmx, prefix) + "%)";
+    return formatDiskBytes(free) + " free";
 }
 
 function journalDiskDistinct(jmx) {
