@@ -41,7 +41,7 @@
     "license": "LGPL-2.1-or-later"
   },
   "dependencies": {
-    "admin-lte": "^2.4.18",
+    "admin-lte": "^4.0.0",
     "chart.js": "^4.5.1",
     "chartjs-adapter-moment": "^1.0.1",
     "chartjs-plugin-zoom": "^2.2.0",
