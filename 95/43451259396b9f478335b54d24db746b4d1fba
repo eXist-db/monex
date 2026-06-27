@@ -1,0 +1,21 @@
+cypress.config.js
+  s_69ba89f8cc8cfe::t_0b915cb8d48386 5-6,8-9,17-18
+src/test/cypress/plugins/index.js
+  s_69ba89f8cc8cfe::t_1cac296f52bbd4 18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "9543451259396b9f478335b54d24db746b4d1fba",
+  "prompts": {},
+  "sessions": {
+    "s_69ba89f8cc8cfe": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "b38c8735-1816-4709-b554-46453ba2e724",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
