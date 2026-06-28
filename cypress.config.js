@@ -2,9 +2,11 @@
  * SPDX LGPL-2.1-or-later
  * Copyright (C) 2014 The eXist-db Authors
  */
-const { defineConfig } = require('cypress')
+import { defineConfig } from 'cypress'
+import setupPlugins from './src/test/cypress/plugins/index.js'
 
-module.exports = defineConfig({
+export default defineConfig({
+  allowCypressEnv: false,
   fileServerFolder: 'src/main/xar-resources',
   fixturesFolder: 'src/test/cypress/fixtures',
   screenshotsFolder: 'target/cypress/screenshots',
@@ -12,10 +14,8 @@ module.exports = defineConfig({
   downloadsFolder: 'target/cypress/downloads',
   projectId: 'snavwf',
   e2e: {
-    // We've imported your old cypress plugins here.
-    // You may want to clean this up later by importing these.
-    setupNodeEvents(on, config) {
-      return require('./src/test/cypress/plugins/index.js')(on, config)
+    setupNodeEvents (on, config) {
+      return setupPlugins(on, config)
     },
     retries: {
       runMode: 2,
