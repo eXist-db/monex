@@ -1,0 +1,21 @@
+src/main/xar-resources/modules/monex.xqm
+  s_3707984360482c::t_d7621029ae0849 32-35,40-43,45,50
+src/test/cypress/e2e/jmx_token_spec.cy.js
+  s_3707984360482c::t_2a2ea46c12b6e1 54-59
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "051c05b4972ab0784a516df2982a2a7734d11458",
+  "prompts": {},
+  "sessions": {
+    "s_3707984360482c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "28ebd411-5ea0-4c51-877c-7fce55807133",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
