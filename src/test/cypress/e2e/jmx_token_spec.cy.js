@@ -22,6 +22,41 @@ describe('JMX token wiring', () => {
       .and('match', /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)
   })
 
+  // The exact query string the dashboard polls with (dashboard/06-polling.js).
+  const POLL_QUERY =
+    'c=instances&c=processes&c=locking&c=memory&c=caches&c=system&c=operatingsystem&c=disk&c=vector'
+
+  it('gates the dashboard poll on the token from a non-localhost client', () => {
+    // Issue #411: from any client eXist does not treat as loopback,
+    // /exist/status returns 403 unless a valid token is supplied. It is the
+    // token resolution in monex:jmx-token() — not the localhost exemption —
+    // that must carry the request, and that resolution is what #411 broke.
+    //
+    // The catch: whether the exemption is active depends on where the test
+    // runs. Under GitHub Actions eXist is reached over docker port-forwarding
+    // and sees a non-loopback source, so no-token → 403 and only the token
+    // gets us through — the real #411 path. Against a local instance the
+    // caller *is* 127.0.0.1, so eXist waves it through and no-token → 200.
+    // We probe first and only assert the 403 half where it can hold, but the
+    // tokened poll must return 200 either way (an unresolved token file — the
+    // #411 regression — empties the token and would 403 in the enforcing case).
+    const baseUrl = new URL(Cypress.config('baseUrl'))
+    const statusUrl = `${baseUrl.protocol}//${baseUrl.host}/exist/status?${POLL_QUERY}`
+
+    cy.request({ url: `${statusUrl}&token=`, failOnStatusCode: false }).then((noToken) => {
+      if (noToken.status === 403) {
+        cy.log('loopback exemption not active — enforcing the #411 token contract')
+      } else {
+        cy.log(`loopback exemption active (no-token → ${noToken.status}); token still must work`)
+      }
+
+      cy.window().its('JMX_INSTANCES.0.token').then((token) => {
+        cy.request({ url: `${statusUrl}&token=${token}` })
+          .its('status').should('eq', 200)
+      })
+    })
+  })
+
   it('JMX endpoint accepts the rendered token', () => {
     // End-to-end: the token in JMX_INSTANCES actually authorizes the
     // /exist/status endpoint that the monitoring page polls. Catches
