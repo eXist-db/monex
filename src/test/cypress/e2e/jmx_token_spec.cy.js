@@ -51,6 +51,12 @@ describe('JMX token wiring', () => {
       }
 
       cy.window().its('JMX_INSTANCES.0.token').then((token) => {
+        // Assert the token is a real UUID first. Without this, the loopback
+        // exemption would return 200 for an empty token too — the #411
+        // regression — and the request-level check below would pass vacuously.
+        expect(token, 'rendered JMX token').to.match(
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
+        )
         cy.request({ url: `${statusUrl}&token=${token}` })
           .its('status').should('eq', 200)
       })

@@ -29,19 +29,25 @@ declare %private function monex:data-dir-candidates() as xs:string* {
             where normalize-space($files) ne ''
             return
                 (: an absolute path is used as-is; a relative one resolves
-                   against exist-home, exactly as eXist itself does :)
-                if (starts-with($files, "/")) then $files
+                   against exist-home, exactly as eXist itself does. Absolute
+                   covers POSIX (/…), and Windows drive-letter (C:\…, C:/…) and
+                   UNC (\\…) forms :)
+                if (matches($files, "^([A-Za-z]:|/|\\\\)")) then $files
                 else $home || "/" || $files
         } catch * {
             ()
         }
+    (: order matters: earlier candidates win in monex:jmx-token(). We do NOT
+       fn:distinct-values here — it is order-undefined and would forfeit that
+       priority; duplicates are harmless because the caller takes the first
+       path that actually holds the token file. :)
     return
-        distinct-values((
+        (
             util:system-property("exist.data.dir"),   (: honoured only if explicitly -D set :)
             $conf-files,
             $home || "/data",
             $home || "/webapp/WEB-INF/data"           (: standard webapp layout :)
-        )[normalize-space(.) ne ''])
+        )[normalize-space(.) ne '']
 };
 
 (:~
