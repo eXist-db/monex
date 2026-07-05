@@ -1,0 +1,32 @@
+src/test/cypress/e2e/jmx_token_spec.cy.js
+  s_7c0835075b90d2::t_525f55083d04ed 43,58-59
+  s_3707984360482c::t_f0a4c665eb1c1d 25-29,31-32,34,44-45,52,57
+  s_3707984360482c::t_3576f64d422768 30,33,35-42,46-51,53-56
+src/main/xar-resources/modules/monex.xqm
+  s_3707984360482c::t_c360014fc99719 13-46,54-55,57,59-64
+  s_3707984360482c::t_a77d0a38bf60bb 12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "b5af6fff8a08506ff7715e7bbde78225e0e0e8c2",
+  "prompts": {},
+  "sessions": {
+    "s_3707984360482c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "28ebd411-5ea0-4c51-877c-7fce55807133",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": null
+    },
+    "s_7c0835075b90d2": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0cd1613d8ffemRCVUtNbMTstBl",
+        "model": "deepseek-v4-flash-free"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
