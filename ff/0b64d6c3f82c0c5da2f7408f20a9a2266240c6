@@ -1,0 +1,21 @@
+src/main/xar-resources/modules/monex.xqm
+  s_7c0835075b90d2::t_2f295dc923940b 19-22
+src/test/cypress/e2e/jmx_token_spec.cy.js
+  s_7c0835075b90d2::t_525f55083d04ed 25-36
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "ff0b64d6c3f82c0c5da2f7408f20a9a2266240c6",
+  "prompts": {},
+  "sessions": {
+    "s_7c0835075b90d2": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0cd1613d8ffemRCVUtNbMTstBl",
+        "model": "deepseek-v4-flash-free"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
