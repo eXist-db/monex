@@ -10,23 +10,64 @@ module namespace monex = "http://exist-db.org/xquery/monex";
 import module namespace file = "http://exist-db.org/xquery/file";
 
 (:~
+ : Candidate directories that may hold the `jmxservlet.token` file, in
+ : priority order. eXist's own JMXServlet locates the token in the *resolved*
+ : data directory (`db-connection/@files` from conf.xml), not in a fixed
+ : `{exist-home}/data`. We mirror that: honour an explicit override, then the
+ : configured value, then the two standard on-disk layouts. Only non-empty,
+ : de-duplicated paths are returned.
+ :
+ : @return candidate directory paths, without trailing slash
+ :)
+declare %private function monex:data-dir-candidates() as xs:string* {
+    let $home := system:get-exist-home()
+    let $conf-files :=
+        try {
+            for $conf in ($home || "/etc/conf.xml", $home || "/conf.xml")
+            where file:exists($conf)
+            let $files := parse-xml(file:read($conf))/exist/db-connection/@files/string()
+            where normalize-space($files) ne ''
+            return
+                (: an absolute path is used as-is; a relative one resolves
+                   against exist-home, exactly as eXist itself does. Absolute
+                   covers POSIX (/…), and Windows drive-letter (C:\…, C:/…) and
+                   UNC (\\…) forms :)
+                if (matches($files, "^([A-Za-z]:|/|\\\\)")) then $files
+                else $home || "/" || $files
+        } catch * {
+            ()
+        }
+    (: order matters: earlier candidates win in monex:jmx-token(). We do NOT
+       fn:distinct-values here — it is order-undefined and would forfeit that
+       priority; duplicates are harmless because the caller takes the first
+       path that actually holds the token file. :)
+    return
+        (
+            util:system-property("exist.data.dir"),   (: honoured only if explicitly -D set :)
+            $conf-files,
+            $home || "/data",
+            $home || "/webapp/WEB-INF/data"           (: standard webapp layout :)
+        )[normalize-space(.) ne '']
+};
+
+(:~
  : Retrieve the JMX authentication token.
  : Only DBA users may call this function.
  :
  : @return the JMX token string, or empty sequence if not available
  :)
 declare function monex:jmx-token() as xs:string? {
-    let $data-dir := system:get-exist-home() || "/data"
-    let $token-file := $data-dir || "/jmxservlet.token"
+    let $token-file :=
+        (monex:data-dir-candidates() ! (. || "/jmxservlet.token"))[file:exists(.)][1]
     return
-        if (file:exists($token-file)) then
-            let $content := file:read($token-file)
+        if (exists($token-file)) then
             (: token file is a Java properties file with key=value lines :)
-            let $lines := tokenize($content, "\n")
-            for $line in $lines
-            let $trimmed := normalize-space($line)
-            where starts-with($trimmed, "token=")
-            return substring-after($trimmed, "token=")
+            let $tokens :=
+                for $line in tokenize(file:read($token-file), "\n")
+                let $trimmed := normalize-space($line)
+                where starts-with($trimmed, "token=")
+                return substring-after($trimmed, "token=")
+            return head($tokens)
         else
             ()
 };
