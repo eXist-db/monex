@@ -25,7 +25,10 @@ declare variable $app:jmx-token :=
         util:import-module(xs:anyURI("http://exist-db.org/xquery/monex"), "monex", xs:anyURI("monex.xqm")),
         function-lookup(xs:QName("monex:jmx-token"), 0)()
     } catch * {
-        false()
+        (: an unresolved token must not break page rendering, but without it
+           non-localhost clients get 403 from /exist/status (#411) :)
+        util:log("warn", "monex: could not resolve JMX token: " || $err:code || ": " || $err:description),
+        ()
     };
 
 declare variable $app:default-timeline-xpaths := map { 
