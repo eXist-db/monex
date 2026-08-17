@@ -120,8 +120,10 @@
                     <tr>
                         <td>token</td>
                         <td>the unique JMX token required to connect to the JMX servlet. This token is generated
-                            for every server and can be found in the file <code>jmxservlet.token</code> 
-                            inside the data directory of the eXist instance. Note: eXist versions before 2.2 
+                            for every server; on recent eXist versions (later than 7.0.0-beta3) it can be
+                            obtained by running <code>system:get-jmx-token()</code> as a DBA on that server,
+                            and it can also be found in the file <code>jmxservlet.token</code>
+                            inside the data directory of the eXist instance. Note: eXist versions before 2.2
                             do not use this mechanism, so no token is required.</td>
                     </tr>
                     <tr>
