@@ -91,7 +91,7 @@ npm ci
 npm run build
 ```
 
-The resulting XAR is written to `dist/monex-<version>.xar`. On a fresh clone, `<version>` will be `0.0.0-development` (see [Release procedure](#release-procedure) for why).
+The resulting XAR is written to `dist/monex-<version>.xar`. On a fresh clone, `<version>` is the most recently released version — the release pipeline commits it back to `master` (see [Release procedure](#release-procedure)).
 
 For local development against a running eXist-db, see also `npm run develop` (live-reload) and `npm run deploy` (install the built XAR into the configured eXist-db instance — set credentials in `.env`, see `.env.example`).
 
@@ -102,10 +102,11 @@ Releases are fully automated: every push to `master` triggers [semantic-release]
 The pipeline takes care of:
 
 1. Analyzing the commit history since the previous Git tag to determine the next SemVer-bumped version.
-2. Writing that version into `package.json` (in-memory on the CI runner) so Gulp builds `dist/monex-<version>.xar` with the right filename.
+2. Writing that version into `package.json` so Gulp builds `dist/monex-<version>.xar` with the right filename.
 3. Inserting a new `<change version="X.Y.Z">` entry into `repo.xml.tmpl` based on the same commit history (via `scripts/update-repo-changelog.js`).
-4. Building the XAR (`npm run build`).
-5. Creating a Git tag (`vX.Y.Z`), creating a corresponding [GitHub Release](https://github.com/eXist-db/monex/releases), and uploading the XAR as a release asset.
+4. Committing the updated `repo.xml.tmpl`, `package.json`, and `package-lock.json` back to `master` as `chore(release): X.Y.Z [skip ci]`, so both the version and the changelog history persist in the repository.
+5. Building the XAR (`npm run build`).
+6. Creating a Git tag (`vX.Y.Z`) on the release commit, creating a corresponding [GitHub Release](https://github.com/eXist-db/monex/releases), and uploading the XAR as a release asset.
 
 ### What contributors need to do
 
@@ -116,9 +117,11 @@ The pipeline takes care of:
   - `chore:`, `docs:`, `ci:`, `build:`, `style:`, `refactor:`, `test:` → no release (cosmetic / housekeeping)
 - That's it. No version bump, no tag creation, no manual release commit.
 
-### Why `package.json` always says `0.0.0-development` on `master`
+### Why the release pipeline commits back to `master`
 
-Intentional, and matches the convention used by [`@existdb/xst`](https://github.com/eXist-db/xst), [`@existdb/node-exist`](https://github.com/eXist-db/node-exist), and [`@existdb/gulp-exist`](https://github.com/eXist-db/gulp-exist). The real version is set in-memory on the CI runner during the release pipeline; nothing is pushed back to `master`, which keeps branch protection meaningful and avoids the need for a PAT or GitHub App to bypass it. See [#386](https://github.com/eXist-db/monex/issues/386) and [#396](https://github.com/eXist-db/monex/pull/396) for the history.
+Following a community vote, monex persists the released version and changelog in the repository: each release ends with a `chore(release): X.Y.Z [skip ci]` commit updating `repo.xml.tmpl`, `package.json`, and `package-lock.json`, and the tag points at that commit. This keeps the `<changelog>` in `repo.xml.tmpl` complete across releases — with the earlier in-memory-only approach, each generated `<change>` entry was lost after its release, so shipped XARs were missing the entries of all previous automated releases (see [#453](https://github.com/eXist-db/monex/pull/453)).
+
+The push is made by the GitHub Actions app with the default `GITHUB_TOKEN`; branch protection explicitly allows it, so no PAT or custom GitHub App is required. Earlier, `master` was pinned to `0.0.0-development` with the version set only in-memory on the CI runner, matching [`@existdb/xst`](https://github.com/eXist-db/xst), [`@existdb/node-exist`](https://github.com/eXist-db/node-exist), and [`@existdb/gulp-exist`](https://github.com/eXist-db/gulp-exist) — see [#386](https://github.com/eXist-db/monex/issues/386) and [#396](https://github.com/eXist-db/monex/pull/396) for that history.
 
 ### What release managers need to do
 
