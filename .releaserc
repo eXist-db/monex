@@ -10,6 +10,10 @@
       "prepareCmd": "npm version ${nextRelease.version} --no-git-tag-version --allow-same-version && node scripts/update-repo-changelog.js --version=${nextRelease.version} --prev-tag=${lastRelease.version}",
       "publishCmd": "npm run build"
     }],
+    ["@semantic-release/git", {
+      "assets": ["repo.xml.tmpl"],
+      "message": "chore(release): ${nextRelease.version} [skip ci]"
+    }],
     ["@semantic-release/github", {
       "assets": [{
         "path": "dist/monex-*.xar",
