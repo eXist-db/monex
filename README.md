@@ -107,6 +107,7 @@ The pipeline takes care of:
 4. Committing the updated `repo.xml.tmpl`, `package.json`, and `package-lock.json` back to `master` as `chore(release): X.Y.Z [skip ci]`, so both the version and the changelog history persist in the repository.
 5. Building the XAR (`npm run build`).
 6. Creating a Git tag (`vX.Y.Z`) on the release commit, creating a corresponding [GitHub Release](https://github.com/eXist-db/monex/releases), and uploading the XAR as a release asset.
+7. Publishing the XAR to the [eXist-db public package repository](https://exist-db.org/exist/apps/public-repo): the published release triggers the `Publish to public-repo` workflow, which downloads the XAR from the GitHub Release and uploads it with the org's repository credentials. A failed or historical upload can be redone any time by dispatching that workflow manually with the release tag.
 
 ### What contributors need to do
 
