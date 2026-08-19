@@ -12,6 +12,13 @@
     <finish>post-install.xql</finish>
     <permissions password="monex" user="monex" group="monex" mode="rw-rw-r--"/>
     <changelog>
+        <change version="5.1.1">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Fix: changelog: persist release changelog and repair entry generation</li>
+                <li>Fix: cypress.config: switch to ESM</li>
+                <li>Fix: jmx-token: resolve token via system:get-jmx-token()</li>
+            </ul>
+        </change>
         <change version="5.1.0">
             <ul xmlns="http://www.w3.org/1999/xhtml">
                 <li>New: add copy to stack</li>
@@ -214,7 +221,7 @@
         </change>
         <change version="0.9.8">
             <ul xmlns="http://www.w3.org/1999/xhtml">
-                <li>Show version of Java in the Monitoring > System Information pane</li>
+                <li>Show version of Java in the Monitoring &gt; System Information pane</li>
                 <li>Removed package's semver-max to ensure compatibility with all eXist 3.x releases</li>
             </ul>
         </change>
