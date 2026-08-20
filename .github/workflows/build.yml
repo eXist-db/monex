@@ -62,7 +62,7 @@ jobs:
       # The default GITHUB_TOKEN cannot push the release commit through the
       # protection on master; mint a short-lived token for the exist-bot
       # GitHub App (a bypass actor) instead.
-      - uses: actions/create-github-app-token@v2
+      - uses: actions/create-github-app-token@v3
         id: app-token
         with:
           app-id: ${{ vars.RELEASE_BOT_APP_ID }}
