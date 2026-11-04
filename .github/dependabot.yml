@@ -15,6 +15,12 @@ updates:
     time: "03:00"
   open-pull-requests-limit: 10
   versioning-strategy: increase
+  ignore:
+    # semantic-release's stable commit-analyzer / release-notes-generator still
+    # bundle conventional-changelog-writer v8, which cannot render preset v10.
+    # Lift once they move to writer v9.
+    - dependency-name: "conventional-changelog-conventionalcommits"
+      update-types: ["version-update:semver-major"]
   groups:
     production-dependencies:
       dependency-type: "production"

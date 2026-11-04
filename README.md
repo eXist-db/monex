@@ -103,7 +103,7 @@ The pipeline takes care of:
 
 1. Analyzing the commit history since the previous Git tag to determine the next SemVer-bumped version.
 2. Writing that version into `package.json` so Gulp builds `dist/monex-<version>.xar` with the right filename.
-3. Inserting a new `<change version="X.Y.Z">` entry into `repo.xml.tmpl` based on the same commit history (via `scripts/update-repo-changelog.js`).
+3. Inserting a new `<change version="X.Y.Z">` entry into `repo.xml.tmpl` based on the same commit history (via the [`@existdb/repo-xml-changelog-generator`](https://github.com/eXist-db/repo-xml-changelog-generator) semantic-release plugin).
 4. Committing the updated `repo.xml.tmpl`, `package.json`, and `package-lock.json` back to `master` as `chore(release): X.Y.Z [skip ci]`, so both the version and the changelog history persist in the repository.
 5. Building the XAR (`npm run build`).
 6. Creating a Git tag (`vX.Y.Z`) on the release commit, creating a corresponding [GitHub Release](https://github.com/eXist-db/monex/releases), and uploading the XAR as a release asset.
