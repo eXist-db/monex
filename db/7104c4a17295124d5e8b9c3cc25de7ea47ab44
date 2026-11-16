@@ -1,0 +1,37 @@
+README.md
+  s_7706e27dff665e::t_ad178d10c945f3 13,21
+src/main/xar-resources/index.html
+  s_7706e27dff665e::t_71638a752bb280 361-428
+src/main/xar-resources/modules/remote.xql
+  s_7706e27dff665e::t_ad548c90259403 19
+src/main/xar-resources/resources/scripts/dashboard/06-polling.js
+  s_7706e27dff665e::t_adef652aba10e9 213,241,264
+src/main/xar-resources/resources/scripts/dashboard/10-node-lookups.js
+  s_7706e27dff665e::t_daeb5a5251b721 1-194
+src/main/xar-resources/resources/scripts/monex-dashboard.js
+  s_7706e27dff665e::t_88f4a6ca1c9777 1769,1797,1820,2307-2501
+src/test/cypress/e2e/node_lookups_adapter_spec.cy.js
+  s_7706e27dff665e::t_23c0d6485bfdf4 1-108
+src/test/cypress/fixtures/jmx-nodelookups-no-anchors.xml
+  s_7706e27dff665e::t_a1d091d1edb9c6 1-26
+src/test/cypress/fixtures/jmx-nodelookups-over-limit.xml
+  s_7706e27dff665e::t_ea0de3e539b61e 1-39
+src/test/cypress/fixtures/jmx-nodelookups-sample.xml
+  s_7706e27dff665e::t_e32b2cf87a2f18 1-39
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "db7104c4a17295124d5e8b9c3cc25de7ea47ab44",
+  "prompts": {},
+  "sessions": {
+    "s_7706e27dff665e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c70efcb1-bba9-4559-8700-cc8bc501bf09",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
