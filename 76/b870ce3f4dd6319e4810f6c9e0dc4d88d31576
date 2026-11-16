@@ -1,0 +1,23 @@
+src/test/cypress/e2e/details_spec.cy.js
+  s_7706e27dff665e::t_41164b9d4444a8 36-46
+src/main/xar-resources/modules/app.xql
+  s_7706e27dff665e::t_851963e74819c0 562-569,582-587,737-741,780-784,823-827,889-893
+src/test/cypress/e2e/timelines_spec.cy.js
+  s_7706e27dff665e::t_bd12c4f2f927d4 12-20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "76b870ce3f4dd6319e4810f6c9e0dc4d88d31576",
+  "prompts": {},
+  "sessions": {
+    "s_7706e27dff665e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c70efcb1-bba9-4559-8700-cc8bc501bf09",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
