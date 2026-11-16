@@ -1,0 +1,21 @@
+src/main/xar-resources/index.html
+  s_7706e27dff665e::t_f8ab679d25e048 307,359
+src/test/cypress/e2e/monitoring_spec.cy.js
+  s_7706e27dff665e::t_095b81eae61e27 48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e6f9cbe70d173d501c4f4eed07cde9a2c710c7ea",
+  "prompts": {},
+  "sessions": {
+    "s_7706e27dff665e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c70efcb1-bba9-4559-8700-cc8bc501bf09",
+        "model": "unknown"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
