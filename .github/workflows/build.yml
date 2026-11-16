@@ -46,7 +46,7 @@ jobs:
           npx cypress install
       - run: npm run build
       - name: Install XAR
-        run: npx --yes @existdb/xst package install dist/monex-*.xar
+        run: npx --yes @existdb/xst package install dist/monex-*.xar --force
         env:
           EXISTDB_USER: admin
           EXISTDB_PASS:
