@@ -1,0 +1,37 @@
+src/main/xar-resources/resources/scripts/dashboard/10-node-lookups.js
+  s_7706e27dff665e::t_15986b89837ed9 12-15,18-22,86-134,136-178,180-181,199-201,205,228-229,235-238,241-244,250,252-253,262-301,305-306,310,313,315-317,319,321,345,349-351,353,355,357,360-368,370-393,396,398,405-407,412-424,429,444-668,676-677,680-682,686,693-696
+  s_7706e27dff665e::t_daeb5a5251b721 1-11,16-17,23-85,135,179,182-198,202-204,206-227,230-234,239-240,245-249,251,254-261,302-304,307-309,311-312,314,318,320,322-344,346-348,352,354,356,358-359,369,394-395,397,399-404,408-411,425-428,430-443,669-675,678-679,683-685,687-692,697
+src/main/xar-resources/resources/css/style.css
+  s_7706e27dff665e::t_90eb9f775c2084 1685-1943
+src/main/xar-resources/modules/remote.xql
+  s_7706e27dff665e::t_ad548c90259403 19
+src/main/xar-resources/index.html
+  s_7706e27dff665e::t_71638a752bb280 361-430
+README.md
+  s_7706e27dff665e::t_ad178d10c945f3 13,21
+src/main/xar-resources/resources/scripts/monex-dashboard.js
+  s_7706e27dff665e::t_88f4a6ca1c9777 1769,1797,1820,2307-3004
+src/main/xar-resources/resources/scripts/dashboard/06-polling.js
+  s_7706e27dff665e::t_adef652aba10e9 213,241,264
+src/test/cypress/fixtures/jmx-nodelookups-sample.xml
+  s_7706e27dff665e::t_e32b2cf87a2f18 1-39
+src/test/cypress/e2e/node_lookups_adapter_spec.cy.js
+  s_7706e27dff665e::t_23c0d6485bfdf4 1-13,58-73,88-91,93,95,103-106,108,115-117,119,127-129,223-226,250,268-271
+  s_7706e27dff665e::t_b59ea7e732875f 14-57,74-87,92,94,96-102,107,109-114,118,120-126,130-222,227-249,251-267
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bd8739e87904486d85227124726f1a8e5c483ea6",
+  "prompts": {},
+  "sessions": {
+    "s_7706e27dff665e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c70efcb1-bba9-4559-8700-cc8bc501bf09",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": null
+    }
+  }
+}
