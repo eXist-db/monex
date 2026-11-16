@@ -1,0 +1,27 @@
+src/main/xar-resources/index.html
+  s_7706e27dff665e::t_9027a0968b6968 386
+src/main/xar-resources/resources/css/style.css
+  s_7706e27dff665e::t_bf0d4efa130d72 1776-1780
+src/main/xar-resources/resources/scripts/dashboard/10-node-lookups.js
+  s_7706e27dff665e::t_d7e95b417ede35 337-341,689
+src/main/xar-resources/resources/scripts/monex-dashboard.js
+  s_7706e27dff665e::t_f8eff0cc5a87b2 2644-2648,2996
+src/test/cypress/e2e/node_lookups_adapter_spec.cy.js
+  s_7706e27dff665e::t_4c249933234792 141-149
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2f0413001d114f6b02a0f139c344ba553b152733",
+  "prompts": {},
+  "sessions": {
+    "s_7706e27dff665e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c70efcb1-bba9-4559-8700-cc8bc501bf09",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
