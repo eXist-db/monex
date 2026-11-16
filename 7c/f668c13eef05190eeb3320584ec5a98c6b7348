@@ -1,0 +1,21 @@
+src/main/xar-resources/modules/app.xql
+  s_7706e27dff665e::t_541e82707663ef 562-583,598-599,749,788,827,889
+src/main/xar-resources/modules/test-timeline.xql
+  s_7706e27dff665e::t_6968a7ca461caa 69,78
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7cf668c13eef05190eeb3320584ec5a98c6b7348",
+  "prompts": {},
+  "sessions": {
+    "s_7706e27dff665e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c70efcb1-bba9-4559-8700-cc8bc501bf09",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
