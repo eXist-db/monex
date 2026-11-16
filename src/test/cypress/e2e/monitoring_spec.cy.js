@@ -45,7 +45,7 @@ describe('Monex index page', () => {
 
     // The collapse button of the box widget hides the direct children .box-body and .box-footer of its box. A wrapper
     // element between the box and its body, as a with: binding on a div makes, leaves it nothing to hide.
-    ;['Node lookups'].forEach((title) => {
+    ;['Embeddings', 'Node lookups'].forEach((title) => {
       it(`should collapse and expand the ${title} panel`, () => {
         cy.contains('.box-title', title).closest('.box').as('panel')
         cy.get('@panel').children('.box-header').should('have.length', 1)

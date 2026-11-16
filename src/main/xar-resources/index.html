@@ -304,7 +304,7 @@
                 </div>
 
                 <div class="box dashboard-panel" data-bind="visible: vectorPanelVisible($data)">
-                    <div data-bind="with: vector">
+                    <!-- ko with: vector -->
                     <div class="box-header" data-bind="attr: { title: available() &amp;&amp; knnBackend() ? ('KNN backend: ' + knnBackend()) : '' }">
                         <h3 class="box-title">Embeddings</h3>
                         <div class="box-tools pull-right">
@@ -356,7 +356,7 @@
                             </tbody>
                         </table>
                     </div>
-                    </div>
+                    <!-- /ko -->
                 </div>
 
                 <div class="box dashboard-panel" data-bind="visible: nodeLookupsPanelVisible($data)">
