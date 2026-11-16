@@ -1,0 +1,46 @@
+src/test/cypress/fixtures/jmx-nodelookups-sample.xml
+  s_7706e27dff665e::t_e32b2cf87a2f18 1-39
+src/main/xar-resources/resources/css/style.css
+  s_7706e27dff665e::t_90eb9f775c2084 1685-1775,1781-1948
+  s_7706e27dff665e::t_bf0d4efa130d72 1776-1780
+README.md
+  s_7706e27dff665e::t_ad178d10c945f3 13,21
+src/main/xar-resources/resources/scripts/dashboard/10-node-lookups.js
+  s_7706e27dff665e::t_15986b89837ed9 12-15,18-22,86-134,136-178,180-181,199-201,205,228-229,235-238,241-244,250,252-253,262-301,305-306,310,313,315-317,319,321,350,354-356,358,360,362,365-373,375-398,401,403,410-412,417-429,434,449-673,681-682,685-687,692,699-702
+  s_7706e27dff665e::t_daeb5a5251b721 1-11,16-17,23-85,135,179,182-198,202-204,206-227,230-234,239-240,245-249,251,254-261,302-304,307-309,311-312,314,318,320,322-336,342-349,351-353,357,359,361,363-364,374,399-400,402,404-409,413-416,430-433,435-448,674-680,683-684,688,690-691,693-698,703
+  s_7706e27dff665e::t_d7e95b417ede35 337-341,689
+src/test/cypress/e2e/node_lookups_adapter_spec.cy.js
+  s_7706e27dff665e::t_23c0d6485bfdf4 1-13,58-64,65-67,82-85,87,89,97-100,102,109-111,113,121-123,226-229,253,271-274
+  s_7706e27dff665e::t_b59ea7e732875f 14-57,68-81,86,88,90-96,101,103-108,112,114-120,124-140,150-225,230-252,254-270
+  s_7706e27dff665e::t_4c249933234792 141-149
+src/main/xar-resources/resources/scripts/monex-dashboard.js
+  s_7706e27dff665e::t_88f4a6ca1c9777 1769,1797,1820,2307-2643,2649-2995,2997-3010
+  s_7706e27dff665e::t_f8eff0cc5a87b2 2644-2648,2996
+src/main/xar-resources/modules/remote.xql
+  s_7706e27dff665e::t_ad548c90259403 19
+src/main/xar-resources/resources/scripts/dashboard/06-polling.js
+  s_7706e27dff665e::t_adef652aba10e9 213,241,264
+src/main/xar-resources/index.html
+  s_7706e27dff665e::t_71638a752bb280 361-385,387-430
+  s_7706e27dff665e::t_f8ab679d25e048 307,359
+  s_7706e27dff665e::t_9027a0968b6968 386
+src/test/cypress/e2e/monitoring_spec.cy.js
+  s_7706e27dff665e::t_422380d3d28721 46-47,49-66
+  s_7706e27dff665e::t_095b81eae61e27 48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "19c77d3f65ca4d0f297431e39984861da9b87ba5",
+  "prompts": {},
+  "sessions": {
+    "s_7706e27dff665e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c70efcb1-bba9-4559-8700-cc8bc501bf09",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": null
+    }
+  }
+}
