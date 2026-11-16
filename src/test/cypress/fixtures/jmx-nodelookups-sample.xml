@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmx:jmx xmlns:jmx="http://exist-db.org/jmx" version="1">
+    <!-- Servlet output of /status?c=nodelookups on an eXist-db 7 build with anchors on (limit 64): two documents stored (600 and 20 elements), every element found again by its id and through its parent, counting per document on. -->
+    <jmx:NodeLookups name="org.exist.management.exist:type=NodeLookups">
+        <jmx:DocumentStatistics>true</jmx:DocumentStatistics>
+        <jmx:Statistics>
+            <jmx:ancestorFallbacks>0</jmx:ancestorFallbacks>
+            <jmx:buckets>
+                <jmx:beyondLimit>0</jmx:beyondLimit>
+                <jmx:upToHalf>156</jmx:upToHalf>
+                <jmx:upToLimit>304</jmx:upToLimit>
+                <jmx:upToQuarter>818</jmx:upToQuarter>
+            </jmx:buckets>
+            <jmx:exactHits>70</jmx:exactHits>
+            <jmx:forwardLinkHops>0</jmx:forwardLinkHops>
+            <jmx:lookupsFromEntry>1278</jmx:lookupsFromEntry>
+            <jmx:recordsScanned>21654</jmx:recordsScanned>
+            <jmx:rejectedEntries>0</jmx:rejectedEntries>
+        </jmx:Statistics>
+        <jmx:IndexScanLimit>64</jmx:IndexScanLimit>
+        <jmx:TopDocuments>
+            <jmx:row>
+                <jmx:documentId>5</jmx:documentId>
+                <jmx:lookups>1200</jmx:lookups>
+                <jmx:recordsScanned>20872</jmx:recordsScanned>
+                <jmx:uri>/db/wide.xml</jmx:uri>
+            </jmx:row>
+            <jmx:row>
+                <jmx:documentId>6</jmx:documentId>
+                <jmx:lookups>40</jmx:lookups>
+                <jmx:recordsScanned>604</jmx:recordsScanned>
+                <jmx:uri>/db/small.xml</jmx:uri>
+            </jmx:row>
+        </jmx:TopDocuments>
+        <jmx:IndexDepth>5</jmx:IndexDepth>
+        <jmx:InstanceId>exist</jmx:InstanceId>
+        <jmx:Name>org.exist.management.exist:type=NodeLookups</jmx:Name>
+    </jmx:NodeLookups>
+</jmx:jmx>

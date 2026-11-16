@@ -358,6 +358,76 @@
                     </div>
                     </div>
                 </div>
+
+                <div class="box dashboard-panel" data-bind="visible: nodeLookupsPanelVisible($data)">
+                    <!-- ko with: nodeLookups -->
+                    <div class="box-header" title="How nodes are found again by their id (the .. and ancestor:: steps, util:node-by-id, field expressions of the Lucene and range indexes): by an entry of their own in the DOM index, by reading forward from the nearest entry before them, or by climbing to an ancestor.">
+                        <h3 class="box-title">Node lookups</h3>
+                        <div class="box-tools pull-right">
+                            <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"/></button>
+                        </div>
+                    </div>
+                    <div class="box-body node-lookups-panel-body">
+                        <div class="nl-hero">
+                            <span class="nl-hero-value" data-bind="text: nodeLookupsRecordsPerRead($data)">—</span>
+                            <span class="nl-hero-text">
+                                <span class="nl-hero-label">records read when a lookup has to read</span>
+                                <span class="nl-hero-sub" data-bind="text: nodeLookupsHeroSub($data)"></span>
+                            </span>
+                            <div class="nl-trend">
+                                <div id="nl-spark" class="nl-spark"></div>
+                                <div id="nl-lane" class="nl-lane"></div>
+                                <div class="nl-trend-caption">
+                                    <span data-bind="text: nodeLookupsSpanText($data) + ' · now ' + nodeLookupsNowText($data)"></span>
+                                    <span class="nl-trend-message" data-bind="text: nodeLookupsTrendMessage($data).text, css: { 'nl-trend-bad': nodeLookupsTrendMessage($data).tone === 'bad' }"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="nl-bar" role="img" data-bind="foreach: nodeLookupsSegments($data), css: { 'nl-bar-empty': nodeLookupsBarEmpty($data) }, attr: { 'aria-label': nodeLookupsBarSummary($data) }">
+                            <!-- ko if: count > 0 -->
+                            <div class="nl-seg" data-bind="css: css, style: { width: percent + '%' }, attr: { title: title }">
+                                <span data-bind="text: showLabel ? percentText : ''"></span>
+                            </div>
+                            <!-- /ko -->
+                        </div>
+                        <ul class="nl-legend" data-bind="foreach: nodeLookupsSegments($data)">
+                            <li data-bind="css: { 'nl-zero': count === 0 }, attr: { title: title }">
+                                <span class="nl-swatch" data-bind="css: css"></span>
+                                <span class="nl-legend-label" data-bind="text: legend"></span>
+                                <strong class="nl-legend-count" data-bind="text: countText"></strong>
+                            </li>
+                        </ul>
+                        <div class="nl-note nl-note-warn" data-bind="visible: nodeLookupsOverLimit($data)">
+                            <i class="fa fa-exclamation-triangle"></i>
+                            <span data-bind="text: nodeLookupsAdvice($data)"></span>
+                        </div>
+                        <div class="nl-note" data-bind="visible: nodeLookupsAnchorsOffNote($data)">
+                            <i class="fa fa-info-circle"></i>
+                            <span>Anchors are off: a lookup without an entry reads as far as the width of its parent. Set <code>index-scan-limit</code> in conf.xml to bound it.</span>
+                        </div>
+                        <table class="table table-condensed nl-documents" data-bind="visible: topDocuments().length &gt; 0">
+                            <thead>
+                                <tr>
+                                    <th>Document</th>
+                                    <th class="text-right">Lookups</th>
+                                    <th class="nl-documents-reads" title="Counted since the counting per document was switched on">Records per lookup</th>
+                                </tr>
+                            </thead>
+                            <tbody data-bind="foreach: topDocuments">
+                                <tr>
+                                    <td data-bind="text: uri"></td>
+                                    <td class="text-right" data-bind="text: lookups"></td>
+                                    <td class="nl-documents-reads">
+                                        <span class="nl-mini"><span class="nl-mini-fill" data-bind="style: { width: nodeLookupsRowWidth($data, $parent) }, css: { 'nl-over': nodeLookupsRowOver($data, $parent) }"></span></span>
+                                        <span data-bind="text: nodeLookupsPerLookupText($data)"></span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p class="nl-footnote" data-bind="text: nodeLookupsFootnote($data)"></p>
+                    </div>
+                    <!-- /ko -->
+                </div>
             </section>
 
             <section class="col-md-12 col-lg-6 workload-panel">

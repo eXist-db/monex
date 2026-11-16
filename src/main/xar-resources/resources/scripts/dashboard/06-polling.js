@@ -210,7 +210,7 @@ JMX.connection = (function() {
             var name = currentInstance.name();
             if (name == "localhost") {
                 url = location.pathname.replace(/^(.*?)\/(apps\/)?monex\/.*$/, "$1") +
-                    "/status?c=instances&c=processes&c=locking&c=memory&c=caches&c=system&c=operatingsystem&c=disk&c=vector&token=" + currentInstance.token;
+                    "/status?c=instances&c=processes&c=locking&c=memory&c=caches&c=system&c=operatingsystem&c=disk&c=vector&c=nodelookups&token=" + currentInstance.token;
             } else {
                 url = "modules/remote.xql?name=" + name;
             }
@@ -238,6 +238,7 @@ JMX.connection = (function() {
                                 Monex.activity.attachDashboardViewModel(viewModel, { livePoll: true });
                                 viewModel.vector = createVectorViewModel(null);
                                 viewModel.vectorStore = Monex.vector.createVectorStoreViewModel(null);
+                                viewModel.nodeLookups = Monex.nodeLookups.createViewModel(null);
                                 viewModel.gc = function() {
                                     JMX.connection.invoke("gc", "java.lang:type=Memory");
                                 };
@@ -260,6 +261,7 @@ JMX.connection = (function() {
                                 }
                             }
                             Monex.vector.syncVectorFromJmx(viewModel, data.jmx);
+                            Monex.nodeLookups.syncFromJmx(viewModel, data.jmx);
                             updatePollStatus(viewModel, pollStarted, pollFinished);
                             var liveRunning = runningQueryCount(data.jmx);
                             if (liveRunning > lastLiveRunningQueryCount) {

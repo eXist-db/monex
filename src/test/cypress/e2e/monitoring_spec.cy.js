@@ -43,6 +43,27 @@ describe('Monex index page', () => {
       cy.get('.dashboard-system-footer .database-status-label').should('not.exist')
     })
 
+    // The collapse button of the box widget hides the direct children .box-body and .box-footer of its box. A wrapper
+    // element between the box and its body, as a with: binding on a div makes, leaves it nothing to hide.
+    ;['Node lookups'].forEach((title) => {
+      it(`should collapse and expand the ${title} panel`, () => {
+        cy.contains('.box-title', title).closest('.box').as('panel')
+        cy.get('@panel').children('.box-header').should('have.length', 1)
+        cy.get('@panel').children('.box-body').should('have.length', 1)
+        cy.get('@panel').then(($panel) => {
+          // the panel is hidden on a server without the extension it shows; the structure above is checked either way
+          if (!$panel.is(':visible')) {
+            return
+          }
+          cy.get('#pause-btn').click()
+          cy.get('@panel').find('[data-widget="collapse"]').click()
+          cy.get('@panel').children('.box-body').should('not.be.visible')
+          cy.get('@panel').find('[data-widget="collapse"]').click()
+          cy.get('@panel').children('.box-body').should('be.visible')
+        })
+      })
+    })
+
     // This test needs work to meaningfully work with both full jdk with model, and no vector instances
     it('should populate embeddings panel from JMX vector MBeans', () => {
       cy.waitForMonitoringViewModel({ timeout: 20000 })
