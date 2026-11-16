@@ -559,6 +559,30 @@ declare function app:process-time-interval-params($pstart as xs:string, $pend as
     return ($start, $end)
 };
 
+(:~
+ : The path of the collection that holds the stored snapshots of an instance, if there is one.
+ :
+ : An instance that has not been recorded yet has no collection of its own, and fn:collection raises err:FODC0002 for a
+ : collection that does not exist (since eXist-db/exist#6812; it returned the empty sequence before), so a page that reads
+ : the snapshots of such an instance would answer with a 500 instead of saying that it has none.
+ :
+ : Bind the path with the simple map operator and keep the path expression after it, as in
+ : app:snapshots-collection($instance) ! collection(.)/jmx:jmx[jmx:timestamp lt $time]. That is the form eXist optimises
+ : with the range index on jmx:timestamp, whereas a filter on the result of a function that returns the documents is not,
+ : and it gives the empty sequence for an instance without snapshots.
+ :
+ : @param $instance the name of the instance
+ : @return the path of the collection of its snapshots, or the empty sequence if nothing was recorded for it
+ :)
+declare function app:snapshots-collection($instance as xs:string) as xs:string? {
+    let $path := $config:data-root || "/" || $instance
+    return
+        if (xmldb:collection-available($path)) then
+            $path
+        else
+            ()
+};
+
 (: Returns the set of JMX recordes from the given time period.
  : A session-scope cache is used to keep the most recent results in memory. :)
 declare function app:jmxs-for-time-interval($instance as xs:string, $start as xs:dateTime, $end as xs:dateTime) {
@@ -571,7 +595,7 @@ declare function app:jmxs-for-time-interval($instance as xs:string, $start as xs
             then (
                 session:get-attribute("cached-timeline-jmxs")
             ) else (
-                let $jmxs := collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:Database]
+                let $jmxs := app:snapshots-collection($instance) ! collection(.)/jmx:jmx[jmx:Database]
                         [xs:dateTime(jmx:timestamp) ge $start][xs:dateTime(jmx:timestamp) le $end]
                 return (
                     session:set-attribute("cached-timeline-jmxs", $jmxs),
@@ -722,7 +746,7 @@ function app:load-record($node as node(), $model as map(*), $instance as xs:stri
             ""
         else
             let $date := app:milliseconds-to-time($ms)
-            let $jmx := collection($config:data-root || "/" || $instance)/jmx:jmx[xs:dateTime(jmx:timestamp) = xs:dateTime($date)]
+            let $jmx := app:snapshots-collection($instance) ! collection(.)/jmx:jmx[xs:dateTime(jmx:timestamp) = xs:dateTime($date)]
             return
                 if (empty($jmx)) then
                     ""
@@ -761,7 +785,7 @@ function app:time-navigation-back($node as node(), $model as map(*), $instance a
             let $date := app:milliseconds-to-time($ms)
             let $jmx := 
                 (
-                    for $rec in collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:timestamp < xs:dateTime($date)]
+                    for $rec in app:snapshots-collection($instance) ! collection(.)/jmx:jmx[jmx:timestamp < xs:dateTime($date)]
                     order by xs:dateTime($rec/jmx:timestamp)
                     return
                         $rec
@@ -800,7 +824,7 @@ function app:time-navigation-forward($node as node(), $model as map(*), $instanc
             let $date := app:milliseconds-to-time($ms)
             let $jmx :=
                 (
-                    for $rec in collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:timestamp > xs:dateTime($date)]
+                    for $rec in app:snapshots-collection($instance) ! collection(.)/jmx:jmx[jmx:timestamp > xs:dateTime($date)]
                     order by xs:dateTime($rec/jmx:timestamp)
                     return
                         $rec
@@ -862,7 +886,7 @@ function app:edit-source($node as node(), $model as map(*), $instance as xs:stri
             }
         else
             let $date := app:milliseconds-to-time($ms)
-            let $doc := collection($config:data-root || "/" || $instance)/jmx:jmx[xs:dateTime(jmx:timestamp) = xs:dateTime($date)]
+            let $doc := app:snapshots-collection($instance) ! collection(.)/jmx:jmx[xs:dateTime(jmx:timestamp) = xs:dateTime($date)]
             return
                 if (empty($doc)) then
                     element { node-name($node) } {

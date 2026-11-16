@@ -9,6 +9,15 @@ describe('Monex timelines page', () => {
     cy.loginApi()
   })
 
+  describe('for an instance that was never recorded', () => {
+    // It has no collection of its own, and collection() raises FODC0002 for that since eXist-db/exist#6812.
+    ;['memory-graph', 'cpu-graph'].forEach((id) => {
+      it(`serves the ${id} timeline data and not a server error`, () => {
+        cy.request(`modules/update-timeline.xql?instance=never-recorded&id=${id}`).its('status').should('eq', 200)
+      })
+    })
+  })
+
   describe('page assets', () => {
     it('serves daterangepicker css from resources/css', () => {
       cy.request('resources/css/daterangepicker.css').its('status').should('eq', 200)

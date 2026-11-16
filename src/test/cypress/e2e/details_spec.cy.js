@@ -33,6 +33,17 @@ describe('Monex details page', () => {
     })
   })
 
+  describe('for an instance that was never recorded', () => {
+    // It has no collection of its own, and collection() raises FODC0002 for that since eXist-db/exist#6812.
+    it('shows guidance and not a server error', () => {
+      cy.visitMonexDetailsPage({ timestamp: 1, instance: 'never-recorded' })
+
+      cy.contains('.breadcrumb .active', 'Detailed Status').should('be.visible')
+      cy.contains('#details-empty-state', 'No stored snapshot for this timestamp').should('be.visible')
+      cy.get('#details-dashboard').should('not.be.visible')
+    })
+  })
+
   describe('historical snapshot (timelines URL)', () => {
     beforeEach('seed stored JMX and open the URL timelines uses', () => {
       cy.ensureMonexDetailsSnapshot().then((snapshot) => {

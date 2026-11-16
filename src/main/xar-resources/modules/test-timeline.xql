@@ -66,7 +66,7 @@ declare function local:test-timeline(){
 };
 
 declare function local:test-xpath-expression-with-eval($instance){
-        let $jmx := collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:Database]
+        let $jmx := app:snapshots-collection($instance) ! collection(.)/jmx:jmx[jmx:Database]
         return 
             if ($jmx) 
                 then (util:eval("$jmx//jmx:ProcessCpuLoad",false()))
@@ -75,7 +75,7 @@ declare function local:test-xpath-expression-with-eval($instance){
 };
 
 declare function local:test-xpath-expression-without-eval($instance){
-        let $jmx := collection($config:data-root || "/" || $instance)/jmx:jmx[jmx:Database]
+        let $jmx := app:snapshots-collection($instance) ! collection(.)/jmx:jmx[jmx:Database]
         return 
             $jmx//jmx:ProcessCpuLoad
 };
